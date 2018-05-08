@@ -2,11 +2,13 @@
 #include "MainMenu.h"
 #include "ClientGame.h"
 #include "ServerGame.h"
+#include "Globals.h"
 
 #define VERSION_NUMBER 1;
 
 Master::Master() {
 	console::clearLogFile();
+	g::init();
 
 	gui.init(this);
 
@@ -34,9 +36,9 @@ void Master::createWindow(WindowState state) {
 	else if (state == WindowState::GameServer)
 		window.create(sf::VideoMode(width, height), "lentsikat - Server", sf::Style::Titlebar | sf::Style::Close, cs);
 	else if (state == WindowState::MainMenu)
-		window.create(sf::VideoMode(width, height), "lentsikat", sf::Style::Titlebar | sf::Style::Close, cs);
+		window.create(sf::VideoMode(width, height), "lentsikat", settings.style, cs);
 
-	if (windowWasOpen)
+	if (windowWasOpen == true && settings.fullscreen != true)
 		window.setPosition(oldPos);
 
 	if (settings.vsync == false && settings.framerateLimit != 0 && state != WindowState::GameServer) {
@@ -51,6 +53,8 @@ void Master::createWindow(WindowState state) {
 	window.setView(view);
 
 	gui.setTarget(window);
+
+	tgui::Clipboard::setWindowHandle(window.getSystemHandle());
 }
 
 int Master::loop() {

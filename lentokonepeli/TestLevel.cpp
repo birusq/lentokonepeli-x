@@ -2,7 +2,7 @@
 #include <iostream>
 
 TestLevel::TestLevel() {
-	if (!bgTex.loadFromFile("blue-clouds.jpg")) {
+	if (!bgTex.loadFromFile("res/blue-clouds.jpg")) {
 		std::cout << "Could not load bg texture";
 	}
 
@@ -15,13 +15,9 @@ TestLevel::TestLevel() {
 	ground.setSize(sf::Vector2f(1000, 30));
 	ground.setPosition(0, 140);
 
-	tenUnits.setFillColor(sf::Color::Magenta);
-	tenUnits.setSize(sf::Vector2f(10, 10));
-
 }
 
 void TestLevel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 	target.draw(bg, states);
 	target.draw(ground, states);
-	target.draw(tenUnits, states);
 }

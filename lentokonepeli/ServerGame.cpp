@@ -8,10 +8,11 @@ ServerGame::ServerGame(Master* master_) : Game(master_) {
 }
 
 void ServerGame::loop() {
-	float t = 0.0;
 	float dt = 1.0F / fixedUpdateFps;
 
 	sf::Clock clock;
+
+	int renderCounter = 0;
 
 	while (master->window.isOpen() && running) {
 
@@ -28,7 +29,11 @@ void ServerGame::loop() {
 
 		fixedUpdate(dt);
 
-		render(master->window);
+		renderCounter++;
+		if (renderCounter == 2) {
+			render(master->window);
+			renderCounter = 0;
+		}
 
 		sf::sleep(sf::seconds(dt - clock.getElapsedTime().asSeconds()));
 	}

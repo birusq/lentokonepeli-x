@@ -2,6 +2,7 @@
 #include "MainMenu.h"
 #include "FpsCounter.h"
 #include "Master.h"
+#include "Globals.h"
 
 MainMenu::MainMenu(Master* master_) : FpsCounter(master_) {
 	master = master_;
@@ -34,7 +35,7 @@ void MainMenu::loop() {
 }
 
 void MainMenu::render(sf::RenderWindow& w) {
-	w.clear(sf::Color(74, 186, 80));
+	w.clear(sf::Color(palette::strongGrey));
 
 	gui->draw();
 

@@ -15,8 +15,7 @@ void GOManager::removeShip(uchar clientId) {
 
 void GOManager::drawAll(sf::RenderWindow& window) {
 	for (auto& s : ships) {
-		s.second.updateVisuals();
-		window.draw(s.second);
+		s.second.draw(window);
 	}
 }
 

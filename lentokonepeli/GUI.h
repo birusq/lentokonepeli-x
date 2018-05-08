@@ -11,8 +11,6 @@ class GUI {
 private:
 	tgui::Gui gui;
 	Master* master;
-
-	tgui::Font font;
 	
 	sf::Clock clock;
 	float time = 0;
@@ -54,6 +52,10 @@ public:
 	void handleEvent(sf::Event event);
 
 	void teamJoinAccepted();
+
+	tgui::Button::Ptr createButton(tgui::Panel::Ptr parent, std::string text = "", unsigned int textSize = 14, tgui::Color bgColor = tgui::Color::White, bool useDarkText = true);
+
+	tgui::Color tint(tgui::Color baseColor, tgui::Color tintColor, float factor);
 
 	Server* server;
 	Client* client;

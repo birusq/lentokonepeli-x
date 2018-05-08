@@ -135,6 +135,7 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientGame.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="FpsCounter.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -270,6 +271,7 @@
     <ClInclude Include="ClientGame.h" />
     <ClInclude Include="Closeable.h" />
     <ClInclude Include="Collider.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="FpsCounter.h" />
     <ClInclude Include="Game.h" />

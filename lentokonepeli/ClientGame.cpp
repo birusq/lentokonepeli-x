@@ -34,7 +34,7 @@ void ClientGame::onSpawnAllowed() {
 }
 
 void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
-	window.clear(sf::Color(85, 121, 178, 255));
+	window.clear(sf::Color(50, 50, 50));
 
 	window.draw(level);
 

@@ -1,4 +1,5 @@
 #include "Ship.h"
+#include "Globals.h"
 
 Ship::Ship(User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
 	float width = 3.0F;
@@ -9,29 +10,36 @@ Ship::Ship(User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId
 	gravity = false;
 	drag = 0.01F;
 
+	usernameLabel.setFont(g::font);
+	usernameLabel.setString(owner->username.C_String());
+	usernameLabel.setCharacterSize(14);
+	usernameLabel.setOrigin(usernameLabel.getGlobalBounds().width/2.0F, usernameLabel.getGlobalBounds().height/2.0F);
+	usernameLabel.setFillColor(sf::Color::Black);
+
 	assignTeam(teamId);
 }
 
 void Ship::assignTeam(TeamId teamId_) {
 	teamId = teamId_;
-	if (teamId == RED_TEAM) {
-		rectangle.setFillColor(sf::Color(193, 34, 34));
-	}
-	else if (teamId == BLUE_TEAM) {
-		rectangle.setFillColor(sf::Color(0, 28, 132));
-	}
 }
 
-void Ship::updateVisuals() {
+void Ship::draw(sf::RenderTarget& target) {
 	if (isDead() == false) {
 		rectangle.setRotation(getRotation());
 		rectangle.setPosition(getPosition());
-	}
-}
+		
+		target.draw(rectangle);
 
-void Ship::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-	if (isDead() == false) {
-		target.draw(rectangle, states);
+		sf::View view = target.getView();
+		sf::Vector2f viewSize = view.getSize();
+		sf::Vector2f pixelSize = target.getDefaultView().getSize();
+
+		target.setView(target.getDefaultView());
+
+		usernameLabel.setPosition(sf::Vector2f(pixelSize.x / viewSize.x * getPosition().x , pixelSize.y / viewSize.y * (getPosition().y + 6)));
+		target.draw(usernameLabel);
+
+		target.setView(view);
 	}
 }
 

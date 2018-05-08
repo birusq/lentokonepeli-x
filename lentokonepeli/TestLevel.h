@@ -16,7 +16,5 @@ private:
 	sf::Texture bgTex;
 	sf::Sprite bg;
 
-	sf::RectangleShape tenUnits;
-
 	sf::RectangleShape ground;
 };

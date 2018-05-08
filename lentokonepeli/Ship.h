@@ -6,7 +6,7 @@
 #include "PacketHelper.h"
 #include "User.h"
 
-class Ship : public PhysicsTransformable, public RectangleCollider, public Damageable, public sf::Drawable {
+class Ship : public PhysicsTransformable, public RectangleCollider, public Damageable {
 public:
 	Ship() {}
 	Ship(User* const user_, TeamId teamId_ = NO_TEAM);
@@ -25,11 +25,11 @@ public:
 
 	void onDeath() override;
 
-	void updateVisuals();
+	void draw(sf::RenderTarget& target);
 
 private:
 
-	sf::RectangleShape rectangle;
+	sf::Text usernameLabel;
 
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	sf::RectangleShape rectangle;
 };
