@@ -29,6 +29,7 @@ public:
 	User* const myUser() { return &users.at(myId); }
 	TeamId teamOfClient(uchar clientId);
 
+
 	std::unordered_map<uchar, User> users;
 	std::unordered_map<TeamId, Team> teams;
 	std::deque<ServerShipStates> serverStateJitterBuffer;

@@ -26,6 +26,7 @@
 #include "RakNetDefines.h"
 #include <stdio.h>
 
+
 int WSAStartupSingleton::refCount=0;
 
 WSAStartupSingleton::WSAStartupSingleton() {}
