@@ -27,7 +27,6 @@ void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 
 
 
-
 void Game::quit() {
 	running = false;
 }
