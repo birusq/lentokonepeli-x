@@ -69,7 +69,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -79,6 +79,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <ShowIncludes>false</ShowIncludes>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>E:\Documents\SFML-2.4.2-windows-vc14-32-bit\TGUI-0.8-dev\lib;E:\Documents\SFML-2.4.2-windows-vc14-32-bit\thor-v2.0-msvc2015\lib;E:\Documents\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\lib</AdditionalLibraryDirectories>
@@ -107,6 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>E:\Documents\SFML-2.4.2-windows-vc14-32-bit\TGUI-0.8-dev\include;E:\Documents\SFML-2.4.2-windows-vc14-32-bit\thor-v2.0-msvc2015\include;E:\Documents\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -133,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientGame.cpp" />
     <ClCompile Include="Globals.cpp" />
@@ -266,6 +269,7 @@
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bullet.h" />
     <ClInclude Include="CircleCollider.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientGame.h" />

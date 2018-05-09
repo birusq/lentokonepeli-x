@@ -53,12 +53,16 @@ void BoolSetting::setValue(bool val) {
 }
 
 
-StringSetting::StringSetting(CSimpleIniA* ini_, std::string section_, std::string key_, std::string default_) :Setting(ini_, section_, key_) {
+StringSetting::StringSetting(CSimpleIniA* ini_, std::string section_, std::string key_, std::string default_, unsigned int maxLength_) :Setting(ini_, section_, key_), maxLength{maxLength_} {
 	if (!iniValExists(section_, key_)) {
 		setValue(default_);
 		value = default_;
 	}
 	value = ini->GetValue(section_.c_str(), key_.c_str());
+
+	if (value.size() > maxLength) {
+		value = value.substr(0, maxLength);
+	}
 }
 
 void StringSetting::setValue(std::string val) {

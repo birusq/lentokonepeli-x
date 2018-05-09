@@ -8,7 +8,7 @@ void GOManager::createShip(User* const user, TeamId teamId) {
 	currentPTransforms[SHIP][user->clientId] = ships.at(user->clientId);
 }
 
-void GOManager::removeShip(uchar clientId) {
+void GOManager::removeShip(sf::Uint8 clientId) {
 	ships.erase(clientId);
 	currentPTransforms[SHIP].erase(clientId);
 }
@@ -19,7 +19,7 @@ void GOManager::drawAll(sf::RenderWindow& window) {
 	}
 }
 
-void GOManager::applyTransforms(std::unordered_map<ObjectType, std::unordered_map<uint, PhysicsTransformable>>& state) {
+void GOManager::applyTransforms(std::unordered_map<ObjectType, std::unordered_map<sf::Uint32, PhysicsTransformable>>& state) {
 	for (auto& pair : state) {
 		for (auto& innerPair : pair.second) {
 
@@ -36,7 +36,7 @@ void GOManager::applyTransforms(std::unordered_map<ObjectType, std::unordered_ma
 	}
 }
 
-ShipState GOManager::getShipState(uchar index) {
+ShipState GOManager::getShipState(sf::Uint8 index) {
 	ShipState ss = ShipState::generateFromPTrans(ships.at(index));;
 	ss.dead = ships.at(index).isDead();
 	return ss;

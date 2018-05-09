@@ -18,10 +18,33 @@ void ClientGame::onOtherUserConnect(User* const user) {
 	goManager.createShip(user);
 }
 
-void ClientGame::onOtherUserDisconnect(uchar clientId) {
+void ClientGame::onOtherUserDisconnect(sf::Uint8 clientId) {
 	goManager.removeShip(clientId);
 }
 
+void ClientGame::onTeamJoin(sf::Uint8 clientId, TeamId newTeam) {
+	std::string message;
+	if (clientId == client.myId) {
+		message += "You have";
+		gui->teamJoinAccepted();
+	}
+	else {
+		message += client.users.at(clientId).username + " has";
+	}
+	message += " joined";
+	switch (newTeam) {
+	case RED_TEAM:
+		message += " the red team";
+		break;
+	case BLUE_TEAM:
+		message += " the blue team";
+		break;
+	}
+	if (newTeam != NO_TEAM)
+		console::log(message);
+
+	goManager.ships.at(clientId).assignTeam(newTeam);
+}
 
 void ClientGame::onConnectionComplete() {
 	goManager.createShip(client.myUser());
@@ -39,6 +62,12 @@ void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
 	window.draw(level);
 
 	goManager.drawAll(window);
+
+	if (client.connectionDone && goManager.ships.count(client.myId) == 1) {
+		sf::View view = window.getView();
+		view.setCenter(goManager.ships[client.myId].getPosition());
+		window.setView(view);
+	}
 
 	gui->lastPing = client.lastPing;
 	gui->draw();
@@ -126,10 +155,10 @@ void ClientGame::fixedUpdate(float dt) {
 void ClientGame::applyServerStates(ServerShipStates& sss) {
 	for (auto& pair : sss.states) {
 
-		uchar clientId = pair.first;
+		sf::Uint8 clientId = pair.first;
 
 		if (clientId != client.myId) {
-			ShipState::applyToPTrans(pair.second, goManager.currentPTransforms[SHIP][clientId]);
+			pair.second.applyToPTrans(goManager.currentPTransforms[SHIP][clientId]);
 		}
 
 		if (goManager.ships[clientId].isDead() == true && pair.second.dead == false) {

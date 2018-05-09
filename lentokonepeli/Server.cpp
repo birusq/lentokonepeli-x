@@ -18,7 +18,7 @@ void Server::init(Master* master_, ServerGame* game_) {
 	peer->SetUnreliableTimeout(5000);
 }
 
-void Server::start(uchar maxClients) {
+void Server::start(sf::Uint8 maxClients) {
 	StartupResult res = peer->Startup(maxClients, &SocketDescriptor(SERVER_PORT, 0), 1);
 	if (res != StartupResult::RAKNET_ALREADY_STARTED && res != StartupResult::RAKNET_STARTED) {
 		console::log("Raknet could not be started, error code: " + res);
@@ -34,18 +34,20 @@ void Server::start(uchar maxClients) {
 	}
 }
 
-void Server::changeTeam(TeamId newTeam, uchar clientId) {
-	for (uchar i = 0; i < TEAMS_SIZE; i++) {
-		auto it = std::find(teams[(TeamId)i].members.begin(), teams[(TeamId)i].members.end(), clientId);
-		if (it != teams[(TeamId)i].members.end()) {
-			teams[(TeamId)i].members.erase(it);
-			break;
-		}
+void Server::changeTeam(TeamId newTeam, sf::Uint8 clientId) {
+	TeamId oldTeam = users.at(clientId).teamId;
+
+	auto it = std::find(teams[oldTeam].members.begin(), teams[oldTeam].members.end(), clientId);
+	if (it != teams[oldTeam].members.end()) {
+		teams[oldTeam].members.erase(it);
 	}
 
 	teams[newTeam].members.push_back(clientId);
+	users.at(clientId).teamId = newTeam;
 
 	game->onClientJoinTeam(clientId, newTeam);
+
+	sendTeamUpdate(oldTeam, newTeam, clientId);
 }
 
 void Server::update() {
@@ -103,8 +105,6 @@ void Server::handleUserUpdate(Packet* packet) {
 	bitStream.IgnoreBytes(1);
 	bitStream.Read(user.username);
 
-	changeTeam(TeamId::NO_TEAM, user.clientId);
-
 	bool newUser = false;
 	if (users.count(user.clientId) == 0)
 		newUser = true;
@@ -117,7 +117,7 @@ void Server::handleUserUpdate(Packet* packet) {
 	if (newUser)
 		game->onUserConnect(&user);
 
-	console::log("User update: " + std::to_string(user.clientId) + (std::string)user.username.C_String() + user.guid.ToString());
+	//console::log("User update: " + std::to_string(user.clientId) + (std::string)user.username.C_String() + user.guid.ToString());
 }
 
 void Server::sendAllUsersUpdate(SystemAddress toAddress) {
@@ -140,6 +140,11 @@ void Server::handleUserDisconnect() {
 			broadcastUserDisconnect(it->second);
 			console::log("User disconnected: " + (std::string)it->second.username.C_String());
 			shipStateJitterBuffers.erase(it->second.clientId);
+			
+			auto teamit = std::find(teams[it->second.teamId].members.begin(), teams[it->second.teamId].members.end(), it->second.clientId);
+			if (teamit != teams[it->second.teamId].members.end())
+				teams[it->second.teamId].members.erase(teamit);
+
 			game->onUserDisconnect(it->second.clientId);
 			it = users.erase(it);
 		}
@@ -161,7 +166,7 @@ void Server::handleJoinTeamReq(Packet* packet) {
 	bitStream.Read(toTeam);
 
 	// possibly in future check more restrictions
-	uint maxPlayers = peer->GetMaximumIncomingConnections();
+	sf::Uint32 maxPlayers = peer->GetMaximumIncomingConnections();
 	if ((float)teams[toTeam].members.size() >= ((float)maxPlayers / 2.0F)) {
 		BitStream bs;
 		bs.Write((MessageID)ID_JOIN_TEAM_FAILED_TEAM_FULL);
@@ -169,43 +174,35 @@ void Server::handleJoinTeamReq(Packet* packet) {
 		return;
 	}
 
-	BitStream responsebitStream;
-	responsebitStream.Write((MessageID)ID_JOIN_TEAM_ACCEPTED);
-	responsebitStream.Write(toTeam);
-	peer->Send(&responsebitStream, MEDIUM_PRIORITY, RELIABLE, 3, packet->systemAddress, false);
-
 	changeTeam(toTeam, peer->GetIndexFromSystemAddress(packet->systemAddress));
-
-	sendTeamUpdate();
 }
 
-void Server::sendTeamUpdate() {
+void Server::sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId) {
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_TEAM_UPDATE);
-	bitStream.Write((unsigned char)teams.size());
-	for (unsigned int i = 0; i < teams.size(); i++) {
-		Team::serialize(bitStream, teams[(TeamId)i], true);
-	}
 
-	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE_SEQUENCED, 4, UNASSIGNED_SYSTEM_ADDRESS, true);
+	TeamChange tc = TeamChange(oldTeam, newTeam, clientId);
+	tc.serialize(bitStream, true);
+
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 4, UNASSIGNED_SYSTEM_ADDRESS, true);
 
 	console::dlog("Team update sent");
 }
 
-void Server::sendAllowSpawnMsg(uchar clientId) {
+void Server::sendAllowSpawnMsg(sf::Uint8 clientId) {
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_CAN_SPAWN);
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 5, users.at(clientId).guid, false);
 }
 
 void Server::handleShipUpdate(Packet* packet) {
-	uchar clientId = peer->GetIndexFromSystemAddress(packet->systemAddress);
+	sf::Uint8 clientId = peer->GetIndexFromSystemAddress(packet->systemAddress);
 
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 
 	ShipState newShipState;
-	ShipState::serialize(bitStream, newShipState, false);
+	newShipState.serialize(bitStream, false);
 
 	shipStateJitterBuffers[clientId].push_back(newShipState);
 

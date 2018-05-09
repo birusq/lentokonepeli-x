@@ -18,7 +18,7 @@ public:
 
 	void init(Master* master_, ServerGame* game_);
 
-	void start(uchar maxClients);
+	void start(sf::Uint8 maxClients);
 
 	void close();
 
@@ -26,11 +26,11 @@ public:
 		
 	RakPeerInterface* peer = nullptr;
 	
-	std::unordered_map<uchar, User> users;
-	std::unordered_map<uchar, std::deque<ShipState>> shipStateJitterBuffers;
+	std::unordered_map<sf::Uint8, User> users;
+	std::unordered_map<sf::Uint8, std::deque<ShipState>> shipStateJitterBuffers;
 	std::unordered_map<TeamId, Team> teams;
 
-	void sendAllowSpawnMsg(uchar clientId);
+	void sendAllowSpawnMsg(sf::Uint8 clientId);
 
 	void broadcastShipStates(ServerShipStates& newStates);
 
@@ -38,7 +38,7 @@ private:
 	Master* master;
 	ServerGame* game;
 
-	void changeTeam(TeamId newTeam, uchar clientId);
+	void changeTeam(TeamId newTeam, sf::Uint8 clientId);
 
 	void sendAllUsersUpdate(SystemAddress toAddress);
 	void sendUserUpdate(User& user, SystemAddress toAddress, bool broadcast);
@@ -50,7 +50,7 @@ private:
 
 	void handleJoinTeamReq(Packet* packet);
 
-	void sendTeamUpdate();
+	void sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId);
 
 	void handleShipUpdate(Packet* packet);
 

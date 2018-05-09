@@ -60,22 +60,25 @@ void Master::createWindow(WindowState state) {
 int Master::loop() {
 	while (run) {
 		if (currentWindowState == WindowState::MainMenu) {
-			MainMenu mainMenu(this);
-			fpsCounter = &mainMenu;
-			currentCloseable = &mainMenu;
-			mainMenu.loop();
+			MainMenu* mainMenu = new MainMenu(this);
+			fpsCounter = mainMenu;
+			currentCloseable = mainMenu;
+			mainMenu->loop();
+			delete mainMenu;
 		}
 		else if (currentWindowState == WindowState::GameClient) {
-			ClientGame clientGame(this, hostIp);
-			fpsCounter = &clientGame;
-			currentCloseable = &clientGame;
-			clientGame.loop();
+			ClientGame* clientGame = new ClientGame(this, hostIp);
+			fpsCounter = clientGame;
+			currentCloseable = clientGame;
+			clientGame->loop();
+			delete clientGame;
 		}
 		else if (currentWindowState == WindowState::GameServer) {
-			ServerGame serverGame(this);
-			fpsCounter = &serverGame;
-			currentCloseable = &serverGame;
-			serverGame.loop();
+			ServerGame* serverGame = new ServerGame(this);
+			fpsCounter = serverGame;
+			currentCloseable = serverGame;
+			serverGame->loop();
+			delete serverGame;
 		}
 	}
 	return 0;

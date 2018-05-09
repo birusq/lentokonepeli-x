@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Team.h"
 #include "Raknet\BitStream.h"
 #include "SFML\System.hpp"
+#include "Team.h"
 
 struct User {
 	static void serialize(RakNet::BitStream& bitStream, User& user, bool write);
@@ -10,4 +10,6 @@ struct User {
 	unsigned char clientId;
 	RakNet::RakNetGUID guid;
 	RakNet::RakString username;
+
+	TeamId teamId;
 };

@@ -15,10 +15,20 @@ public:
 	Team() {}
 	Team(TeamId id_) : id{ id_ } {}
 
-	static void serialize(RakNet::BitStream& bitStream, Team& team, bool write);
-
 	unsigned char id;
 
 	std::vector<unsigned char> members;
+};
+
+struct TeamChange {
+
+	TeamChange() {}
+	TeamChange(unsigned char oldTeamId_, unsigned char newTeamId_, unsigned char clientId_) : oldTeamId{ oldTeamId_ }, newTeamId{ newTeamId_ }, clientId{ clientId_ } {}
+
+	void serialize(RakNet::BitStream& bitStream, bool write);
+
+	unsigned char oldTeamId;
+	unsigned char newTeamId;
+	unsigned char clientId;
 };
 

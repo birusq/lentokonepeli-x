@@ -8,12 +8,14 @@ TestLevel::TestLevel() {
 
 	bg.setTexture(bgTex);
 
-	bg.setOrigin(sf::Vector2f(bgTex.getSize())/ 2.0F);
-	bg.setScale(sf::Vector2f(0.15F, 0.15F));
+	bg.setTextureRect(sf::IntRect(sf::Vector2i(), sf::Vector2i(3000, 2000)));
+
+	bg.setScale(sf::Vector2f(0.2F, 0.1F));
+	bg.setPosition(sf::Vector2f(0,0));
 
 	ground.setFillColor(sf::Color(1, 137, 10));
-	ground.setSize(sf::Vector2f(1000, 30));
-	ground.setPosition(0, 140);
+	ground.setSize(sf::Vector2f(600, 30));
+	ground.setPosition(0, 200);
 
 }
 

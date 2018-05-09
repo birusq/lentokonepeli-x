@@ -1,15 +1,23 @@
 #include "Ship.h"
 #include "Globals.h"
+#include "Console.h"
+#include "User.h"
 
 Ship::Ship(User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
-	float width = 3.0F;
-	float height = 10.0f;
-	rectangle.setSize(sf::Vector2f(width, height));
-	rectangle.setOrigin(width / 2.0f, height / 2.0F);
-	rectangle.setFillColor(sf::Color::Black);
 	gravity = false;
 	drag = 0.01F;
 
+	float width = 3.0F;
+	float height = 10.0f;
+
+	hitbox.setSize(sf::Vector2f(width, height));
+	rectangle.setOrigin(width / 2.0f, height / 2.0F);
+	rectangle.setFillColor(sf::Color::Black);
+	
+	rectangle.setSize(sf::Vector2f(width, height));
+	rectangle.setOrigin(width / 2.0f, height / 2.0F);
+	rectangle.setFillColor(sf::Color::Black);
+	
 	usernameLabel.setFont(g::font);
 	usernameLabel.setString(owner->username.C_String());
 	usernameLabel.setCharacterSize(14);
@@ -30,13 +38,18 @@ void Ship::draw(sf::RenderTarget& target) {
 		
 		target.draw(rectangle);
 
+
 		sf::View view = target.getView();
-		sf::Vector2f viewSize = view.getSize();
-		sf::Vector2f pixelSize = target.getDefaultView().getSize();
+		sf::View defaultView = target.getDefaultView();
+		target.setView(defaultView);
 
-		target.setView(target.getDefaultView());
+		sf::Vector2f posDiff = view.getCenter() - 0.5F * view.getSize();
+		sf::Vector2f planePos = getPosition();
+		
+		sf::Vector2f planePosInUI = sf::Vector2f((planePos.x - posDiff.x) * (defaultView.getSize().x / view.getSize().x), (planePos.y - posDiff.y) *  (defaultView.getSize().y / view.getSize().y));
+		
+		usernameLabel.setPosition(planePosInUI.x, planePosInUI.y - 8 * (defaultView.getSize().x / view.getSize().x));
 
-		usernameLabel.setPosition(sf::Vector2f(pixelSize.x / viewSize.x * getPosition().x , pixelSize.y / viewSize.y * (getPosition().y + 6)));
 		target.draw(usernameLabel);
 
 		target.setView(view);

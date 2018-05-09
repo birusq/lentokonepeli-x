@@ -58,7 +58,7 @@ private:
 class StringSetting : Setting {
 public:
 	StringSetting() {}
-	StringSetting(CSimpleIniA* ini_, std::string section_, std::string key_, std::string default_);
+	StringSetting(CSimpleIniA* ini_, std::string section_, std::string key_, std::string default_, unsigned int maxLength_);
 
 	std::string getValue() { return value; }
 	void setValue(std::string val);
@@ -66,6 +66,7 @@ public:
 	operator std::string() const { return value; }
 private:
 	std::string value;
+	unsigned int maxLength;
 };
 
 class KeySetting : Setting {

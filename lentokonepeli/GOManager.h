@@ -6,25 +6,28 @@
 #include "Ship.h"
 #include "Packethelper.h"
 #include "User.h"
+#include "Bullet.h"
 
-enum ObjectType : uchar { 
+enum ObjectType : sf::Uint8 { 
 	SHIP,
 	BULLET
 };
 
 class GOManager {
 public:
-	std::unordered_map<ObjectType, std::unordered_map<uint, PhysicsTransformable>> previousPTransforms{};
-	std::unordered_map<ObjectType, std::unordered_map<uint, PhysicsTransformable>> currentPTransforms{};
+	std::unordered_map<ObjectType, std::unordered_map<sf::Uint32, PhysicsTransformable>> previousPTransforms{};
+	std::unordered_map<ObjectType, std::unordered_map<sf::Uint32, PhysicsTransformable>> currentPTransforms{};
 
-	std::unordered_map<uchar, Ship> ships;
+	std::unordered_map<sf::Uint8, Ship> ships;
+	std::unordered_map<sf::Uint8, std::unordered_map<sf::Uint8, Bullet*>> bullets;
 
-	void applyTransforms(std::unordered_map<ObjectType, std::unordered_map<uint, PhysicsTransformable>>& state);
+
+	void applyTransforms(std::unordered_map<ObjectType, std::unordered_map<sf::Uint32, PhysicsTransformable>>& state);
 
 	void drawAll(sf::RenderWindow& window);
 
 	void createShip(User* const user, TeamId teamId = NO_TEAM);
-	void removeShip(uchar clientId);
+	void removeShip(sf::Uint8 clientId);
 
-	ShipState getShipState(uchar clientIndex);
+	ShipState getShipState(sf::Uint8 clientIndex);
 };

@@ -414,6 +414,9 @@
     <ClCompile Include="Globals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Bullet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimpleIni.h">
@@ -492,9 +495,6 @@
       <Filter>Header Files\RakNet</Filter>
     </ClInclude>
     <ClInclude Include="Raknet\CheckSum.h">
-      <Filter>Header Files\RakNet</Filter>
-    </ClInclude>
-    <ClInclude Include="CircleCollider.h">
       <Filter>Header Files\RakNet</Filter>
     </ClInclude>
     <ClInclude Include="ClientGame.h">
@@ -957,6 +957,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bullet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CircleCollider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

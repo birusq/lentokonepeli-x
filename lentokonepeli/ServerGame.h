@@ -13,9 +13,9 @@ public:
 
 	void onUserConnect(User* const user);
 
-	void onUserDisconnect(uchar clientId);
+	void onUserDisconnect(sf::Uint8 clientId);
 
-	void onClientJoinTeam(uchar clientId, TeamId newTeam);
+	void onClientJoinTeam(sf::Uint8 clientId, TeamId newTeam);
 
 private:
 

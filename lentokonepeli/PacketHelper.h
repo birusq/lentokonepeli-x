@@ -14,33 +14,35 @@
 
 #define SERVER_PORT 65000
 
-typedef unsigned char uchar;
-typedef unsigned int uint;
-
 using namespace RakNet;
 
 namespace ph {
 	unsigned char getPacketIdentifier(Packet *p);
 
-	enum MessageIndetifier : uchar {
+	enum MessageIndetifier : sf::Uint8 {
 		ID_USER_UPDATE = ID_USER_PACKET_ENUM,
 		ID_USER_DISCONNECT,
 		ID_JOIN_TEAM_REQUEST,
 		ID_JOIN_TEAM_FAILED_TEAM_FULL,
-		ID_JOIN_TEAM_ACCEPTED,
 		ID_TEAM_UPDATE,
 		ID_SHIP_UPDATE,
+		ID_SHOOT_BULLET,
 		ID_CAN_SPAWN,
 	};
 
 	std::string msgIDToString(MessageIndetifier id);
+
+	static bool seqGreaterThan(sf::Uint16 seq1, sf::Uint16 seq2) {
+		return ((seq1 > seq2) && (seq1 - seq2 <= 32768)) ||
+			((seq1 < seq2) && (seq2 - seq1  > 32768));
+	}
 }
 
 struct ShipState {
 
-	static void serialize(BitStream& bitStream, ShipState& shipState, bool write);
+	void serialize(BitStream& bitStream, bool write);
 
-	static void applyToPTrans(ShipState& shipState, PhysicsTransformable& pTrans);
+	void applyToPTrans(PhysicsTransformable& pTrans);
 
 	static ShipState generateFromPTrans(PhysicsTransformable& ship);
 
@@ -49,11 +51,11 @@ struct ShipState {
 	sf::Vector2f velocity;
 	float angularVelocity = 0.0F;
 
-	bool shooting = false;
+	bool throttle = false;
 	bool dead = true;
 };
 
 struct ServerShipStates {
 	static void serialize(BitStream& bitStream, ServerShipStates& shipStates, bool write);
-	std::unordered_map<uchar, ShipState> states;
+	std::unordered_map<sf::Uint8, ShipState> states;
 };

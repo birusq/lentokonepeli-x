@@ -28,7 +28,8 @@ Settings::Settings() {
 	}
 
 	borderless = BoolSetting(&ini, "settings", "borderless", false);
-	if (borderless.getValue()) {
+	
+	if (fullscreen.getValue() && borderless.getValue()) {
 		style = sf::Style::None;
 	}
 
@@ -40,7 +41,7 @@ Settings::Settings() {
 
 	antialiasingLevel = IntSetting(&ini, "graphics", "antialiasingLevel", 4);
 
-	username = StringSetting(&ini, "user", "username", "*");
+	username = StringSetting(&ini, "user", "username", "*", 20);
 
 	moveForwardKey = KeySetting(&ini, "keybinds", "moveForward", sf::Keyboard::Up);
 	turnLeftKey = KeySetting(&ini, "keybinds", "turnLeft", sf::Keyboard::Left);

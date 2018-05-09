@@ -20,8 +20,6 @@ namespace ph {
 			return "ID_JOIN_TEAM_REQUEST";
 		case ID_JOIN_TEAM_FAILED_TEAM_FULL:
 			return "ID_JOIN_TEAM_FAILED_TEAM_FULL";
-		case ID_JOIN_TEAM_ACCEPTED:
-			return "ID_JOIN_TEAM_ACCEPTED";
 		case ID_TEAM_UPDATE:
 			return "ID_TEAM_UPDATE";
 		case ID_SHIP_UPDATE:
@@ -34,24 +32,24 @@ namespace ph {
 	}
 }
 
-void ShipState::serialize(RakNet::BitStream& bitStream, ShipState& shipState, bool write) {
-	bitStream.Serialize(write, shipState.dead);
-	if (!shipState.dead) {
-		bitStream.Serialize(write, shipState.position.x);
-		bitStream.Serialize(write, shipState.position.y);
-		bitStream.Serialize(write, shipState.velocity.x);
-		bitStream.Serialize(write, shipState.velocity.y);
-		bitStream.Serialize(write, shipState.rotation);
-		bitStream.Serialize(write, shipState.angularVelocity);
-		bitStream.Serialize(write, shipState.shooting);
+void ShipState::serialize(RakNet::BitStream& bitStream, bool write) {
+	bitStream.Serialize(write, dead);
+	if (!dead) {
+		bitStream.Serialize(write, position.x);
+		bitStream.Serialize(write, position.y);
+		bitStream.Serialize(write, velocity.x);
+		bitStream.Serialize(write, velocity.y);
+		bitStream.Serialize(write, rotation);
+		bitStream.Serialize(write, angularVelocity);
+		bitStream.Serialize(write, throttle);
 	}
 }
 
-void ShipState::applyToPTrans(ShipState & shipState, PhysicsTransformable & ship) {
-	ship.setPosition(shipState.position);
-	ship.setRotation(shipState.rotation);
-	ship.velocity = shipState.velocity;
-	ship.angularVelocity = shipState.angularVelocity;
+void ShipState::applyToPTrans(PhysicsTransformable & ship) {
+	ship.setPosition(position);
+	ship.setRotation(rotation);
+	ship.velocity = velocity;
+	ship.angularVelocity = angularVelocity;
 }
 
 ShipState ShipState::generateFromPTrans(PhysicsTransformable& ship) {
@@ -64,9 +62,9 @@ ShipState ShipState::generateFromPTrans(PhysicsTransformable& ship) {
 }
 
 void ServerShipStates::serialize(RakNet::BitStream& bitStream, ServerShipStates& shipStates, bool write) {
-	uchar size = 0;
+	sf::Uint8 size = 0;
 	if (write) {
-		size = (uchar)shipStates.states.size();
+		size = (sf::Uint8)shipStates.states.size();
 	}
 
 	bitStream.Serialize(write, size);
@@ -74,18 +72,18 @@ void ServerShipStates::serialize(RakNet::BitStream& bitStream, ServerShipStates&
 	if (write) {
 		for (auto& pair : shipStates.states) {
 			bitStream.Write(pair.first);
-			ShipState::serialize(bitStream, pair.second, true);
+			pair.second.serialize(bitStream, true);
 		}
 	}
 	else {
 
 		shipStates.states.clear();
 
-		for (uchar i = 0; i < size; i++) {
-			uchar clientId;
+		for (sf::Uint8 i = 0; i < size; i++) {
+			sf::Uint8 clientId;
 			bitStream.Read(clientId);
 			ShipState ss;
-			ShipState::serialize(bitStream, ss, false);
+			ss.serialize(bitStream, false);
 
 			shipStates.states[clientId] = ss;
 		}

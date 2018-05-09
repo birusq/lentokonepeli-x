@@ -4,7 +4,9 @@
 #include "RectangleCollider.h"
 #include "Damageable.h"
 #include "PacketHelper.h"
-#include "User.h"
+#include "Team.h"
+
+struct User;
 
 class Ship : public PhysicsTransformable, public RectangleCollider, public Damageable {
 public:

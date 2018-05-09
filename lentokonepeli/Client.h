@@ -16,6 +16,7 @@ class ClientGame;
 
 class Client {
 public:
+	Client() {}
 	~Client();
 
 	void init(Master* master_, ClientGame* game_);
@@ -27,12 +28,11 @@ public:
 	void sendShipUpdate(ShipState& shipState);
 
 	User* const myUser() { return &users.at(myId); }
-	TeamId teamOfClient(uchar clientId);
-
-
-	std::unordered_map<uchar, User> users;
+	
+	std::unordered_map<sf::Uint8, User> users;
 	std::unordered_map<TeamId, Team> teams;
 	std::deque<ServerShipStates> serverStateJitterBuffer;
+	const unsigned int jitterBufferMaxSize = 3;
 
 	RakPeerInterface* peer = nullptr;
 	int lastPing = -1;
@@ -41,10 +41,13 @@ public:
 
 	void close();
 
-	uchar myId;
+	sf::Uint8 myId;
 	bool connectionDone;
 
 private:
+
+	sf::Uint16 tickCount = 0;
+
 	RakString myUsername;
 
 	Master* master;

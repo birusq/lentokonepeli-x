@@ -1,8 +1,6 @@
 #include "Master.h"
-#include "Raknet\RakPeerInterface.h"
-
 
 int main() {
-	Master master;
-	return master.loop();
+	std::unique_ptr<Master> master = std::make_unique<Master>();
+	return master->loop();
 }

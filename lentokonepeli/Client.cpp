@@ -88,9 +88,6 @@ void Client::update() {
 		else if (packetId == ID_JOIN_TEAM_FAILED_TEAM_FULL) {
 			console::log("Couldn't join: team full");
 		}
-		else if (packetId == ID_JOIN_TEAM_ACCEPTED) {
-			master->gui.teamJoinAccepted();
-		}
 		else if (packetId == ID_TEAM_UPDATE) {
 			processTeamUpdate(packet);
 		}
@@ -149,23 +146,24 @@ void Client::handleOtherUserDisconnect(Packet* packet) {
 }
 
 void Client::processTeamUpdate(Packet* packet) {
-	BitStream bitStream;
+	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
-	unsigned char teamsCount;
-	bitStream.Read(teamsCount);
-	for (int i = 0; i < teamsCount; i++) {
-		Team::serialize(bitStream, teams[(TeamId)i], false);
-	}
-	console::dlog("Team update received");
-}
+	TeamChange tc;
+	tc.serialize(bitStream, false);
 
-TeamId Client::teamOfClient(uchar clientId) {
-	for (auto& item : teams) {
-		if (std::find(item.second.members.begin(), item.second.members.end(), clientId) != item.second.members.end()) {
-			return item.first;
-		}
+	TeamId oldTeam = (TeamId)tc.oldTeamId;
+	TeamId newTeam = (TeamId)tc.newTeamId;
+	sf::Uint8 clientId = tc.clientId;
+
+	auto it = std::find(teams[oldTeam].members.begin(), teams[oldTeam].members.end(), clientId);
+	if (it != teams[oldTeam].members.end()) {
+		teams[oldTeam].members.erase(it);
 	}
-	return TeamId::NO_TEAM;
+
+	teams[newTeam].members.push_back(clientId);
+	users.at(clientId).teamId = newTeam;
+
+	game->onTeamJoin(clientId, newTeam);
 }
 
 void Client::processShipUpdate(Packet* packet) {
@@ -176,7 +174,7 @@ void Client::processShipUpdate(Packet* packet) {
 
 	serverStateJitterBuffer.push_back(sss);
 
-	if (serverStateJitterBuffer.size() > 4) {
+	if (serverStateJitterBuffer.size() > jitterBufferMaxSize) {
 		serverStateJitterBuffer.pop_front();
 	}
 
@@ -184,9 +182,12 @@ void Client::processShipUpdate(Packet* packet) {
 }
 
 void Client::sendShipUpdate(ShipState& shipState) {
+	
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_SHIP_UPDATE);
-	ShipState::serialize(bitStream, shipState, true);
+	shipState.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, hostguid, false);
+
+	tickCount++;
 }

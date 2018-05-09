@@ -43,11 +43,11 @@ void ServerGame::onUserConnect(User* const user) {
 	goManager.createShip(user);
 }
 
-void ServerGame::onUserDisconnect(uchar clientId) {
+void ServerGame::onUserDisconnect(sf::Uint8 clientId) {
 	goManager.removeShip(clientId);
 }
 
-void ServerGame::onClientJoinTeam(uchar clientId, TeamId newTeam) {
+void ServerGame::onClientJoinTeam(sf::Uint8 clientId, TeamId newTeam) {
 	if (newTeam != NO_TEAM)
 		server.sendAllowSpawnMsg(clientId);
 }
@@ -93,9 +93,9 @@ void ServerGame::fixedUpdate(float dt) {
 
 void ServerGame::applyServerStates(ServerShipStates& sss) {
 	for (auto& pair : sss.states) {
-		uchar clientId = pair.first;
+		sf::Uint8 clientId = pair.first;
 
-		ShipState::applyToPTrans(pair.second, goManager.currentPTransforms[SHIP][clientId]);
+		pair.second.applyToPTrans(goManager.currentPTransforms[SHIP][clientId]);
 
 		// TODO: check respawning timer
 		if (goManager.ships[clientId].isDead() == true && pair.second.dead == false) {
