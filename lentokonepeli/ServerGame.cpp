@@ -61,7 +61,7 @@ void ServerGame::render(sf::RenderWindow& window) {
 }
 
 void ServerGame::fixedUpdate(float dt) {
-	goManager.previousPTransforms = goManager.currentPTransforms;
+	goManager.previousPTransformsState = goManager.currentPTransformsState;
 	
 	server.update();
 
@@ -79,7 +79,7 @@ void ServerGame::fixedUpdate(float dt) {
 
 	// TODO: integrate non player controlled objects, eg. bullets
 
-	goManager.applyTransforms(goManager.currentPTransforms);
+	goManager.applyTransforms(goManager.currentPTransformsState);
 
 	// TODO: Check collisions (bullet hits)
 
@@ -95,15 +95,13 @@ void ServerGame::applyServerStates(ServerShipStates& sss) {
 	for (auto& pair : sss.states) {
 		sf::Uint8 clientId = pair.first;
 
-		pair.second.applyToPTrans(goManager.currentPTransforms[SHIP][clientId]);
+		pair.second.applyToPTrans(goManager.currentPTransformsState[goManager.ships[clientId].pTransId]);
 
 		// TODO: check respawning timer
 		if (goManager.ships[clientId].isDead() == true && pair.second.dead == false) {
 			
 			goManager.ships[clientId].setHealthToFull();
 		}
-
-		// TODO: bullets
 	}
 }
 

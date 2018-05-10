@@ -5,13 +5,14 @@
 #include "Damageable.h"
 #include "PacketHelper.h"
 #include "Team.h"
+#include "Weapon.h"
 
 struct User;
 
 class Ship : public PhysicsTransformable, public RectangleCollider, public Damageable {
 public:
 	Ship() {}
-	Ship(User* const user_, TeamId teamId_ = NO_TEAM);
+	Ship(sf::Uint32 pTransId_, User* const user_, TeamId teamId_ = NO_TEAM);
 
 	void assignTeam(TeamId teamId_);
 
@@ -28,6 +29,8 @@ public:
 	void onDeath() override;
 
 	void draw(sf::RenderTarget& target);
+
+	std::unique_ptr<Weapon> weapon;
 
 private:
 

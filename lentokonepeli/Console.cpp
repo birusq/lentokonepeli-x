@@ -13,14 +13,14 @@ namespace console {
 	}
 
 	void dlog(std::string s) {
-		log("[debug] " + s);
+		if (s != "")
+			log("[debug] " + s);
 	}
 
 	void clearLogFile() {
 		std::ofstream file("log.txt");
 		file.close();
 	}
-
 
 	tgui::ChatBox::Ptr* currentOut;
 }

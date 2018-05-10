@@ -34,7 +34,7 @@ private:
 	void render(sf::RenderWindow&, GOManager&);
 
 	Input processInput();
-	void applyInput(Input input, PhysicsTransformable& controlTarget, float dt);
+	void applyInput(Input input, Ship& ship, float dt);
 
 	void fixedUpdate(float dt);
 

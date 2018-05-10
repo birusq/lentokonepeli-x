@@ -3,7 +3,9 @@
 #include "Console.h"
 #include "User.h"
 
-Ship::Ship(User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
+Ship::Ship(sf::Uint32 pTransId_, User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
+	objType = SHIP;
+	pTransId = pTransId_;
 	gravity = false;
 	drag = 0.01F;
 
@@ -33,6 +35,11 @@ void Ship::assignTeam(TeamId teamId_) {
 
 void Ship::draw(sf::RenderTarget& target) {
 	if (isDead() == false) {
+
+		weapon->setPosition(getRotationVector() * 5.0F + getPosition());
+		weapon->setRotation(getRotation());
+		weapon->draw(target);
+
 		rectangle.setRotation(getRotation());
 		rectangle.setPosition(getPosition());
 		

@@ -1,21 +1,29 @@
 #include "Bullet.h"
+#include "Console.h"
+#include "GOManager.h"
+#include "Globals.h"
 
-Bullet::Bullet() {
+Bullet::Bullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_, sf::Uint16 bulletId_) {
+	objType = BULLET;
+	goManager = goManager_;
+	pTransId = pTransId_;
+	clientId = clientId_;
+	bulletId = bulletId_;
 	model.setRadius(radius);
 	model.setOrigin(sf::Vector2f(radius, radius));
 	model.setFillColor(sf::Color::Black);
-	disabled = true;
 }
 
-void Bullet::shoot(sf::Vector2f pos, float direction) {
+void Bullet::launch(sf::Vector2f pos, float direction) {
 	setRotation(direction);
+	setPosition(pos);
+	startPos = pos;
 	constantVelocity = true;
 	velocity = getRotationVector() * speed;
-	disabled = false;
+	lifeTimeCounter.restart();
 }
 
 void Bullet::draw(sf::RenderTarget& target) {
-	if (disabled == false) {
-
-	}
+	model.setPosition(getPosition());
+	target.draw(model);
 }

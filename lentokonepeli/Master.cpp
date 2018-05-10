@@ -70,7 +70,7 @@ int Master::loop() {
 			ClientGame* clientGame = new ClientGame(this, hostIp);
 			fpsCounter = clientGame;
 			currentCloseable = clientGame;
-			clientGame->loop();
+   			clientGame->loop();
 			delete clientGame;
 		}
 		else if (currentWindowState == WindowState::GameServer) {

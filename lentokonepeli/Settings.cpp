@@ -46,5 +46,5 @@ Settings::Settings() {
 	moveForwardKey = KeySetting(&ini, "keybinds", "moveForward", sf::Keyboard::Up);
 	turnLeftKey = KeySetting(&ini, "keybinds", "turnLeft", sf::Keyboard::Left);
 	turnRightKey = KeySetting(&ini, "keybinds", "turnRight", sf::Keyboard::Right);
-	shootKey = KeySetting(&ini, "keybinds", "turnRight", sf::Keyboard::Space);
+	shootKey = KeySetting(&ini, "keybinds", "shoot", sf::Keyboard::Space);
 }

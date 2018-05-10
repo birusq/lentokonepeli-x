@@ -1,6 +1,7 @@
 #include "ClientGame.h" 
 #include <iostream>
 #include "Raknet\RakWString.h"
+#include <Thor/Vectors.hpp>
 
 ClientGame::ClientGame(Master* master_, std::string hostIp_) : Game(master_), hostIp{ hostIp_ } {
 
@@ -53,7 +54,7 @@ void ClientGame::onConnectionComplete() {
 void ClientGame::onSpawnAllowed() {
 	Ship& myShip = goManager.ships.at(client.myId);
 	myShip.setHealthToFull();
-	goManager.currentPTransforms[SHIP].at(client.myId).setPosition(sf::Vector2f(100, 100));
+	goManager.currentPTransformsState.at(myShip.pTransId).setPosition(sf::Vector2f(100, 100));
 }
 
 void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
@@ -121,13 +122,13 @@ void ClientGame::fixedUpdate(float dt) {
 	
 	if (client.connectionDone) {
 
-		goManager.previousPTransforms = goManager.currentPTransforms;
+		goManager.previousPTransformsState = goManager.currentPTransformsState;
 
 		// Input
 		Input input;
 		if (master->window.hasFocus()) {
 			input = processInput();
-			applyInput(input, goManager.currentPTransforms[SHIP].at(client.myId), dt);
+			applyInput(input, goManager.ships.at(client.myId), dt);
 		}
 
 		// Update my game with server states
@@ -137,17 +138,20 @@ void ClientGame::fixedUpdate(float dt) {
 		}
 
 		// Integration
-		for (auto& pair : goManager.currentPTransforms) {
-			for (auto& innerPair : pair.second) {
-				if (pair.first == SHIP && goManager.ships.at(innerPair.first).isDead())
+		for (auto& pair : goManager.currentPTransformsState) {
+			if (pair.second.objType == SHIP) {
+				// Is ship is dead, dont integrate
+				if (static_cast<Ship*>(goManager.pTransPointers[pair.second.pTransId])->isDead()) {
 					continue;
-
-				integrate(innerPair.second, dt);
+				}
 			}
+
+			integrate(pair.second, dt);
 		}
 
 		//Send my state to server
 		ShipState ss = goManager.getShipState(client.myId);
+		ss.throttle = input.moveForward;
 		client.sendShipUpdate(ss);
 	}
 }
@@ -158,7 +162,7 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 		sf::Uint8 clientId = pair.first;
 
 		if (clientId != client.myId) {
-			pair.second.applyToPTrans(goManager.currentPTransforms[SHIP][clientId]);
+			pair.second.applyToPTrans(goManager.currentPTransformsState[goManager.ships[pair.first].pTransId]);
 		}
 
 		if (goManager.ships[clientId].isDead() == true && pair.second.dead == false) {
@@ -168,11 +172,9 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 }
 
 void ClientGame::update(float frameTime, float alpha) {
-	auto state = goManager.currentPTransforms;
+	auto state = goManager.currentPTransformsState;
 	for (auto& pair : state) {
-		for (auto& innerPair : pair.second) {
-			innerPair.second = PhysicsTransformable::lerp(goManager.previousPTransforms[pair.first][innerPair.first], goManager.currentPTransforms[pair.first][innerPair.first], alpha);
-		}
+		pair.second = PhysicsTransformable::lerp(goManager.previousPTransformsState[pair.first], goManager.currentPTransformsState[pair.first], alpha);
 	}
 
 	goManager.applyTransforms(state);
@@ -190,33 +192,35 @@ Input ClientGame::processInput() {
 		input.turnRight = true;
 	}
 	if (sf::Keyboard::isKeyPressed(master->settings.shootKey)) {
-		input.turnRight = true;
+		input.shooting = true;
 	}
 	return input;
 }
 
-void ClientGame::applyInput(Input input, PhysicsTransformable& controlTarget, float dt) {
+void ClientGame::applyInput(Input input, Ship& ship, float dt) {
+	PhysicsTransformable& currTrans = goManager.currentPTransformsState[ship.pTransId];
 	if (input.moveForward) {
-		controlTarget.forceOnSelf = controlTarget.getRotationVector() * 40.0F;
+		currTrans.forceOnSelf = currTrans.getRotationVector() * 30.0F;
+		improveHandling(ship);
 	}
 	else {
-		controlTarget.forceOnSelf *= 0.0F;
+		currTrans.forceOnSelf *= 0.0F;
 	}
 
 	if (input.turnLeft && input.turnRight) {
-		controlTarget.angularVelocity = 0.0F;
+		currTrans.angularVelocity = 0.0F;
 	}
 	else if (input.turnLeft) {
-		controlTarget.angularVelocity = -250.0F;
+		currTrans.angularVelocity = -250.0F;
 	}
 	else if (input.turnRight) {
-		controlTarget.angularVelocity = 250.0F;
+		currTrans.angularVelocity = 250.0F;
 	}
 	else {
-		controlTarget.angularVelocity = 0.0F;
+		currTrans.angularVelocity = 0.0F;
 	}
 
-	if (input.shoot) {
-		// TODO
+	if (input.shooting) {
+		ship.weapon->shoot(); // shoots only if firerate allows
 	}
 }

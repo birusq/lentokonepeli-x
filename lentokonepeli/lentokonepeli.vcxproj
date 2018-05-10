@@ -138,6 +138,7 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientGame.cpp" />
+    <ClCompile Include="DefaultGun.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="FpsCounter.cpp" />
@@ -275,6 +276,7 @@
     <ClInclude Include="ClientGame.h" />
     <ClInclude Include="Closeable.h" />
     <ClInclude Include="Collider.h" />
+    <ClInclude Include="DefaultGun.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="FpsCounter.h" />
@@ -451,6 +453,7 @@
     <ClInclude Include="SimpleIni.h" />
     <ClInclude Include="PhysicsTransformable.h" />
     <ClInclude Include="User.h" />
+    <ClInclude Include="Weapon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

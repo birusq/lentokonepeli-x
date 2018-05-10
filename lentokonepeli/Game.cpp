@@ -25,6 +25,16 @@ void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	currPTrans.rotate(currPTrans.angularVelocity * dt);
 }
 
+void Game::improveHandling(Ship& ship) {
+	PhysicsTransformable& target = goManager.currentPTransformsState[ship.pTransId];
+	if (target.velocity.x != 0 || target.velocity.y != 0) {
+		float velocity = thor::length(target.velocity);
+		float factor = velocity / 300.0F;
+
+		target.velocity = target.getRotationVector() * velocity * factor + target.velocity * (1.0F - factor);
+
+	}
+}
 
 
 void Game::quit() {
