@@ -140,9 +140,9 @@ void ClientGame::fixedUpdate(float dt) {
 
 		// Integration
 		for (auto& pair : goManager.currentPTransformsState) {
-			if (pair.second.objType == SHIP) {
-				// Is ship is dead, dont integrate
-				if (static_cast<Ship*>(goManager.pTransPointers.at(pair.second.pTransId))->isDead()) {
+			// Is ship is dead, dont integrate
+			if (Ship* s = dynamic_cast<Ship*>(goManager.pTransPointers.at(pair.second.pTransId))) {
+				if (s->isDead()) {
 					continue;
 				}
 			}

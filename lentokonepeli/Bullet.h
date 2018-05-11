@@ -1,12 +1,12 @@
 #pragma once
 #include "PhysicsTransformable.h"
-#include "CircleCollider.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include "Collider.h"
 
 class GOManager;
 
-class Bullet : public PhysicsTransformable, public CircleCollider {
+class Bullet : public PhysicsTransformable, public Collider {
 public:
 	Bullet() {}
 	Bullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_, sf::Uint16 bulletId_);

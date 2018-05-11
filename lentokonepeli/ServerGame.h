@@ -26,4 +26,6 @@ private:
 	void applyServerStates(ServerShipStates& sss);
 
 	void updateServerStates(ServerShipStates& sss);
+
+	void collisionDetectAll();
 };

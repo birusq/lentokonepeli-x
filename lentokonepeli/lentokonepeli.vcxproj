@@ -140,6 +140,7 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientGame.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="DefaultGun.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Console.cpp" />
@@ -273,7 +274,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bullet.h" />
-    <ClInclude Include="CircleCollider.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientGame.h" />
     <ClInclude Include="Closeable.h" />
@@ -446,7 +446,6 @@
     <ClInclude Include="Raknet\WSAStartupSingleton.h" />
     <ClInclude Include="Raknet\XBox360Includes.h" />
     <ClInclude Include="Raknet\_FindFirst.h" />
-    <ClInclude Include="RectangleCollider.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="ServerGame.h" />
     <ClInclude Include="Setting.h" />

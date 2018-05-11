@@ -78,14 +78,20 @@ void ServerGame::fixedUpdate(float dt) {
 
 	applyServerStates(serverStates);
 
-	// TODO: integrate non player controlled objects, eg. bullets
+	for (auto& pair : goManager.bullets) {
+		for (auto& innerPair : pair.second) {
+			integrate(goManager.currentPTransformsState.at(innerPair.second.pTransId), dt);
+		}
+	}
+
 
 	goManager.applyTransforms(goManager.currentPTransformsState);
 
-	// TODO: Check collisions (bullet hits)
+
+	collisionDetectAll();
+
 
 	updateServerStates(serverStates);
-
 
 	// TODO: and if dead then send time until respawn to client
 
@@ -121,5 +127,34 @@ void ServerGame::updateServerStates(ServerShipStates& sss) {
 	}
 }
 
+void ServerGame::collisionDetectAll() {
+	for (auto& pair : goManager.ships) {
+		pair.second.updateHitbox();
+	}
 
+	// Check collision (check all variations of teams)
+	auto it1 = server.teams.begin();
+	auto it2 = std::next(it1, 1);
+	for (it1; it1 != server.teams.end(); it1++) {
+		for (it2; it2 != server.teams.end(); it2++) {
 
+			for (sf::Uint8& t1Client : it1->second.members) {
+				for (sf::Uint8& t2Client : it2->second.members) {
+					// Player collisions
+					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
+						console::dlog("collision");
+					}
+
+					console::dlog(std::to_string(goManager.ships.at(t1Client).hitbox.getPosition().x) + ", " + std::to_string(goManager.ships.at(t1Client).hitbox.getPosition().y) + " | " + std::to_string(goManager.ships.at(t2Client).hitbox.getPosition().x) + ", " + std::to_string(goManager.ships.at(t2Client).hitbox.getPosition().y));
+
+					// Bullet collisions
+
+				}
+			}
+
+		}
+		it2 = std::next(it1, 1);
+		if (it2 != server.teams.end())
+			it2++;
+	}
+}

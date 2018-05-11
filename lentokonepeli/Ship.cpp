@@ -4,7 +4,6 @@
 #include "User.h"
 
 Ship::Ship(sf::Uint32 pTransId_, User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
-	objType = SHIP;
 	pTransId = pTransId_;
 	gravity = false;
 	drag = 0.01F;
@@ -12,13 +11,13 @@ Ship::Ship(sf::Uint32 pTransId_, User* const owner_, TeamId teamId_) : owner{ ow
 	float width = 3.0F;
 	float height = 10.0f;
 
+
 	hitbox.setSize(sf::Vector2f(width, height));
-	rectangle.setOrigin(width / 2.0f, height / 2.0F);
+	hitbox.setOrigin(width / 2.0f, height / 2.0F);
+
 	rectangle.setFillColor(sf::Color::Black);
-	
 	rectangle.setSize(sf::Vector2f(width, height));
 	rectangle.setOrigin(width / 2.0f, height / 2.0F);
-	rectangle.setFillColor(sf::Color::Black);
 	
 	usernameLabel.setFont(g::font);
 	usernameLabel.setString(owner->username.C_String());
@@ -36,8 +35,10 @@ void Ship::assignTeam(TeamId teamId_) {
 void Ship::draw(sf::RenderTarget& target) {
 	if (isDead() == false) {
 
+		
 		weapon->setPosition(getRotationVector() * 5.0F + getPosition());
 		weapon->setRotation(getRotation());
+
 		weapon->draw(target);
 
 		rectangle.setRotation(getRotation());
@@ -63,7 +64,13 @@ void Ship::draw(sf::RenderTarget& target) {
 	}
 }
 
+void Ship::updateHitbox() {
+	hitbox.setRotation(getRotation());
+	hitbox.setPosition(getPosition());
+}
+
 void Ship::takeDmg(float dmg) {
+	console::dlog(owner->username.C_String() + std::string(" took damage"));
 	health -= dmg;
 	if (health <= 0.0F)
 		onDeath();

@@ -7,9 +7,9 @@ using namespace g;
 
 class PhysicsTransformable : public sf::Transformable {
 public:
-	PhysicsTransformable(ObjectType objType_, sf::Uint32 pTransId_, sf::Vector2f pos, float rot, sf::Vector2f velocity_, float drag_, bool gravity_) :drag{ drag_ }, gravity{gravity_ } { PhysicsTransformable(objType_, pTransId_, pos, rot, velocity_); }
-	PhysicsTransformable(ObjectType objType_, sf::Uint32 pTransId_, sf::Vector2f pos, float rot, sf::Vector2f velocity_, bool constantVelocity_) : constantVelocity{ constantVelocity_ } { PhysicsTransformable(objType_, pTransId_, pos, rot, velocity_); }
-	PhysicsTransformable(ObjectType objType_, sf::Uint32 pTransId_, sf::Vector2f pos, float rot, sf::Vector2f velocity_ = sf::Vector2f(0, 0)) { objType = objType_; pTransId = pTransId_; velocity = velocity_; setPosition(pos); setRotation(rot); }
+	PhysicsTransformable(sf::Uint32 pTransId_, sf::Vector2f pos, float rot, sf::Vector2f velocity_, float drag_, bool gravity_) :drag{ drag_ }, gravity{gravity_ } { PhysicsTransformable(pTransId_, pos, rot, velocity_); }
+	PhysicsTransformable(sf::Uint32 pTransId_, sf::Vector2f pos, float rot, sf::Vector2f velocity_, bool constantVelocity_) : constantVelocity{ constantVelocity_ } { PhysicsTransformable(pTransId_, pos, rot, velocity_); }
+	PhysicsTransformable(sf::Uint32 pTransId_, sf::Vector2f pos, float rot, sf::Vector2f velocity_ = sf::Vector2f(0, 0)) { pTransId = pTransId_; velocity = velocity_; setPosition(pos); setRotation(rot); }
 	PhysicsTransformable() {}
 
 	sf::Uint32 pTransId;
@@ -20,7 +20,6 @@ public:
 	float drag = 0;
 	bool gravity = false;
 	bool constantVelocity = false;
-	ObjectType objType;
 
 	void updateValues(PhysicsTransformable&);
 
