@@ -42,8 +42,6 @@ public:
 	void launchHost();
 	void launchClient(std::string hostIp_);
 	std::string hostIp;
-
-	sf::View view;
 private:
 	bool run = true;
 };

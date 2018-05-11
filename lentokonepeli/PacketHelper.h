@@ -26,7 +26,6 @@ namespace ph {
 		ID_JOIN_TEAM_FAILED_TEAM_FULL,
 		ID_TEAM_UPDATE,
 		ID_SHIP_UPDATE,
-		ID_SHOOT_BULLET,
 		ID_CAN_SPAWN,
 	};
 
@@ -42,9 +41,9 @@ struct ShipState {
 
 	void serialize(BitStream& bitStream, bool write);
 
-	void applyToPTrans(PhysicsTransformable& pTrans);
+	void applyToPTrans(PhysicsTransformable& pTrans) const;
 
-	static ShipState generateFromPTrans(PhysicsTransformable& ship);
+	void generateFromPTrans(const PhysicsTransformable& ship);
 
 	sf::Vector2f position;
 	float rotation = 0.0F;
@@ -53,6 +52,8 @@ struct ShipState {
 
 	bool throttle = false;
 	bool dead = true;
+	bool shoot = false;
+	sf::Uint16 bulletId;
 };
 
 struct ServerShipStates {

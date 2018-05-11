@@ -11,6 +11,6 @@ public:
 
 	void draw(sf::RenderTarget& target) override;
 
-	bool shoot(sf::Vector2f pos, float rot, sf::Uint16 bulletId) override;
-	bool shoot() override;
+	int shoot(sf::Uint16 bulletId, bool myShip) override;
+	int shoot() override;
 };

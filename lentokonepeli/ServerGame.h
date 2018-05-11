@@ -25,5 +25,5 @@ private:
 
 	void applyServerStates(ServerShipStates& sss);
 
-	ServerShipStates getServerStatesFromShips();
+	void updateServerStates(ServerShipStates& sss);
 };

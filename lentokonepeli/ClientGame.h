@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Client.h"
 #include "TestLevel.h"
+#include <optional>
 
 class ClientGame : public Game {
 public:
@@ -34,7 +35,8 @@ private:
 	void render(sf::RenderWindow&, GOManager&);
 
 	Input processInput();
-	void applyInput(Input input, Ship& ship, float dt);
+
+	int applyInput(Input input, Ship& ship, float dt);
 
 	void fixedUpdate(float dt);
 

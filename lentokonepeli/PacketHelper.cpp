@@ -42,23 +42,25 @@ void ShipState::serialize(RakNet::BitStream& bitStream, bool write) {
 		bitStream.Serialize(write, rotation);
 		bitStream.Serialize(write, angularVelocity);
 		bitStream.Serialize(write, throttle);
+		bitStream.Serialize(write, shoot);
+		if (shoot) {
+			bitStream.Serialize(write, bulletId);
+		}
 	}
 }
 
-void ShipState::applyToPTrans(PhysicsTransformable & ship) {
+void ShipState::applyToPTrans(PhysicsTransformable & ship) const {
 	ship.setPosition(position);
 	ship.setRotation(rotation);
 	ship.velocity = velocity;
 	ship.angularVelocity = angularVelocity;
 }
 
-ShipState ShipState::generateFromPTrans(PhysicsTransformable& ship) {
-	ShipState ss;
-	ss.position = ship.getPosition();
-	ss.rotation = ship.getRotation();
-	ss.velocity = ship.velocity;
-	ss.angularVelocity = ship.angularVelocity;
-	return ss;
+void ShipState::generateFromPTrans(const PhysicsTransformable& ship) {
+	position = ship.getPosition();
+	rotation = ship.getRotation();
+	velocity = ship.velocity;
+	angularVelocity = ship.angularVelocity;
 }
 
 void ServerShipStates::serialize(RakNet::BitStream& bitStream, ServerShipStates& shipStates, bool write) {

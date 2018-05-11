@@ -14,19 +14,19 @@ void DefaultGun::draw(sf::RenderTarget& target) {
 	target.draw(cs);*/
 }
 
-bool DefaultGun::shoot() {
-	return shoot(getPosition(), getRotation(), goManager->getNewBulletId(ownerId));
+int DefaultGun::shoot() {
+	return shoot(goManager->getNewBulletId(ownerId), true);
 }
 
-bool DefaultGun::shoot(sf::Vector2f pos, float rot, sf::Uint16 bulletId) {
-	if (clock.getElapsedTime() > sf::seconds(fireInterval)) {
+int DefaultGun::shoot(sf::Uint16 bulletId, bool myShip) {
+	if (clock.getElapsedTime() > sf::seconds(fireInterval) || (myShip == false && clock.getElapsedTime() > sf::seconds(fireInterval * 0.7F))) { // make timing less harsh for others because of latency
 		clock.restart();
 		Bullet* bullet = goManager->createBullet(ownerId, bulletId);
-		bullet->launch(pos, rot);
+		bullet->launch(getPosition(), getRotation());
 		goManager->addToPhysics(bullet);
-		return true;
+		return bulletId;
 	}
 	else {
-		return false;
+		return -1;
 	}
 }

@@ -78,12 +78,13 @@ void GOManager::removeFromPhysics(PhysicsTransformable* pTrans) {
 
 void GOManager::applyTransforms(std::unordered_map<sf::Uint32, PhysicsTransformable>& state) {
 	for (auto& pair : state) {
-		pTransPointers[pair.first]->updateValues(pair.second);
+		pTransPointers.at(pair.first)->updateValues(pair.second);
 	}
 }
 
 ShipState GOManager::getShipState(sf::Uint8 index) {
-	ShipState ss = ShipState::generateFromPTrans(ships.at(index));;
+	ShipState ss;
+	ss.generateFromPTrans(ships.at(index));;
 	ss.dead = ships.at(index).isDead();
 	return ss;
 }

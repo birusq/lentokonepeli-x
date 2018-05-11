@@ -48,6 +48,7 @@ void Master::createWindow(WindowState state) {
 	if (state != WindowState::GameServer)
 		window.setVerticalSyncEnabled(settings.vsync);
 
+	sf::View view;
 	view.setSize(((float)width / (float)height) * 150.0F, 150.0F);
 	view.setCenter(view.getSize()/2.0F);
 	window.setView(view);
@@ -92,6 +93,8 @@ void Master::launchMainMenu() {
 }
 
 void Master::launchClient(std::string hostIp_) {
+	console::dlog("client");
+
 	if (currentCloseable)
 		currentCloseable->quit();
 	hostIp = hostIp_;

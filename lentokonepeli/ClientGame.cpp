@@ -126,9 +126,10 @@ void ClientGame::fixedUpdate(float dt) {
 
 		// Input
 		Input input;
+		int bulletId = -1;
 		if (master->window.hasFocus()) {
 			input = processInput();
-			applyInput(input, goManager.ships.at(client.myId), dt);
+			bulletId = applyInput(input, goManager.ships.at(client.myId), dt);
 		}
 
 		// Update my game with server states
@@ -141,7 +142,7 @@ void ClientGame::fixedUpdate(float dt) {
 		for (auto& pair : goManager.currentPTransformsState) {
 			if (pair.second.objType == SHIP) {
 				// Is ship is dead, dont integrate
-				if (static_cast<Ship*>(goManager.pTransPointers[pair.second.pTransId])->isDead()) {
+				if (static_cast<Ship*>(goManager.pTransPointers.at(pair.second.pTransId))->isDead()) {
 					continue;
 				}
 			}
@@ -152,6 +153,11 @@ void ClientGame::fixedUpdate(float dt) {
 		//Send my state to server
 		ShipState ss = goManager.getShipState(client.myId);
 		ss.throttle = input.moveForward;
+		if (bulletId != -1) {
+			ss.shoot = true;
+			ss.bulletId = sf::Uint16(bulletId);
+		}
+		
 		client.sendShipUpdate(ss);
 	}
 }
@@ -159,14 +165,22 @@ void ClientGame::fixedUpdate(float dt) {
 void ClientGame::applyServerStates(ServerShipStates& sss) {
 	for (auto& pair : sss.states) {
 
+		ShipState& shipState = pair.second;
 		sf::Uint8 clientId = pair.first;
 
-		if (clientId != client.myId) {
-			pair.second.applyToPTrans(goManager.currentPTransformsState[goManager.ships[pair.first].pTransId]);
-		}
+		if (client.users.count(clientId) == 1) {
 
-		if (goManager.ships[clientId].isDead() == true && pair.second.dead == false) {
-			goManager.ships[clientId].setHealthToFull();
+			if (clientId != client.myId) {
+				shipState.applyToPTrans(goManager.currentPTransformsState.at(goManager.ships.at(clientId).pTransId));
+			}
+
+			if (goManager.ships.at(clientId).isDead() == true && shipState.dead == false) {
+				goManager.ships.at(clientId).setHealthToFull();
+			}
+
+			if (shipState.shoot) {
+				goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
+			}
 		}
 	}
 }
@@ -174,7 +188,7 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 void ClientGame::update(float frameTime, float alpha) {
 	auto state = goManager.currentPTransformsState;
 	for (auto& pair : state) {
-		pair.second = PhysicsTransformable::lerp(goManager.previousPTransformsState[pair.first], goManager.currentPTransformsState[pair.first], alpha);
+		pair.second = PhysicsTransformable::lerp(goManager.previousPTransformsState.at(pair.first), goManager.currentPTransformsState.at(pair.first), alpha);
 	}
 
 	goManager.applyTransforms(state);
@@ -197,7 +211,7 @@ Input ClientGame::processInput() {
 	return input;
 }
 
-void ClientGame::applyInput(Input input, Ship& ship, float dt) {
+int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	PhysicsTransformable& currTrans = goManager.currentPTransformsState[ship.pTransId];
 	if (input.moveForward) {
 		currTrans.forceOnSelf = currTrans.getRotationVector() * 30.0F;
@@ -211,16 +225,17 @@ void ClientGame::applyInput(Input input, Ship& ship, float dt) {
 		currTrans.angularVelocity = 0.0F;
 	}
 	else if (input.turnLeft) {
-		currTrans.angularVelocity = -250.0F;
+		currTrans.angularVelocity = -220.0F;
 	}
 	else if (input.turnRight) {
-		currTrans.angularVelocity = 250.0F;
+		currTrans.angularVelocity = 220.0F;
 	}
 	else {
 		currTrans.angularVelocity = 0.0F;
 	}
 
 	if (input.shooting) {
-		ship.weapon->shoot(); // shoots only if firerate allows
+		return ship.weapon->shoot(); // shoots only if firerate allows
 	}
+	return -1;
 }

@@ -29,7 +29,7 @@ void Game::improveHandling(Ship& ship) {
 	PhysicsTransformable& target = goManager.currentPTransformsState[ship.pTransId];
 	if (target.velocity.x != 0 || target.velocity.y != 0) {
 		float velocity = thor::length(target.velocity);
-		float factor = velocity / 300.0F;
+		float factor = (velocity - 10.0F) / 300.0F;
 
 		target.velocity = target.getRotationVector() * velocity * factor + target.velocity * (1.0F - factor);
 

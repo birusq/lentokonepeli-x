@@ -47,7 +47,7 @@ void Server::changeTeam(TeamId newTeam, sf::Uint8 clientId) {
 
 	game->onClientJoinTeam(clientId, newTeam);
 
-	sendTeamUpdate(oldTeam, newTeam, clientId);
+	sendTeamUpdate(oldTeam, newTeam, clientId, UNASSIGNED_SYSTEM_ADDRESS, true);
 }
 
 void Server::update() {
@@ -111,19 +111,21 @@ void Server::handleUserUpdate(Packet* packet) {
 
 	users[user.clientId] = user;
 
-	sendAllUsersUpdate(packet->systemAddress); // send data of all users to connected user
-	sendUserUpdate(user, packet->systemAddress, true); // send data of this user to all others
+	 
+	
 
-	if (newUser)
+	if (newUser) {
 		game->onUserConnect(&user);
 
-	//console::log("User update: " + std::to_string(user.clientId) + (std::string)user.username.C_String() + user.guid.ToString());
-}
-
-void Server::sendAllUsersUpdate(SystemAddress toAddress) {
-	for (auto& pair : users) {
-		sendUserUpdate(pair.second, toAddress, false);
+		// send data of all users to new connected user
+		for (auto& pair : users) {
+			sendUserUpdate(pair.second, packet->systemAddress, false);
+		}
 	}
+
+	sendUserUpdate(user, packet->systemAddress, true); // send data of this user to all others
+
+	//console::log("User update: " + std::to_string(user.clientId) + (std::string)user.username.C_String() + user.guid.ToString());
 }
 
 void Server::sendUserUpdate(User& user, SystemAddress toAddress, bool broadcast) {
@@ -177,14 +179,14 @@ void Server::handleJoinTeamReq(Packet* packet) {
 	changeTeam(toTeam, peer->GetIndexFromSystemAddress(packet->systemAddress));
 }
 
-void Server::sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId) {
+void Server::sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId, SystemAddress toAddress, bool broadcast) {
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_TEAM_UPDATE);
 
 	TeamChange tc = TeamChange(oldTeam, newTeam, clientId);
 	tc.serialize(bitStream, true);
 
-	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 4, UNASSIGNED_SYSTEM_ADDRESS, true);
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 4, toAddress, broadcast);
 
 	console::dlog("Team update sent");
 }

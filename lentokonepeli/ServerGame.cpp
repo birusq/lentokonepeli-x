@@ -68,13 +68,14 @@ void ServerGame::fixedUpdate(float dt) {
 	ServerShipStates serverStates;
 	
 	// TODO: integrate ships when we don't receive a movement packet
+
 	for (auto& pair : server.shipStateJitterBuffers) {
 		if (pair.second.size() > 0) {
 			serverStates.states[pair.first] = pair.second.front();
 			pair.second.pop_front();
 		}
 	}
-		
+
 	applyServerStates(serverStates);
 
 	// TODO: integrate non player controlled objects, eg. bullets
@@ -83,39 +84,41 @@ void ServerGame::fixedUpdate(float dt) {
 
 	// TODO: Check collisions (bullet hits)
 
-	ServerShipStates newServerStates = getServerStatesFromShips();
-	// TODO: need to set firing tag to new states (not done above ^)
+	updateServerStates(serverStates);
+
 
 	// TODO: and if dead then send time until respawn to client
 
-	server.broadcastShipStates(newServerStates);
+	server.broadcastShipStates(serverStates);
 }
 
 void ServerGame::applyServerStates(ServerShipStates& sss) {
 	for (auto& pair : sss.states) {
+		
+		ShipState& shipState = pair.second;
 		sf::Uint8 clientId = pair.first;
 
-		pair.second.applyToPTrans(goManager.currentPTransformsState[goManager.ships[clientId].pTransId]);
+		if (server.users.count(clientId) == 1) {
 
-		// TODO: check respawning timer
-		if (goManager.ships[clientId].isDead() == true && pair.second.dead == false) {
-			
-			goManager.ships[clientId].setHealthToFull();
+			shipState.applyToPTrans(goManager.currentPTransformsState.at(goManager.ships.at(clientId).pTransId));
+
+			// TODO: check respawning timer
+			if (goManager.ships.at(clientId).isDead() == true && shipState.dead == false) {
+				goManager.ships.at(clientId).setHealthToFull();
+			}
+
+			if (shipState.shoot) {
+				goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
+			}
 		}
 	}
 }
 
-ServerShipStates ServerGame::getServerStatesFromShips() {
-	ServerShipStates sss;
+void ServerGame::updateServerStates(ServerShipStates& sss) {
 	for (auto& pair : goManager.ships) {
-
-		Ship& ship = pair.second;
-		ShipState shipState = ShipState::generateFromPTrans(ship);
-		shipState.dead = ship.isDead();
-
-		sss.states[pair.first] = shipState;
+		sss.states[pair.first].generateFromPTrans(pair.second);
+		sss.states[pair.first].dead = pair.second.isDead();
 	}
-	return sss;
 }
 
 

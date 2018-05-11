@@ -1,5 +1,6 @@
 #include "Console.h"
 #include <fstream>
+#include <TGUI/TGUI.hpp>
 
 namespace console {
 	void log(std::string s) {

@@ -40,7 +40,6 @@ private:
 
 	void changeTeam(TeamId newTeam, sf::Uint8 clientId);
 
-	void sendAllUsersUpdate(SystemAddress toAddress);
 	void sendUserUpdate(User& user, SystemAddress toAddress, bool broadcast);
 
 	void broadcastUserDisconnect(User& user);
@@ -50,7 +49,7 @@ private:
 
 	void handleJoinTeamReq(Packet* packet);
 
-	void sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId);
+	void sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId, SystemAddress toAddress, bool broadcast);
 
 	void handleShipUpdate(Packet* packet);
 
