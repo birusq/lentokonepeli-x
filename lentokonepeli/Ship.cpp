@@ -28,10 +28,10 @@ Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }
 
 	
 	healthBar = sf::RectangleShape(sf::Vector2f(hbMaxLength, 10));
-	healthBar.setOrigin(sf::Vector2f(0, 0));
+	healthBar.setOrigin(sf::Vector2f(0, 10));
 
 	healthBarBG = sf::RectangleShape(sf::Vector2f(hbMaxLength + 4, 14));
-	healthBarBG.setOrigin(sf::Vector2f(2, 2));
+	healthBarBG.setOrigin(sf::Vector2f(2, 12));
 	healthBarBG.setFillColor(palette::strongGrey);
 
 	assignTeam(teamId);
@@ -75,16 +75,16 @@ void Ship::draw(sf::RenderTarget& target) {
 		float factorY = (defaultView.getSize().y / view.getSize().y);
 		
 		sf::Vector2f planePosInUI = sf::Vector2f((planePos.x - posDiff.x) * factorX, (planePos.y - posDiff.y) * factorY);
-		
-		usernameLabel.setPosition(planePosInUI.x, planePosInUI.y - 8.0F * factorY);
-
-		target.draw(usernameLabel);
 
 		healthBar.setPosition(planePosInUI.x - hbMaxLength/2.0F, planePosInUI.y - 7.0F * factorY);
 		healthBarBG.setPosition(healthBar.getPosition());
 
 		target.draw(healthBarBG);
 		target.draw(healthBar);
+
+		usernameLabel.setPosition(planePosInUI.x, healthBar.getPosition().y - 18.0F);
+
+		target.draw(usernameLabel);
 
 		target.setView(view);
 	}
@@ -142,4 +142,5 @@ void Ship::restoreHealth(float heal) {
 
 void Ship::onDeath() {
 	hitboxDisabled = true;
+	timeSinceDeath.restart();
 }

@@ -18,7 +18,7 @@ sf::Uint16 GOManager::getNewBulletId(sf::Uint8 forClientId) {
 	sf::Uint16 bulletId;
 	do {
 		bulletId = thor::random(0, UINT16_MAX);
-	} 
+	}
 	while (bullets[forClientId].count(bulletId) == 1);
 	return bulletId;
 }

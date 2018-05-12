@@ -23,7 +23,7 @@ private:
 
 	void fixedUpdate(float dt);
 
-	void applyServerStates(ServerShipStates& sss);
+	void applyClientShipStates(ServerShipStates& sss);
 
 	void updateServerStates(ServerShipStates& sss);
 

@@ -16,7 +16,7 @@ ClientGame::ClientGame(Master* master_, std::string hostIp_) : Game(master_), ho
 }
 
 void ClientGame::onOtherUserConnect(User* const user) {
-	goManager.createShip(user);
+	goManager.createShip(user, user->teamId);
 }
 
 void ClientGame::onOtherUserDisconnect(sf::Uint8 clientId) {
@@ -181,12 +181,18 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 
 		if (client.users.count(clientId) == 1) {
 
-			if (clientId != client.myId) {
-				shipState.applyToPTrans(goManager.currentPTransformsState.at(goManager.ships.at(clientId).pTransId));
-			}
+			Ship& ship = goManager.ships.at(clientId);
 
-			if (shipState.shoot) {
-				goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
+			if (clientId != client.myId) {
+				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
+
+				if (shipState.shoot) {
+					ship.weapon->shoot(shipState.bulletId, false);
+				}
+
+				if (ship.isDead() == true && shipState.dead == false && ship.timeSinceDeath.getElapsedTime().asSeconds() > 0.25F) {
+					ship.respawn();
+				}
 			}
 		}
 	}

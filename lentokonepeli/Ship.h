@@ -39,6 +39,8 @@ public:
 
 	std::unique_ptr<Weapon> weapon;
 
+	sf::Clock timeSinceDeath;
+
 private:
 
 	sf::Text usernameLabel;
@@ -48,6 +50,8 @@ private:
 	sf::RectangleShape healthBar;
 	sf::RectangleShape healthBarBG;
 	float hbMaxLength = 80.0F;
+
+	
 
 	sf::Clock dmgTimer;
 	float dmgTime = 0.05F;

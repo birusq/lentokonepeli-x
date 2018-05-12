@@ -75,7 +75,7 @@ void ServerGame::fixedUpdate(float dt) {
 		}
 	}
 
-	applyServerStates(serverStates);
+	applyClientShipStates(serverStates);
 
 	for (auto& pair : goManager.bullets) {
 		for (auto& innerPair : pair.second) {
@@ -96,7 +96,7 @@ void ServerGame::fixedUpdate(float dt) {
 	server.broadcastShipStates(serverStates);
 }
 
-void ServerGame::applyServerStates(ServerShipStates& sss) {
+void ServerGame::applyClientShipStates(ServerShipStates& sss) {
 	for (auto& pair : sss.states) {
 		
 		ShipState& shipState = pair.second;
@@ -110,8 +110,12 @@ void ServerGame::applyServerStates(ServerShipStates& sss) {
 				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
 				ship.setWeaponTrans(shipState.position, shipState.rotation);
 				if (shipState.shoot) {
-					goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
+					ship.weapon->shoot(shipState.bulletId, false);
 				}
+			}
+			
+			if (ship.isDead() == true && shipState.dead == false && ship.timeSinceDeath.getElapsedTime().asSeconds() > 0.25F) {
+				ship.respawn();
 			}
 		}
 	}

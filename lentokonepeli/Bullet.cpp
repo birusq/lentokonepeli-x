@@ -17,6 +17,7 @@ Bullet::Bullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_,
 }
 
 void Bullet::launch(sf::Vector2f pos, float direction) {
+	hitboxDisabled = false;
 	setRotation(direction);
 	setPosition(pos);
 	constantVelocity = true;
