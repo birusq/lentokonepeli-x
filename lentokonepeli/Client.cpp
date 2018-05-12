@@ -91,10 +91,6 @@ void Client::update() {
 		else if (packetId == ID_TEAM_UPDATE) {
 			processTeamUpdate(packet);
 		}
-		else if (packetId == ID_CAN_SPAWN) {
-			console::dlog("Can spawn msg received");
-			game->onSpawnAllowed();
-		}
 		else if (packetId == ID_SHIP_UPDATE) {
 			processShipUpdate(packet);
 		}

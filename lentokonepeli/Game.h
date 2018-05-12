@@ -17,6 +17,7 @@ struct Input {
 	bool turnLeft = false;
 	bool turnRight = false;
 	bool shooting = false;
+	bool any() { return (moveForward || turnLeft || turnRight || shooting); }
 };
 
 class Game : public FpsCounter, public Closeable {

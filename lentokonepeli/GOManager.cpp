@@ -34,14 +34,15 @@ void GOManager::removeBullet(sf::Uint8 clientId, sf::Uint16 bulletId) {
 }
 
 void GOManager::drawAll(sf::RenderWindow& window) {
-	for (auto& s : ships) {
-		s.second.draw(window);
-	}
 
 	for (auto& pair : bullets) {
 		for (auto& innerPair : pair.second) {
 			innerPair.second.draw(window);
 		}
+	}
+
+	for (auto& s : ships) {
+		s.second.draw(window);
 	}
 }
 

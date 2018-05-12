@@ -1,9 +1,10 @@
 #include "TestLevel.h"
 #include <iostream>
+#include "Console.h"
 
 TestLevel::TestLevel() {
 	if (!bgTex.loadFromFile("res/blue-clouds.jpg")) {
-		std::cout << "Could not load bg texture";
+		console::dlog("Could not load bg texture");
 	}
 
 	bg.setTexture(bgTex);
@@ -14,9 +15,13 @@ TestLevel::TestLevel() {
 	bg.setPosition(sf::Vector2f(0,0));
 
 	ground.setFillColor(sf::Color(1, 137, 10));
-	ground.setSize(sf::Vector2f(600, 30));
+	ground.setSize(sf::Vector2f(400, 30));
 	ground.setPosition(0, 200);
 
+	center = sf::Vector2f(200, 100);
+
+	spawnPoints[RED_TEAM] = sf::Vector2f(50, 190);
+	spawnPoints[BLUE_TEAM] = sf::Vector2f(150, 190);
 }
 
 void TestLevel::draw(sf::RenderTarget& target, sf::RenderStates states) const {

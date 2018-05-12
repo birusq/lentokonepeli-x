@@ -188,12 +188,6 @@ void Server::sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clie
 	console::dlog("Team update sent");
 }
 
-void Server::sendAllowSpawnMsg(sf::Uint8 clientId) {
-	BitStream bitStream;
-	bitStream.Write((MessageID)ID_CAN_SPAWN);
-	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 5, users.at(clientId).guid, false);
-}
-
 void Server::handleShipUpdate(Packet* packet) {
 	sf::Uint8 clientId = peer->GetIndexFromSystemAddress(packet->systemAddress);
 

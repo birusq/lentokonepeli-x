@@ -13,14 +13,12 @@ public:
 
 	GOManager* goManager;
 
-	sf::Uint16 damage = 1;
+	sf::Uint16 damage = 10;
 	float radius = 1.0F;
-	float speed = 150.0F;
+	float speed = 110.0F;
 	float lifeTime = 3.0F;
 	sf::Clock lifeTimeCounter;
 	sf::CircleShape model;
-
-	sf::Vector2f startPos;
 
 	sf::Uint8 clientId;
 	sf::Uint16 bulletId;

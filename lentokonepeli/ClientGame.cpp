@@ -58,10 +58,12 @@ void ClientGame::onConnectionComplete() {
 	goManager.createShip(client.myUser());
 }
 
-void ClientGame::onSpawnAllowed() {
+void ClientGame::respawnMyShip() {
+	inputDisabledTimer.restart();
 	Ship& myShip = goManager.ships.at(client.myId);
-	myShip.setHealthToFull();
-	goManager.currentPTransformsState.at(myShip.pTransId).setPosition(sf::Vector2f(100, 100));
+	myShip.respawn();
+	goManager.previousPTransformsState.at(myShip.pTransId).setPosition(level.spawnPoints[client.myUser()->teamId]);
+	goManager.currentPTransformsState.at(myShip.pTransId).setPosition(level.spawnPoints[client.myUser()->teamId]);
 }
 
 void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
@@ -183,10 +185,6 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 				shipState.applyToPTrans(goManager.currentPTransformsState.at(goManager.ships.at(clientId).pTransId));
 			}
 
-			if (goManager.ships.at(clientId).isDead() == true && shipState.dead == false) {
-				goManager.ships.at(clientId).setHealthToFull();
-			}
-
 			if (shipState.shoot) {
 				goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
 			}
@@ -205,22 +203,28 @@ void ClientGame::update(float frameTime, float alpha) {
 
 Input ClientGame::processInput() {
 	Input input;
-	if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey)) {
-		input.moveForward = true;
-	}
-	if (sf::Keyboard::isKeyPressed(master->settings.turnLeftKey)) {
-		input.turnLeft = true;
-	}
-	if (sf::Keyboard::isKeyPressed(master->settings.turnRightKey)) {
-		input.turnRight = true;
-	}
-	if (sf::Keyboard::isKeyPressed(master->settings.shootKey)) {
-		input.shooting = true;
+	if (inputDisabledTimer.getElapsedTime().asSeconds() > inputDisabledTime) {
+		if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey)) {
+			input.moveForward = true;
+		}
+		if (sf::Keyboard::isKeyPressed(master->settings.turnLeftKey)) {
+			input.turnLeft = true;
+		}
+		if (sf::Keyboard::isKeyPressed(master->settings.turnRightKey)) {
+			input.turnRight = true;
+		}
+		if (sf::Keyboard::isKeyPressed(master->settings.shootKey)) {
+			input.shooting = true;
+		}
 	}
 	return input;
 }
 
 int ClientGame::applyInput(Input input, Ship& ship, float dt) {
+	if (ship.isDead() && input.any()) {
+		respawnMyShip();
+	}
+	
 	PhysicsTransformable& currTrans = goManager.currentPTransformsState[ship.pTransId];
 	if (input.moveForward) {
 		currTrans.forceOnSelf = currTrans.getRotationVector() * 30.0F;

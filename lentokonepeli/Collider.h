@@ -8,7 +8,7 @@ public:
 	Collider() {}
 	~Collider() {};
 	S hitbox;
-	bool hitboxDisabled = false;
+	bool hitboxDisabled = true;
 
 	bool collidesWith(Collider& other) {
 		if (hitboxDisabled || other.hitboxDisabled)

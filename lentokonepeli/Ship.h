@@ -30,6 +30,8 @@ public:
 
 	void draw(sf::RenderTarget& target);
 
+	// heals to full and enables hitbox
+	void respawn();
 
 	void onCollision() override;
 	void updateHitbox() override;
@@ -42,6 +44,10 @@ private:
 	sf::Text usernameLabel;
 
 	sf::RectangleShape rectangle;
+
+	sf::RectangleShape healthBar;
+	sf::RectangleShape healthBarBG;
+	float hbMaxLength = 80.0F;
 
 	sf::Clock dmgTimer;
 	float dmgTime = 0.05F;

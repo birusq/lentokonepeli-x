@@ -17,9 +17,6 @@ public:
 	// Fired when user data (clientId etc.) is received from server
 	void onConnectionComplete();
 
-	// Fired when spawning allowed from server side after dying
-	void onSpawnAllowed();
-
 	void onOtherUserConnect(User* const user);
 
 	void onOtherUserDisconnect(sf::Uint8 clientId);
@@ -27,6 +24,8 @@ public:
 	void onTeamJoin(sf::Uint8 clientId, TeamId newTeam);
 
 	void onBulletHit(sf::Uint8 shooterId, sf::Uint16 bulletId, sf::Uint8 targetId, sf::Uint16 damage);
+
+	void respawnMyShip();
 
 private:
 
@@ -43,4 +42,7 @@ private:
 	void fixedUpdate(float dt);
 
 	void update(float frameTime, float alpha);
+
+	sf::Clock inputDisabledTimer;
+	float inputDisabledTime = 0.5F;
 };

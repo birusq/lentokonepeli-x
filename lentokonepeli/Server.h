@@ -30,8 +30,6 @@ public:
 	std::unordered_map<sf::Uint8, std::deque<ShipState>> shipStateJitterBuffers;
 	std::unordered_map<TeamId, Team> teams;
 
-	void sendAllowSpawnMsg(sf::Uint8 clientId);
-
 	void broadcastShipStates(ServerShipStates& newStates);
 
 	void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip);

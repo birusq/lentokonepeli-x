@@ -8,9 +8,10 @@ Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }
 	gravity = false;
 	drag = 0.01F;
 
+	setPosition(200, 100);
+
 	float width = 3.0F;
 	float height = 10.0f;
-
 
 	hitbox.setSize(sf::Vector2f(width, height));
 	hitbox.setOrigin(width / 2.0f, height / 2.0F);
@@ -21,15 +22,29 @@ Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }
 	
 	usernameLabel.setFont(g::font);
 	usernameLabel.setString(owner->username.C_String());
-	usernameLabel.setCharacterSize(14);
-	usernameLabel.setOrigin(usernameLabel.getGlobalBounds().width/2.0F, usernameLabel.getGlobalBounds().height/2.0F);
+	usernameLabel.setCharacterSize(16);
+	usernameLabel.setOrigin(usernameLabel.getGlobalBounds().width/2.0F, usernameLabel.getGlobalBounds().height);
 	usernameLabel.setFillColor(sf::Color::Black);
+
+	
+	healthBar = sf::RectangleShape(sf::Vector2f(hbMaxLength, 10));
+	healthBar.setOrigin(sf::Vector2f(0, 0));
+
+	healthBarBG = sf::RectangleShape(sf::Vector2f(hbMaxLength + 4, 14));
+	healthBarBG.setOrigin(sf::Vector2f(2, 2));
+	healthBarBG.setFillColor(palette::strongGrey);
 
 	assignTeam(teamId);
 }
 
 void Ship::assignTeam(TeamId teamId_) {
 	teamId = teamId_;
+	if (teamId == RED_TEAM) {
+		healthBar.setFillColor(palette::red);
+	}
+	else if (teamId == BLUE_TEAM) {
+		healthBar.setFillColor(palette::blue);
+	}
 }
 
 void Ship::draw(sf::RenderTarget& target) {
@@ -55,18 +70,30 @@ void Ship::draw(sf::RenderTarget& target) {
 
 		sf::Vector2f posDiff = view.getCenter() - 0.5F * view.getSize();
 		sf::Vector2f planePos = getPosition();
+
+		float factorX = (defaultView.getSize().x / view.getSize().x);
+		float factorY = (defaultView.getSize().y / view.getSize().y);
 		
-		sf::Vector2f planePosInUI = sf::Vector2f((planePos.x - posDiff.x) * (defaultView.getSize().x / view.getSize().x), (planePos.y - posDiff.y) *  (defaultView.getSize().y / view.getSize().y));
+		sf::Vector2f planePosInUI = sf::Vector2f((planePos.x - posDiff.x) * factorX, (planePos.y - posDiff.y) * factorY);
 		
-		usernameLabel.setPosition(planePosInUI.x, planePosInUI.y - 8 * (defaultView.getSize().x / view.getSize().x));
+		usernameLabel.setPosition(planePosInUI.x, planePosInUI.y - 8.0F * factorY);
 
 		target.draw(usernameLabel);
+
+		healthBar.setPosition(planePosInUI.x - hbMaxLength/2.0F, planePosInUI.y - 7.0F * factorY);
+		healthBarBG.setPosition(healthBar.getPosition());
+
+		target.draw(healthBarBG);
+		target.draw(healthBar);
 
 		target.setView(view);
 	}
 }
 
 void Ship::updateHitbox() {
+	if (isDead())
+		return;
+
 	if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
 		hitboxDisabled = false;
 	}
@@ -87,12 +114,21 @@ void Ship::onCollision() {
 	rectangle.setFillColor(sf::Color::Red);
 }
 
+void Ship::respawn() {
+	setHealthToFull();
+	hitboxDisabled = false;
+
+	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
+}
+
 void Ship::takeDmg(float dmg) {
 	console::dlog(std::string(owner->username.C_String()) + std::string(" took damage"));
 	rectangle.setFillColor(sf::Color::Red);
 	health -= dmg;
 	if (health <= 0.0F)
 		onDeath();
+
+	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
 }
 
 void Ship::restoreHealth(float heal) {
@@ -100,8 +136,10 @@ void Ship::restoreHealth(float heal) {
 	if (health > maxHealth) {
 		health = maxHealth;
 	}
+
+	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
 }
 
 void Ship::onDeath() {
-
+	hitboxDisabled = true;
 }

@@ -19,7 +19,6 @@ Bullet::Bullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_,
 void Bullet::launch(sf::Vector2f pos, float direction) {
 	setRotation(direction);
 	setPosition(pos);
-	startPos = pos;
 	constantVelocity = true;
 	velocity = getRotationVector() * speed;
 	lifeTimeCounter.restart();

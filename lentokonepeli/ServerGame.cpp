@@ -4,7 +4,7 @@
 
 ServerGame::ServerGame(Master* master_) : Game(master_) {
 	server.init(master_, this);
-	server.start(4);
+	server.start(10);
 }
 
 void ServerGame::loop() {
@@ -48,8 +48,7 @@ void ServerGame::onUserDisconnect(sf::Uint8 clientId) {
 }
 
 void ServerGame::onClientJoinTeam(sf::Uint8 clientId, TeamId newTeam) {
-	if (newTeam != NO_TEAM)
-		server.sendAllowSpawnMsg(clientId);
+	// Nothing yet
 }
 
 void ServerGame::render(sf::RenderWindow& window) {
@@ -114,14 +113,6 @@ void ServerGame::applyServerStates(ServerShipStates& sss) {
 					goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
 				}
 			}
-
-			// TODO: check respawning timer
-			if (goManager.ships.at(clientId).isDead() == true && shipState.dead == false) {
-				goManager.ships.at(clientId).setHealthToFull();
-			}
-			else if (goManager.ships.at(clientId).isDead() == true) {
-				server.sendAllowSpawnMsg(clientId); // TODO: maybe dont send every frame
-			}
 		}
 	}
 }
@@ -152,10 +143,6 @@ void ServerGame::collisionDetectAll() {
 
 			for (sf::Uint8& t1Client : it1->second.members) {
 				for (sf::Uint8& t2Client : it2->second.members) {
-					// Player collisions
-					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
-						console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " collided with " + std::string(server.users.at(t2Client).username.C_String()));
-					}
 
 					// Bullet collisions
 					for (auto& pair : goManager.bullets[t1Client]) {
@@ -173,6 +160,11 @@ void ServerGame::collisionDetectAll() {
 						}
 					}
 
+
+					// Player collisions
+					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
+						console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " collided with " + std::string(server.users.at(t2Client).username.C_String()));
+					}
 				}
 			}
 
