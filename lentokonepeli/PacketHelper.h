@@ -27,6 +27,8 @@ namespace ph {
 		ID_TEAM_UPDATE,
 		ID_SHIP_UPDATE,
 		ID_CAN_SPAWN,
+		ID_BULLET_HIT_SHIP,
+		ID_SHIP_HIT_SHIP
 	};
 
 	std::string msgIDToString(MessageIndetifier id);

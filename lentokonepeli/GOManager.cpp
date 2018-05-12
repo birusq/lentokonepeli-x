@@ -4,15 +4,14 @@
 #include "DefaultGun.h"
 #include <Thor/Math.hpp>
 
-void GOManager::createShip(User* const user, TeamId teamId) {
+void GOManager::createShip(User* user, TeamId teamId) {
 	ships[user->clientId] = Ship(getUnusedPTransId(), user, teamId);
 	ships[user->clientId].weapon = std::make_unique<DefaultGun>(this, user->clientId);
 	addToPhysics(&ships[user->clientId]);
 }
 
 void GOManager::removeShip(sf::Uint8 clientId) {
-	removeFromPhysics(&ships.at(clientId));
-	ships.erase(clientId);
+	shipGarbage.push_back(clientId);
 }
 
 sf::Uint16 GOManager::getNewBulletId(sf::Uint8 forClientId) {
@@ -31,8 +30,7 @@ Bullet* GOManager::createBullet(sf::Uint8 forClientId, sf::Uint16 bulletId) {
 }
 
 void GOManager::removeBullet(sf::Uint8 clientId, sf::Uint16 bulletId) {
-	removeFromPhysics(&bullets[clientId][bulletId]);
-	bullets[clientId].erase(bulletId);
+	bulletGarbage.push_back(std::make_pair(clientId, bulletId));
 }
 
 void GOManager::drawAll(sf::RenderWindow& window) {
@@ -40,18 +38,10 @@ void GOManager::drawAll(sf::RenderWindow& window) {
 		s.second.draw(window);
 	}
 
-	std::vector<Bullet*> garbage;
 	for (auto& pair : bullets) {
 		for (auto& innerPair : pair.second) {
-			Bullet* b = &innerPair.second;
-			b->draw(window);
-			if (b->lifeTimeCounter.getElapsedTime().asSeconds() > b->lifeTime) {
-				garbage.push_back(b);
-			}
+			innerPair.second.draw(window);
 		}
-	}
-	for (Bullet* b : garbage) {
-		removeBullet(b->clientId, b->bulletId);
 	}
 }
 
@@ -87,4 +77,22 @@ ShipState GOManager::getShipState(sf::Uint8 index) {
 	ss.generateFromPTrans(ships.at(index));;
 	ss.dead = ships.at(index).isDead();
 	return ss;
+}
+
+void GOManager::deleteGarbage() {
+	for (auto& b : bulletGarbage) {
+		if (bullets[std::get<0>(b)].count(std::get<1>(b)) == 1) {
+			removeFromPhysics(&bullets[std::get<0>(b)].at(std::get<1>(b)));
+			bullets[std::get<0>(b)].erase(std::get<1>(b));
+		}
+	}
+	bulletGarbage.clear();
+
+	for (sf::Uint8 s : shipGarbage) {
+		if (ships.count(s) == 1) {
+			removeFromPhysics(&ships.at(s));
+			ships.erase(s);
+		}
+	}
+	shipGarbage.clear();
 }

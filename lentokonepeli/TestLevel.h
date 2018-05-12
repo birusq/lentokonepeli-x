@@ -8,7 +8,7 @@ class TestLevel : public sf::Drawable {
 public:
 	TestLevel();
 
-	std::vector<Collider*> getColliders() {};
+	std::vector<Collider<sf::ConvexShape>*> getColliders() {};
 
 private:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

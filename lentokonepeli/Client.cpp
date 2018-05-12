@@ -98,6 +98,9 @@ void Client::update() {
 		else if (packetId == ID_SHIP_UPDATE) {
 			processShipUpdate(packet);
 		}
+		else if (packetId == ID_BULLET_HIT_SHIP) {
+			processBulletHit(packet);
+		}
 		else {
 			if (packetId <= 134)
 				console::log("Packet type not handled: " + (std::string)PacketLogger::BaseIDTOString(packetId));
@@ -128,7 +131,7 @@ void Client::processUser(Packet* packet) {
 		game->onConnectionComplete();
 	}
 	else {
-		game->onOtherUserConnect(&user);
+		game->onOtherUserConnect(&users[user.clientId]);
 	}
 
 	console::dlog("User update: " + std::to_string((unsigned int)user.clientId) + (std::string)user.username + user.guid.ToString());
@@ -179,6 +182,23 @@ void Client::processShipUpdate(Packet* packet) {
 	}
 
 	//console::dlog("Ship update received");
+}
+
+void Client::processBulletHit(Packet * packet) {
+	BitStream bitStream(packet->data, packet->length, false);
+	bitStream.IgnoreBytes(1);
+	
+	sf::Uint8 shooterId;
+	sf::Uint16 bulletId;
+	sf::Uint8 targetId;
+	sf::Uint16 damage;
+
+	bitStream.Read(shooterId);
+	bitStream.Read(bulletId);
+	bitStream.Read(targetId);
+	bitStream.Read(damage);
+
+	game->onBulletHit(shooterId, bulletId, targetId, damage);
 }
 
 void Client::sendShipUpdate(ShipState& shipState) {

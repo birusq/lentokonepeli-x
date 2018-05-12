@@ -47,6 +47,13 @@ void ClientGame::onTeamJoin(sf::Uint8 clientId, TeamId newTeam) {
 	goManager.ships.at(clientId).assignTeam(newTeam);
 }
 
+void ClientGame::onBulletHit(sf::Uint8 shooterId, sf::Uint16 bulletId, sf::Uint8 targetId, sf::Uint16 damage) {
+	if (goManager.ships.count(shooterId) == 1 && goManager.bullets.at(shooterId).count(bulletId) == 1 && goManager.ships.count(targetId) == 1) {
+		goManager.removeBullet(shooterId, bulletId);
+		goManager.ships.at(targetId).takeDmg(damage);
+	}
+}
+
 void ClientGame::onConnectionComplete() {
 	goManager.createShip(client.myUser());
 }
@@ -159,6 +166,8 @@ void ClientGame::fixedUpdate(float dt) {
 		}
 		
 		client.sendShipUpdate(ss);
+
+		goManager.deleteGarbage();
 	}
 }
 
@@ -225,10 +234,10 @@ int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 		currTrans.angularVelocity = 0.0F;
 	}
 	else if (input.turnLeft) {
-		currTrans.angularVelocity = -220.0F;
+		currTrans.angularVelocity = -180.0F;
 	}
 	else if (input.turnRight) {
-		currTrans.angularVelocity = 220.0F;
+		currTrans.angularVelocity = 180.0F;
 	}
 	else {
 		currTrans.angularVelocity = 0.0F;

@@ -16,22 +16,29 @@ public:
 
 	std::unordered_map<sf::Uint8, Ship> ships;
 	std::unordered_map<sf::Uint8, std::unordered_map<sf::Uint16, Bullet>> bullets;
-	
 
 	sf::Uint32 getUnusedPTransId();
-	void addToPhysics(PhysicsTransformable* pTrans);
-	void removeFromPhysics(PhysicsTransformable* pTrans);
 
 	void applyTransforms(std::unordered_map<sf::Uint32, PhysicsTransformable>& state);
 
 	void drawAll(sf::RenderWindow& window);
 
-	void createShip(User* const user, TeamId teamId = NO_TEAM);
+	void createShip(User* user, TeamId teamId = NO_TEAM);
 	void removeShip(sf::Uint8 clientId);
 
 	sf::Uint16 getNewBulletId(sf::Uint8 forClientId);
-	Bullet* createBullet(sf::Uint8 ClientId, sf::Uint16 bulletId);
+	Bullet* createBullet(sf::Uint8 clientId, sf::Uint16 bulletId);
 	void removeBullet(sf::Uint8 clientId, sf::Uint16 bulletId);
 
 	ShipState getShipState(sf::Uint8 clientIndex);
+
+	void addToPhysics(PhysicsTransformable* pTrans);
+
+	// Delete unused objects here to not invalidate iterators
+	void deleteGarbage();
+private:
+	std::vector<std::pair<sf::Uint8, sf::Uint16>> bulletGarbage;
+	std::vector<sf::Uint8> shipGarbage;
+	
+	void removeFromPhysics(PhysicsTransformable* pTrans);
 };

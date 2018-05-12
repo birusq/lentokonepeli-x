@@ -3,7 +3,7 @@
 #include "Console.h"
 #include "User.h"
 
-Ship::Ship(sf::Uint32 pTransId_, User* const owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
+Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
 	pTransId = pTransId_;
 	gravity = false;
 	drag = 0.01F;
@@ -35,17 +35,19 @@ void Ship::assignTeam(TeamId teamId_) {
 void Ship::draw(sf::RenderTarget& target) {
 	if (isDead() == false) {
 
-		
+		if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
+			rectangle.setFillColor(sf::Color::Black);
+		}
+
+		rectangle.setRotation(getRotation());
+		rectangle.setPosition(getPosition());
+
 		weapon->setPosition(getRotationVector() * 5.0F + getPosition());
 		weapon->setRotation(getRotation());
 
 		weapon->draw(target);
-
-		rectangle.setRotation(getRotation());
-		rectangle.setPosition(getPosition());
 		
 		target.draw(rectangle);
-
 
 		sf::View view = target.getView();
 		sf::View defaultView = target.getDefaultView();
@@ -65,12 +67,29 @@ void Ship::draw(sf::RenderTarget& target) {
 }
 
 void Ship::updateHitbox() {
+	if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
+		hitboxDisabled = false;
+	}
+
 	hitbox.setRotation(getRotation());
 	hitbox.setPosition(getPosition());
 }
 
+void Ship::setWeaponTrans(sf::Vector2f pos, float rot) {
+	setRotation(rot);
+	weapon->setRotation(rot);
+	weapon->setPosition(getRotationVector() * 5.0F + pos);
+}
+
+void Ship::onCollision() {
+	hitboxDisabled = true;
+	dmgTimer.restart();
+	rectangle.setFillColor(sf::Color::Red);
+}
+
 void Ship::takeDmg(float dmg) {
-	console::dlog(owner->username.C_String() + std::string(" took damage"));
+	console::dlog(std::string(owner->username.C_String()) + std::string(" took damage"));
+	rectangle.setFillColor(sf::Color::Red);
 	health -= dmg;
 	if (health <= 0.0F)
 		onDeath();

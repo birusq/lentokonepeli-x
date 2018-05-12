@@ -15,7 +15,7 @@ void Server::init(Master* master_, ServerGame* game_) {
 	master->gui.server = this;
 
 	peer = RakPeerInterface::GetInstance();
-	peer->SetUnreliableTimeout(5000);
+	peer->SetUnreliableTimeout(10000);
 }
 
 void Server::start(sf::Uint8 maxClients) {
@@ -111,11 +111,8 @@ void Server::handleUserUpdate(Packet* packet) {
 
 	users[user.clientId] = user;
 
-	 
-	
-
 	if (newUser) {
-		game->onUserConnect(&user);
+		game->onUserConnect(&users[user.clientId]);
 
 		// send data of all users to new connected user
 		for (auto& pair : users) {
@@ -226,4 +223,15 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 
 	//console::dlog("Number of ships in update: " + std::to_string(newStates.states.size()));
+}
+
+void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip) {
+	BitStream bitStream;
+	bitStream.Write((MessageID)ID_BULLET_HIT_SHIP);
+	bitStream.Write(bullet->clientId);
+	bitStream.Write(bullet->bulletId);
+	bitStream.Write(targetShip->owner->clientId);
+	bitStream.Write(bullet->damage);
+
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 }

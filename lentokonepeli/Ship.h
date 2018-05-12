@@ -9,10 +9,10 @@
 
 struct User;
 
-class Ship : public PhysicsTransformable, public Collider, public Damageable {
+class Ship : public PhysicsTransformable, public Collider<sf::RectangleShape>, public Damageable {
 public:
 	Ship() {}
-	Ship(sf::Uint32 pTransId_, User* const user_, TeamId teamId_ = NO_TEAM);
+	Ship(sf::Uint32 pTransId_, User* user_, TeamId teamId_ = NO_TEAM);
 
 	void assignTeam(TeamId teamId_);
 
@@ -30,8 +30,10 @@ public:
 
 	void draw(sf::RenderTarget& target);
 
-	// Updates the positions of the weapon and hitbox
-	void updateHitbox();
+
+	void onCollision() override;
+	void updateHitbox() override;
+	void setWeaponTrans(sf::Vector2f pos, float rot);
 
 	std::unique_ptr<Weapon> weapon;
 
@@ -40,4 +42,7 @@ private:
 	sf::Text usernameLabel;
 
 	sf::RectangleShape rectangle;
+
+	sf::Clock dmgTimer;
+	float dmgTime = 0.05F;
 };

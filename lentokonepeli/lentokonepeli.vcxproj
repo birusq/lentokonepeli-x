@@ -140,7 +140,6 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientGame.cpp" />
-    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="DefaultGun.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Console.cpp" />

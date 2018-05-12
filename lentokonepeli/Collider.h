@@ -1,21 +1,25 @@
 #pragma once
-#include "Thor/Vectors.hpp"
+#include <Thor/Vectors.hpp>
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-class Collider {
+template <class S> class Collider {
 public:
 	Collider() {}
 	~Collider() {};
-	sf::RectangleShape hitbox;
+	S hitbox;
+	bool hitboxDisabled = false;
 
-	bool collidesWith(Collider& target) {
+	bool collidesWith(Collider& other) {
+		if (hitboxDisabled || other.hitboxDisabled)
+			return false;
+
 		std::vector<sf::Vector2f> myNormals = getNormals();
-		std::vector<sf::Vector2f> otherNormals = target.getNormals();
+		std::vector<sf::Vector2f> otherNormals = other.getNormals();
 
 		for (std::size_t i = 0; i < myNormals.size(); i++) {
 			std::pair<float, float> res1 = getMinMax(myNormals.at(i));
-			std::pair<float, float> res2 = target.getMinMax(myNormals.at(i));
+			std::pair<float, float> res2 = other.getMinMax(myNormals.at(i));
 
 			if (std::get<0>(res1) > std::get<1>(res2) || std::get<0>(res2) > std::get<1>(res1))
 				return false;
@@ -23,23 +27,28 @@ public:
 
 		for (std::size_t i = 0; i < otherNormals.size(); i++) {
 			std::pair<float, float> res1 = getMinMax(otherNormals.at(i));
-			std::pair<float, float> res2 = target.getMinMax(otherNormals.at(i));
+			std::pair<float, float> res2 = other.getMinMax(otherNormals.at(i));
 
 			if (std::get<0>(res1) > std::get<1>(res2) || std::get<0>(res2) > std::get<1>(res1))
 				return false;
 		}
 
+		onCollision();
+		other.onCollision();
 		return true;
 	}
 protected:
-	virtual void onCollision() {}
+	virtual void onCollision() = 0;
+
+	// Only server checks collisions (clients don't call this)
+	virtual void updateHitbox() = 0;
 private:
 
 	std::vector<sf::Vector2f> getNormals() {
 		std::vector<sf::Vector2f> normals;
 		normals.reserve(hitbox.getPointCount());
 
-		for (int i = 0; i < hitbox.getPointCount(); i++) {
+		for (std::size_t i = 0; i < hitbox.getPointCount(); i++) {
 			sf::Vector2f p1 = hitbox.getTransform().transformPoint(hitbox.getPoint(i));
 			sf::Vector2f p2 = hitbox.getTransform().transformPoint(hitbox.getPoint(i + 1 == hitbox.getPointCount() ? 0 : i + 1));
 
@@ -53,12 +62,10 @@ private:
 
 	std::pair<float, float> getMinMax(const sf::Vector2f& normal) {
 
-		sf::Vector2f center = hitbox.getPosition();
+		float minProj = thor::dotProduct(hitbox.getTransform().transformPoint(hitbox.getPoint(0)), normal);
+		float maxProj = minProj;
 
-		float minProj = std::numeric_limits<float>::max();
-		float maxProj = std::numeric_limits<float>::min();
-
-		for (int i = 0; i < hitbox.getPointCount(); i++) {
+		for (std::size_t i = 1; i < hitbox.getPointCount(); i++) {
 			float currProj = thor::dotProduct(hitbox.getTransform().transformPoint(hitbox.getPoint(i)), normal);
 
 			if (currProj < minProj) {

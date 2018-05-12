@@ -84,12 +84,11 @@ void ServerGame::fixedUpdate(float dt) {
 		}
 	}
 
-
 	goManager.applyTransforms(goManager.currentPTransformsState);
-
 
 	collisionDetectAll();
 
+	goManager.deleteGarbage();
 
 	updateServerStates(serverStates);
 
@@ -106,15 +105,22 @@ void ServerGame::applyServerStates(ServerShipStates& sss) {
 
 		if (server.users.count(clientId) == 1) {
 
-			shipState.applyToPTrans(goManager.currentPTransformsState.at(goManager.ships.at(clientId).pTransId));
+			Ship& ship = goManager.ships.at(clientId);
+
+			if (ship.isDead() == false) {
+				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
+				ship.setWeaponTrans(shipState.position, shipState.rotation);
+				if (shipState.shoot) {
+					goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
+				}
+			}
 
 			// TODO: check respawning timer
 			if (goManager.ships.at(clientId).isDead() == true && shipState.dead == false) {
 				goManager.ships.at(clientId).setHealthToFull();
 			}
-
-			if (shipState.shoot) {
-				goManager.ships.at(clientId).weapon->shoot(shipState.bulletId, false);
+			else if (goManager.ships.at(clientId).isDead() == true) {
+				server.sendAllowSpawnMsg(clientId); // TODO: maybe dont send every frame
 			}
 		}
 	}
@@ -128,8 +134,14 @@ void ServerGame::updateServerStates(ServerShipStates& sss) {
 }
 
 void ServerGame::collisionDetectAll() {
+	// Update all hitbox positions
 	for (auto& pair : goManager.ships) {
 		pair.second.updateHitbox();
+	}
+	for (auto& pair : goManager.bullets) {
+		for (auto& innerPair : pair.second) {
+			innerPair.second.updateHitbox();
+		}
 	}
 
 	// Check collision (check all variations of teams)
@@ -142,12 +154,24 @@ void ServerGame::collisionDetectAll() {
 				for (sf::Uint8& t2Client : it2->second.members) {
 					// Player collisions
 					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
-						console::dlog("collision");
+						console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " collided with " + std::string(server.users.at(t2Client).username.C_String()));
 					}
 
-					console::dlog(std::to_string(goManager.ships.at(t1Client).hitbox.getPosition().x) + ", " + std::to_string(goManager.ships.at(t1Client).hitbox.getPosition().y) + " | " + std::to_string(goManager.ships.at(t2Client).hitbox.getPosition().x) + ", " + std::to_string(goManager.ships.at(t2Client).hitbox.getPosition().y));
-
 					// Bullet collisions
+					for (auto& pair : goManager.bullets[t1Client]) {
+						if (pair.second.collidesWith(goManager.ships.at(t2Client))) {
+							console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " hit " + std::string(server.users.at(t2Client).username.C_String()) + " with a bullet");
+							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t2Client));
+							goManager.ships.at(t2Client).takeDmg(pair.second.damage);
+						}
+					}
+					for (auto& pair : goManager.bullets[t2Client]) {
+						if (pair.second.collidesWith(goManager.ships.at(t1Client))) {
+							console::dlog(std::string(server.users.at(t2Client).username.C_String()) + " hit " + std::string(server.users.at(t1Client).username.C_String()) + " with a bullet");
+							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t1Client));
+							goManager.ships.at(t1Client).takeDmg(pair.second.damage);
+						}
+					}
 
 				}
 			}

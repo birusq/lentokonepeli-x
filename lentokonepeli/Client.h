@@ -8,6 +8,7 @@
 #include "Team.h"
 #include "PacketHelper.h"
 #include <deque>
+#include <SFML/System.hpp>
 
 using namespace RakNet;
 
@@ -57,6 +58,7 @@ private:
 	void processTeamUpdate(Packet* packet);
 	void handleOtherUserDisconnect(Packet* packet);
 	void processShipUpdate(Packet* packet);
+	void processBulletHit(Packet* packet);
 
 	RakNetGUID hostguid;
 };

@@ -34,6 +34,8 @@ public:
 
 	void broadcastShipStates(ServerShipStates& newStates);
 
+	void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip);
+
 private:
 	Master* master;
 	ServerGame* game;
