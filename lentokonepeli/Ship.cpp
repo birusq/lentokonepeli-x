@@ -2,6 +2,8 @@
 #include "Globals.h"
 #include "Console.h"
 #include "User.h"
+#include "Weapon.h"
+#include "Master.h"
 
 Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
 	pTransId = pTransId_;
@@ -22,16 +24,15 @@ Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }
 	
 	usernameLabel.setFont(g::font);
 	usernameLabel.setString(owner->username.C_String());
-	usernameLabel.setCharacterSize(16);
-	usernameLabel.setOrigin(usernameLabel.getGlobalBounds().width/2.0F, usernameLabel.getGlobalBounds().height);
+	usernameLabel.setCharacterSize(40);
+	usernameLabel.setScale(sf::Vector2f(0.065F, 0.065F));
+	usernameLabel.setOrigin(usernameLabel.getLocalBounds().width/2.0F, usernameLabel.getLocalBounds().height);
 	usernameLabel.setFillColor(sf::Color::Black);
 
 	
-	healthBar = sf::RectangleShape(sf::Vector2f(hbMaxLength, 10));
-	healthBar.setOrigin(sf::Vector2f(0, 10));
+	healthBar = sf::RectangleShape(sf::Vector2f(hbMaxLength, 1.6F));
 
-	healthBarBG = sf::RectangleShape(sf::Vector2f(hbMaxLength + 4, 14));
-	healthBarBG.setOrigin(sf::Vector2f(2, 12));
+	healthBarBG = sf::RectangleShape(sf::Vector2f(healthBar.getSize().x + hbBorderSize * 2.0F, healthBar.getSize().y + hbBorderSize *  2.0F));
 	healthBarBG.setFillColor(palette::strongGrey);
 
 	assignTeam(teamId);
@@ -48,6 +49,10 @@ void Ship::assignTeam(TeamId teamId_) {
 }
 
 void Ship::draw(sf::RenderTarget& target) {
+	if (localPlayer) {
+		master->soundPlayer.updateListenerPos(getPosition());
+	}
+	
 	if (isDead() == false) {
 
 		if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
@@ -61,32 +66,28 @@ void Ship::draw(sf::RenderTarget& target) {
 		weapon->setRotation(getRotation());
 
 		weapon->draw(target);
-		
+
 		target.draw(rectangle);
 
-		sf::View view = target.getView();
-		sf::View defaultView = target.getDefaultView();
-		target.setView(defaultView);
+		healthBar.setPosition(getPosition().x - hbMaxLength / 2.0F, getPosition().y - 8.0F);
+		healthBarBG.setPosition(healthBar.getPosition().x - hbBorderSize, healthBar.getPosition().y - hbBorderSize);
 
-		sf::Vector2f posDiff = view.getCenter() - 0.5F * view.getSize();
-		sf::Vector2f planePos = getPosition();
-
-		float factorX = (defaultView.getSize().x / view.getSize().x);
-		float factorY = (defaultView.getSize().y / view.getSize().y);
-		
-		sf::Vector2f planePosInUI = sf::Vector2f((planePos.x - posDiff.x) * factorX, (planePos.y - posDiff.y) * factorY);
-
-		healthBar.setPosition(planePosInUI.x - hbMaxLength/2.0F, planePosInUI.y - 7.0F * factorY);
-		healthBarBG.setPosition(healthBar.getPosition());
+		usernameLabel.setPosition(getPosition().x, getPosition().y - 10.0F);
 
 		target.draw(healthBarBG);
 		target.draw(healthBar);
-
-		usernameLabel.setPosition(planePosInUI.x, healthBar.getPosition().y - 18.0F);
-
 		target.draw(usernameLabel);
+		
 
-		target.setView(view);
+		if (throttle) {
+			master->soundPlayer.playThrottle(getPosition(), owner->clientId);
+		}
+		else {
+			master->soundPlayer.stopThrottle(owner->clientId);
+		}
+	}
+	else {
+		master->soundPlayer.stopThrottle(owner->clientId);
 	}
 }
 

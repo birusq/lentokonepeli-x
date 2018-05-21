@@ -4,11 +4,11 @@
 #include "Raknet\RakPeerInterface.h"
 #include "Raknet\MessageIdentifiers.h"
 #include <unordered_map>
-#include "User.h"
-#include "Team.h"
-#include "PacketHelper.h"
-#include <deque>
 #include <SFML/System.hpp>
+#include "Team.h"
+#include <deque>
+#include "PacketHelper.h"
+#include "User.h"
 
 using namespace RakNet;
 
@@ -20,7 +20,7 @@ public:
 	Client() {}
 	~Client();
 
-	void init(Master* master_, ClientGame* game_);
+	void init(ClientGame* game_);
 
 	void start(std::string hostIp, RakString username);
 
@@ -47,11 +47,8 @@ public:
 
 private:
 
-	sf::Uint16 tickCount = 0;
-
 	RakString myUsername;
 
-	Master* master;
 	ClientGame* game;
 
 	void processUser(Packet* packet);

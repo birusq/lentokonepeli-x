@@ -3,7 +3,7 @@
 #include "Console.h"
 
 TestLevel::TestLevel() {
-	if (!bgTex.loadFromFile("res/blue-clouds.jpg")) {
+	if (!bgTex.loadFromFile("res/images/blue-clouds.jpg")) {
 		console::dlog("Could not load bg texture");
 	}
 

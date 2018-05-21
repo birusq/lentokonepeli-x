@@ -3,8 +3,6 @@
 #include <iostream>
 #include "PhysicsTransformable.h"
 
-Game::Game(Master* master_) : FpsCounter(master_), master{ master_ }, gui{ &(master_->gui) } {}
-
 void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	if (currPTrans.constantVelocity == false) {
 		sf::Vector2f force;
@@ -29,9 +27,17 @@ void Game::improveHandling(Ship& ship) {
 	PhysicsTransformable& target = goManager.currentPTransformsState[ship.pTransId];
 
 	float velocityMagnitude = thor::length(target.velocity);
-	float factor = 0.1F;
 
-	target.velocity = target.getRotationVector() * velocityMagnitude * factor + target.velocity * (1.0F - factor);
+	if (velocityMagnitude != 0) {
+
+		float angle = thor::signedAngle(target.getRotationVector(), target.velocity);
+
+		float factor = (-0.00012F * angle * angle + 1.0F) * 0.08F;
+		if (factor < 0.0F)
+			factor = 0.0F;
+
+		target.velocity = target.getRotationVector() * velocityMagnitude * factor + target.velocity * (1.0F - factor);
+	}
 }
 
 

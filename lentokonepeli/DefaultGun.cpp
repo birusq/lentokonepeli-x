@@ -1,6 +1,7 @@
 #include "DefaultGun.h"
 #include "GOManager.h"
 #include "Console.h"
+#include "Bullet.h"
 
 DefaultGun::DefaultGun(GOManager* goManager_, sf::Uint8 ownerId_) : Weapon(goManager_, ownerId_) {}
 

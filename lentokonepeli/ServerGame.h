@@ -5,7 +5,7 @@
 
 class ServerGame : public Game {
 public:
-	ServerGame(Master* master_);
+	ServerGame();
 
 	Server server;
 

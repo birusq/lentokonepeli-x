@@ -5,12 +5,12 @@
 #include "Raknet\BitStream.h"
 #include "Console.h"
 #include "ServerGame.h"
+#include "Bullet.h"
+#include "Master.h"
 
 using namespace ph;
 
-
-void Server::init(Master* master_, ServerGame* game_) {
-	master = master_;
+void Server::init(ServerGame* game_) {
 	game = game_;
 	master->gui.server = this;
 

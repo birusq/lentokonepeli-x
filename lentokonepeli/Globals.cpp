@@ -12,8 +12,4 @@ namespace g {
 	void init() {
 		font.loadFromFile("res/verdana.ttf");
 	}
-
-	float distanceSquared(const sf::Vector2f& a, const sf::Vector2f& b) {
-		return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
-	}
 }

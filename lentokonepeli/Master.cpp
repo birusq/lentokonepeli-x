@@ -7,10 +7,13 @@
 #define VERSION_NUMBER 1;
 
 Master::Master() {
+
 	console::clearLogFile();
 	g::init();
 
 	gui.init(this);
+
+	soundPlayer.init(this);
 
 	launchMainMenu();
 }
@@ -61,21 +64,21 @@ void Master::createWindow(WindowState state) {
 int Master::loop() {
 	while (run) {
 		if (currentWindowState == WindowState::MainMenu) {
-			MainMenu* mainMenu = new MainMenu(this);
+			MainMenu* mainMenu = new MainMenu();
 			fpsCounter = mainMenu;
 			currentCloseable = mainMenu;
 			mainMenu->loop();
 			delete mainMenu;
 		}
 		else if (currentWindowState == WindowState::GameClient) {
-			ClientGame* clientGame = new ClientGame(this, hostIp);
+			ClientGame* clientGame = new ClientGame(hostIp);
 			fpsCounter = clientGame;
 			currentCloseable = clientGame;
    			clientGame->loop();
 			delete clientGame;
 		}
 		else if (currentWindowState == WindowState::GameServer) {
-			ServerGame* serverGame = new ServerGame(this);
+			ServerGame* serverGame = new ServerGame();
 			fpsCounter = serverGame;
 			currentCloseable = serverGame;
 			serverGame->loop();

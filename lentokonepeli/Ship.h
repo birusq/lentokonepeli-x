@@ -2,10 +2,9 @@
 #include <SFML\Graphics.hpp>
 #include "PhysicsTransformable.h"
 #include "Damageable.h"
-#include "PacketHelper.h"
+#include "Collider.h"
 #include "Team.h"
 #include "Weapon.h"
-#include "Collider.h"
 
 struct User;
 
@@ -41,6 +40,10 @@ public:
 
 	sf::Clock timeSinceDeath;
 
+	bool localPlayer = false;
+
+	bool throttle = false;
+
 private:
 
 	sf::Text usernameLabel;
@@ -49,9 +52,8 @@ private:
 
 	sf::RectangleShape healthBar;
 	sf::RectangleShape healthBarBG;
-	float hbMaxLength = 80.0F;
-
-	
+	float hbMaxLength = 14.0F;
+	float hbBorderSize = 0.5F;
 
 	sf::Clock dmgTimer;
 	float dmgTime = 0.05F;

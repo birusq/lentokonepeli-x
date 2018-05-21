@@ -8,11 +8,10 @@ class GUI;
 
 class MainMenu : public FpsCounter, public Closeable {
 public:
-	MainMenu(Master* master_);
+	MainMenu();
 	void loop();
 	void render(sf::RenderWindow& w);
 private:
 	GUI* gui;
-	Master* master;
 	void quit();
 };

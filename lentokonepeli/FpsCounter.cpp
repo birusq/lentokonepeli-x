@@ -4,7 +4,7 @@
 #include "Master.h"
 
 void FpsCounter::updateFrameTimes(float newItem) {
-	if (myMaster->settings.showFps == true) {
+	if (master->settings.showFps == true) {
 		frameTimes.push_front(newItem);
 		while (frameTimes.size() > 100) {
 			frameTimes.pop_back();

@@ -39,6 +39,8 @@ Settings::Settings() {
 	showFps = BoolSetting(&ini, "settings", "showFps", true);
 	showPing = BoolSetting(&ini, "settings", "showPing", true);
 
+	masterVolume = IntSetting(&ini, "settings", "masterVolume", 20);
+
 	antialiasingLevel = IntSetting(&ini, "graphics", "antialiasingLevel", 4);
 
 	username = StringSetting(&ini, "user", "username", "*", 20);

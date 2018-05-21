@@ -2,11 +2,14 @@
 
 #include <SFML\Graphics.hpp>
 #include <unordered_map>
-#include "PhysicsTransformable.h"
 #include "Ship.h"
 #include "Packethelper.h"
-#include "User.h"
+#include "Team.h"
 #include "Bullet.h"
+#include "User.h"
+
+class PhysicsTransformable;
+class Bullet;
 
 class GOManager {
 public:

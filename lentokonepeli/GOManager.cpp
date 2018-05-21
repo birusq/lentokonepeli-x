@@ -3,6 +3,9 @@
 #include "Console.h"
 #include "DefaultGun.h"
 #include <Thor/Math.hpp>
+#include "Ship.h"
+#include "User.h"
+#include "Bullet.h"
 
 void GOManager::createShip(User* user, TeamId teamId) {
 	ships[user->clientId] = Ship(getUnusedPTransId(), user, teamId);

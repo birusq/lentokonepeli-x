@@ -30,6 +30,8 @@ public:
 
 	StringSetting username;
 
+	IntSetting masterVolume;
+
 	std::vector<std::string> animals{
 		"aardvark",
 		"albatross",

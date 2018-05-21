@@ -4,11 +4,11 @@
 #include "Console.h"
 #include "Master.h"
 #include "ClientGame.h"
+#include "User.h"
 
 using namespace ph;
 
-void Client::init(Master* master_, ClientGame* game_) {
-	master = master_;
+void Client::init(ClientGame* game_) {
 	game = game_;
 	master->gui.client = this;
 
@@ -41,7 +41,15 @@ Client::~Client() {
 void Client::start(std::string hostIp, RakString username) {
 	myUsername = username;
 
-	peer->Connect(hostIp.c_str(), SERVER_PORT, 0, 0);
+	std::string connectToIp = hostIp;
+	if (hostIp == "" || hostIp == "local" || hostIp == "localhost") {
+		connectToIp = peer->GetLocalIP(0);
+	}
+
+	ConnectionAttemptResult res = peer->Connect(connectToIp.c_str(), SERVER_PORT, 0, 0);
+	if (res != ConnectionAttemptResult::CONNECTION_ATTEMPT_STARTED) {
+		console::dlog("Couldn't create connection, error: " + std::to_string((int)res));
+	}
 	peer->SetOccasionalPing(true);
 }
 
@@ -60,7 +68,10 @@ void Client::update() {
 
 		MessageID packetId = getPacketIdentifier(packet);
 
-		if (packetId == ID_CONNECTION_REQUEST_ACCEPTED) {
+		if (packetId == ID_CONNECTION_ATTEMPT_FAILED) {
+			console::log("Connection failed, possible causes:\nincorrect ip address,\nserver isn't running,\nserver hasn't opened port 65000");
+		}
+		else if (packetId == ID_CONNECTION_REQUEST_ACCEPTED) {
 			console::log("Connection accepted");
 			hostguid = packet->guid;
 
@@ -78,9 +89,6 @@ void Client::update() {
 		}
 		else if (packetId == ID_USER_DISCONNECT) {
 			handleOtherUserDisconnect(packet);
-		}
-		else if (packetId == ID_CONNECTION_ATTEMPT_FAILED) {
-			console::log("Connection failed");
 		}
 		else if (packetId == ID_DISCONNECTION_NOTIFICATION) {
 			console::log("Disconnected, server has been closed");
@@ -204,6 +212,4 @@ void Client::sendShipUpdate(ShipState& shipState) {
 	shipState.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, hostguid, false);
-
-	tickCount++;
 }

@@ -1,6 +1,8 @@
 #include "Master.h"
 
+Master* master;
+
 int main() {
-	std::unique_ptr<Master> master = std::make_unique<Master>();
-	return master->loop();
+	master = new Master();
+	master->loop();
 }

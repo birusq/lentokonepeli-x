@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
+class Master;
 
 namespace palette {
 	extern sf::Color red;
@@ -10,6 +11,7 @@ namespace palette {
 }
 
 namespace g {
+
 	extern sf::Font font;
 	void init();
 
@@ -17,6 +19,4 @@ namespace g {
 		SHIP,
 		BULLET
 	};
-
-	float distanceSquared(const sf::Vector2f& a, const sf::Vector2f& b);
 }

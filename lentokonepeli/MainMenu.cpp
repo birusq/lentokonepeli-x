@@ -4,8 +4,7 @@
 #include "Master.h"
 #include "Globals.h"
 
-MainMenu::MainMenu(Master* master_) : FpsCounter(master_) {
-	master = master_;
+MainMenu::MainMenu() {
 	gui = &master->gui;
 }
 

@@ -3,18 +3,17 @@
 #include <TGUI\TGUI.hpp>
 #include <SFML\Graphics.hpp>
 
-class Master;
 class Server;
 class Client;
+class Master;
 
 class GUI {
 private:
 	tgui::Gui gui;
-	Master* master;
 	
 	sf::Clock clock;
 	float time = 0;
-	void initMainMenu();
+	void initMainMenu(Master* master);
 	tgui::Panel::Ptr mainMenuPanel;
 	tgui::EditBox::Ptr joinIpEditBox;
 	tgui::EditBox::Ptr usernameEditBox;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Master.h"
 #include "Game.h"
 #include "Client.h"
 #include "TestLevel.h"
@@ -8,7 +7,7 @@
 
 class ClientGame : public Game {
 public:
-	ClientGame(Master* master_, std::string hostIp_);
+	ClientGame(std::string hostIp_);
 
 	void loop();
 

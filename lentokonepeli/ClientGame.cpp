@@ -2,10 +2,13 @@
 #include <iostream>
 #include "Raknet\RakWString.h"
 #include <Thor/Vectors.hpp>
+#include "User.h"
+#include "Weapon.h"
+#include "Master.h"
 
-ClientGame::ClientGame(Master* master_, std::string hostIp_) : Game(master_), hostIp{ hostIp_ } {
+ClientGame::ClientGame(std::string hostIp_) : hostIp{ hostIp_ } {
 
-	client.init(master_, this);
+	client.init(this);
 
 	if (master->settings.username.getValue() == "*") {
 		client.start(hostIp_, master->settings.tempUsername.c_str());
@@ -27,7 +30,7 @@ void ClientGame::onTeamJoin(sf::Uint8 clientId, TeamId newTeam) {
 	std::string message;
 	if (clientId == client.myId) {
 		message += "You have";
-		gui->teamJoinAccepted();
+		master->gui.teamJoinAccepted();
 	}
 	else {
 		message += client.users.at(clientId).username + " has";
@@ -56,6 +59,7 @@ void ClientGame::onBulletHit(sf::Uint8 shooterId, sf::Uint16 bulletId, sf::Uint8
 
 void ClientGame::onConnectionComplete() {
 	goManager.createShip(client.myUser());
+	goManager.ships.at(client.myId).localPlayer = true;
 }
 
 void ClientGame::respawnMyShip() {
@@ -79,8 +83,8 @@ void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
 		window.setView(view);
 	}
 
-	gui->lastPing = client.lastPing;
-	gui->draw();
+	master->gui.lastPing = client.lastPing;
+	master->gui.draw();
 
 	window.display();
 }
@@ -99,7 +103,7 @@ void ClientGame::loop() {
 			if (event.type == sf::Event::Closed) {
 				master->quit();
 			}
-			gui->handleEvent(event);
+			master->gui.handleEvent(event);
 		}
 
 		float frameTime = clock.restart().asSeconds();
@@ -190,9 +194,15 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 					ship.weapon->shoot(shipState.bulletId, false);
 				}
 
+				if (shipState.throttle) {
+					ship.throttle = true;
+				}
+
 				if (ship.isDead() == true && shipState.dead == false && ship.timeSinceDeath.getElapsedTime().asSeconds() > 0.25F) {
 					ship.respawn();
 				}
+
+
 			}
 		}
 	}
@@ -227,6 +237,7 @@ Input ClientGame::processInput() {
 }
 
 int ClientGame::applyInput(Input input, Ship& ship, float dt) {
+	
 	if (ship.isDead() && input.any()) {
 		respawnMyShip();
 	}
@@ -235,9 +246,11 @@ int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	if (input.moveForward) {
 		currTrans.forceOnSelf = currTrans.getRotationVector() * 30.0F;
 		improveHandling(ship);
+		ship.throttle = true;
 	}
 	else {
 		currTrans.forceOnSelf *= 0.0F;
+		ship.throttle = false;
 	}
 
 	if (input.turnLeft && input.turnRight) {

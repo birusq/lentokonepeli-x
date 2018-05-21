@@ -16,7 +16,7 @@ class Server {
 public:
 	~Server();
 
-	void init(Master* master_, ServerGame* game_);
+	void init(ServerGame* game_);
 
 	void start(sf::Uint8 maxClients);
 
@@ -35,7 +35,6 @@ public:
 	void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip);
 
 private:
-	Master* master;
 	ServerGame* game;
 
 	void changeTeam(TeamId newTeam, sf::Uint8 clientId);

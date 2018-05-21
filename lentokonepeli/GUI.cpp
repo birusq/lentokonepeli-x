@@ -6,8 +6,7 @@
 #include "Client.h"
 #include "Globals.h"
 
-void GUI::init(Master* master_) {
-	master = master_;
+void GUI::init(Master* master) {
 
 	gui.setFont(g::font);
 
@@ -24,8 +23,8 @@ void GUI::init(Master* master_) {
 		pingLabel->setPosition(0 , 18);
 		gui.add(pingLabel);
 	}
-	
-	initMainMenu();
+
+	initMainMenu(master);
 	clock.restart();
 }
 
@@ -54,7 +53,7 @@ void GUI::handleEvent(sf::Event event) {
 	gui.handleEvent(event);
 }
 
-void GUI::initMainMenu() {
+void GUI::initMainMenu(Master* master) {
 	mainMenuPanel = tgui::Panel::create({"100%", "100%"});
 	mainMenuPanel->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
 	gui.add(mainMenuPanel);
@@ -266,41 +265,20 @@ void GUI::hostButtonPressed() {
 void GUI::clientButtonPressed() {
 	std::string joinIp = joinIpEditBox->getText();
 	RakNet::SystemAddress address;
-	bool res = address.FromString(joinIp.c_str());
-	if (res == true && joinIp.length() != 0) {
 
-		sf::String str = usernameEditBox->getText();
+	sf::String str = usernameEditBox->getText();
+	str.replace(" ", "_");
 
-		str.replace(" ", "_");
-
-		if (str.getSize() > 0) {
-			master->settings.username.setValue(str);
-		}
-		else {
-			master->settings.username.setValue("*");
-		}
-
-		master->launchClient(joinIp);
-		showClient();
-		host = false;
+	if (str.getSize() > 0) {
+		master->settings.username.setValue(str);
 	}
-#ifdef _DEBUG
-	// for testing
-	else if (joinIp.size() == (size_t)0) {
-		sf::String str = usernameEditBox->getText();
-		str.replace(" ", "");
-		if (str.getSize() > 0) 
-			master->settings.username.setValue(str);
-		else 
-			master->settings.username.setValue("*");
-		master->launchClient("192.168.1.40");
-		showClient();
-		host = false;
-	}
-#endif
 	else {
-		std::cout << joinIp << " is not a valid ip address\n";
+		master->settings.username.setValue("*");
 	}
+
+	master->launchClient(joinIp);
+	showClient();
+	host = false;
 }
 
 void GUI::onCLIInput() {

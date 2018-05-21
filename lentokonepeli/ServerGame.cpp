@@ -1,9 +1,12 @@
 #include "ServerGame.h"
 #include "Master.h"
 #include <iostream>
+#include "Server.h"
+#include "Ship.h"
+#include "Weapon.h"
 
-ServerGame::ServerGame(Master* master_) : Game(master_) {
-	server.init(master_, this);
+ServerGame::ServerGame() {
+	server.init(this);
 	server.start(10);
 }
 
@@ -21,7 +24,7 @@ void ServerGame::loop() {
 			if (event.type == sf::Event::Closed) {
 				master->quit();
 			}
-			gui->handleEvent(event);
+			master->gui.handleEvent(event);
 		}
 		
 		float frameTime = clock.restart().asSeconds();
@@ -54,7 +57,7 @@ void ServerGame::onClientJoinTeam(sf::Uint8 clientId, TeamId newTeam) {
 void ServerGame::render(sf::RenderWindow& window) {
 	window.clear(sf::Color(62, 65, 71));
 
-	gui->draw();
+	master->gui.draw();
 
 	window.display();
 }

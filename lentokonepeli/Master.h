@@ -10,6 +10,7 @@
 #include "MainMenu.h"
 #include "GUI.h"
 #include "Console.h"
+#include "SoundPlayer.h"
 
 enum class WindowState {
 	MainMenu,
@@ -21,27 +22,31 @@ class Master {
 public:
 	Master();
 
-	void Master::createWindow(WindowState state);
-
 	int loop();
-
-	WindowState currentWindowState = WindowState::MainMenu;
-
-	Closeable* currentCloseable;
 
 	void quit();
 
-	GUI gui;
-
 	Settings settings;
-	sf::RenderWindow window;
 
-	FpsCounter* fpsCounter;
+	GUI gui;
+	SoundPlayer soundPlayer;
+
+	sf::RenderWindow window;
 
 	void launchMainMenu();
 	void launchHost();
 	void launchClient(std::string hostIp_);
-	std::string hostIp;
+	
+	FpsCounter* fpsCounter;
+	Closeable* currentCloseable;
+
 private:
+	WindowState currentWindowState = WindowState::MainMenu;
+	void createWindow(WindowState state);
+
+	std::string hostIp;
+
 	bool run = true;
 };
+
+extern Master* master;
