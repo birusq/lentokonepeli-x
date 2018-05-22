@@ -6,10 +6,12 @@ class GOManager;
 
 class Weapon : public sf::Transformable {
 public:
-	Weapon(GOManager* goManager_, sf::Uint8 ownerId_) : goManager{ goManager_ }, ownerId{ownerId_} {};
+	Weapon(GOManager* goManager_, sf::Uint8 ownerId_) : goManager{ goManager_ }, ownerId{ ownerId_ } { };
 
 	GOManager* goManager;
 	sf::Uint8 ownerId;
+
+	sf::Transform localTransform;
 
 	virtual void draw(sf::RenderTarget& target) = 0;
 	//Used when you own this weapon (returns bulletId, -1 if could't shoot)

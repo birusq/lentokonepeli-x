@@ -44,11 +44,16 @@ public:
 
 	bool throttle = false;
 
+	float turnSpeed = 180.0F;
+	float turnSmoothingFrames = 4.0F;
+
 private:
 
 	sf::Text usernameLabel;
 
-	sf::RectangleShape rectangle;
+	sf::RectangleShape shipBody;
+
+	sf::RectangleShape exhaust;
 
 	sf::RectangleShape healthBar;
 	sf::RectangleShape healthBarBG;

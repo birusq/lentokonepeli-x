@@ -194,15 +194,14 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 					ship.weapon->shoot(shipState.bulletId, false);
 				}
 
-				if (shipState.throttle) {
+				if (shipState.throttle)
 					ship.throttle = true;
-				}
+				else
+					ship.throttle = false;
 
 				if (ship.isDead() == true && shipState.dead == false && ship.timeSinceDeath.getElapsedTime().asSeconds() > 0.25F) {
 					ship.respawn();
 				}
-
-
 			}
 		}
 	}
@@ -254,16 +253,32 @@ int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	}
 
 	if (input.turnLeft && input.turnRight) {
-		currTrans.angularVelocity = 0.0F;
+		if (currTrans.angularVelocity >= 1.0F) {
+			currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames;
+		}
+		else if (currTrans.angularVelocity <= -1.0F){
+			currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames;
+		}
 	}
 	else if (input.turnLeft) {
-		currTrans.angularVelocity = -180.0F;
+		currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames;
+		if (currTrans.angularVelocity < -ship.turnSpeed) {
+			currTrans.angularVelocity = -ship.turnSpeed;
+		}
 	}
 	else if (input.turnRight) {
-		currTrans.angularVelocity = 180.0F;
+		currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames;
+		if (currTrans.angularVelocity > ship.turnSpeed) {
+			currTrans.angularVelocity = ship.turnSpeed;
+		}
 	}
 	else {
-		currTrans.angularVelocity = 0.0F;
+		if (currTrans.angularVelocity >= 1.0F) {
+			currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames;
+		}
+		else if (currTrans.angularVelocity <= -1.0F) {
+			currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames;
+		}
 	}
 
 	if (input.shooting) {

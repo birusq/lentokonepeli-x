@@ -18,17 +18,20 @@ Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }
 	hitbox.setSize(sf::Vector2f(width, height));
 	hitbox.setOrigin(width / 2.0f, height / 2.0F);
 
-	rectangle.setFillColor(sf::Color::Black);
-	rectangle.setSize(sf::Vector2f(width, height));
-	rectangle.setOrigin(width / 2.0f, height / 2.0F);
+	shipBody.setFillColor(sf::Color::Black);
+	shipBody.setSize(sf::Vector2f(width, height));
+	shipBody.setOrigin(width / 2.0f, height / 2.0F);
 	
+	exhaust.setFillColor(sf::Color::Blue);
+	exhaust.setSize(sf::Vector2f(1.6F, 2.0F));
+	exhaust.setOrigin(0.8F, -height / 2.0F);
+
 	usernameLabel.setFont(g::font);
 	usernameLabel.setString(owner->username.C_String());
 	usernameLabel.setCharacterSize(40);
 	usernameLabel.setScale(sf::Vector2f(0.065F, 0.065F));
 	usernameLabel.setOrigin(usernameLabel.getLocalBounds().width/2.0F, usernameLabel.getLocalBounds().height);
 	usernameLabel.setFillColor(sf::Color::Black);
-
 	
 	healthBar = sf::RectangleShape(sf::Vector2f(hbMaxLength, 1.6F));
 
@@ -56,18 +59,27 @@ void Ship::draw(sf::RenderTarget& target) {
 	if (isDead() == false) {
 
 		if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
-			rectangle.setFillColor(sf::Color::Black);
+			shipBody.setFillColor(sf::Color::Black);
 		}
-
-		rectangle.setRotation(getRotation());
-		rectangle.setPosition(getPosition());
 
 		weapon->setPosition(getRotationVector() * 5.0F + getPosition());
 		weapon->setRotation(getRotation());
 
-		weapon->draw(target);
+		//weapon->draw(target);
 
-		target.draw(rectangle);
+		shipBody.setPosition(getPosition());
+		shipBody.setRotation(getRotation());
+		target.draw(shipBody);
+
+		if (throttle) {
+			master->soundPlayer.playThrottle(getPosition(), owner->clientId);
+			exhaust.setPosition(getPosition());
+			exhaust.setRotation(getRotation());
+			target.draw(exhaust);
+		}
+		else {
+			master->soundPlayer.stopThrottle(owner->clientId);
+		}
 
 		healthBar.setPosition(getPosition().x - hbMaxLength / 2.0F, getPosition().y - 8.0F);
 		healthBarBG.setPosition(healthBar.getPosition().x - hbBorderSize, healthBar.getPosition().y - hbBorderSize);
@@ -77,14 +89,6 @@ void Ship::draw(sf::RenderTarget& target) {
 		target.draw(healthBarBG);
 		target.draw(healthBar);
 		target.draw(usernameLabel);
-		
-
-		if (throttle) {
-			master->soundPlayer.playThrottle(getPosition(), owner->clientId);
-		}
-		else {
-			master->soundPlayer.stopThrottle(owner->clientId);
-		}
 	}
 	else {
 		master->soundPlayer.stopThrottle(owner->clientId);
@@ -111,8 +115,7 @@ void Ship::setWeaponTrans(sf::Vector2f pos, float rot) {
 
 void Ship::onCollision() {
 	hitboxDisabled = true;
-	dmgTimer.restart();
-	rectangle.setFillColor(sf::Color::Red);
+	shipBody.setFillColor(sf::Color::Red);
 }
 
 void Ship::respawn() {
@@ -124,11 +127,13 @@ void Ship::respawn() {
 
 void Ship::takeDmg(float dmg) {
 	console::dlog(std::string(owner->username.C_String()) + std::string(" took damage"));
-	rectangle.setFillColor(sf::Color::Red);
+	shipBody.setFillColor(sf::Color::Red);
 	health -= dmg;
 	if (health <= 0.0F)
 		onDeath();
 
+	dmgTimer.restart();
+	master->soundPlayer.playSound(getPosition(), "hurt");
 	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
 }
 

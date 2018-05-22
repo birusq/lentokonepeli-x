@@ -12,8 +12,9 @@ Bullet::Bullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_,
 	model.setOrigin(sf::Vector2f(radius, radius));
 	model.setFillColor(sf::Color::Black);
 
-	hitbox.setSize(sf::Vector2f(radius*2.0F, radius*2.0F));
+	hitbox.setRadius(radius);
 	hitbox.setOrigin(sf::Vector2f(radius, radius));
+	hitbox.setPointCount(5);
 }
 
 void Bullet::launch(sf::Vector2f pos, float direction) {

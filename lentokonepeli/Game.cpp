@@ -16,8 +16,6 @@ void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 
 		currPTrans.acceleration = force; // f/m when m = 1
 		currPTrans.velocity += currPTrans.acceleration * dt;
-
-		float angularForce = 0;
 	}
 	currPTrans.move(currPTrans.velocity * dt); 
 	currPTrans.rotate(currPTrans.angularVelocity * dt);

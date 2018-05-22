@@ -10,7 +10,8 @@ public:
 	S hitbox;
 	bool hitboxDisabled = true;
 
-	bool collidesWith(Collider& other) {
+	template <class T>
+	bool collidesWith(Collider<T>& other) {
 		if (hitboxDisabled || other.hitboxDisabled)
 			return false;
 
@@ -37,12 +38,12 @@ public:
 		other.onCollision();
 		return true;
 	}
-protected:
+
+	// Internal, don't call
 	virtual void onCollision() = 0;
 
 	// Only server checks collisions (clients don't call this)
 	virtual void updateHitbox() = 0;
-private:
 
 	std::vector<sf::Vector2f> getNormals() {
 		std::vector<sf::Vector2f> normals;

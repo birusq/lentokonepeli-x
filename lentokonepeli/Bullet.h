@@ -6,7 +6,7 @@
 
 class GOManager;
 
-class Bullet : public PhysicsTransformable, public Collider<sf::RectangleShape> {
+class Bullet : public PhysicsTransformable, public Collider<sf::CircleShape> {
 public:
 	Bullet() {}
 	Bullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_, sf::Uint16 bulletId_);

@@ -18,6 +18,9 @@ public:
 
 	void playSound(const sf::Vector2f& position, std::string name);
 private:
+
+	std::string path = "res/sound/";
+
 	std::unordered_map<std::string, sf::SoundBuffer> buffers;
 	std::unordered_map<int, sf::Sound> throttleSounds;
 
@@ -25,7 +28,7 @@ private:
 	std::deque<sf::Sound> sounds;
 
 	void deleteOldSounds();
-
-	int counter;
-	int counter2;
+	
+	// If a sound is close enough, just make it sound like it's inside your head
+	void applySpacializationCutoff(sf::Sound& sound);
 };

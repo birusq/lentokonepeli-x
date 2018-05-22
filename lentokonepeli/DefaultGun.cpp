@@ -2,17 +2,20 @@
 #include "GOManager.h"
 #include "Console.h"
 #include "Bullet.h"
+#include "Master.h"
 
-DefaultGun::DefaultGun(GOManager* goManager_, sf::Uint8 ownerId_) : Weapon(goManager_, ownerId_) {}
+DefaultGun::DefaultGun(GOManager* goManager_, sf::Uint8 ownerId_) : Weapon(goManager_, ownerId_) {
+	localTransform.transformPoint(0, -5);
+}
 
 void DefaultGun::draw(sf::RenderTarget& target) {
-	/*sf::RectangleShape cs;
+	sf::RectangleShape cs;
 	cs.setSize(sf::Vector2f(3.0F, 2.0F));
 	cs.setOrigin(cs.getSize() / 2.0F);
 	cs.setFillColor(sf::Color::Red);
 	cs.setPosition(getPosition());
 	cs.setRotation(getRotation());
-	target.draw(cs);*/
+	target.draw(cs);
 }
 
 int DefaultGun::shoot() {
@@ -25,6 +28,7 @@ int DefaultGun::shoot(sf::Uint16 bulletId, bool myShip) {
 		Bullet* bullet = goManager->createBullet(ownerId, bulletId);
 		bullet->launch(getPosition(), getRotation());
 		goManager->addToPhysics(bullet);
+		master->soundPlayer.playSound(getPosition(), "shoot");
 		return bulletId;
 	}
 	else {
