@@ -212,7 +212,7 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_SHIP_UPDATE);
-	ServerShipStates::serialize(bitStream, newStates, true);
+	newStates.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 
@@ -220,12 +220,33 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 }
 
 void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip) {
+	BulletDamage bDmg;
+	bDmg.shooterId = bullet->clientId;
+	bDmg.targetId = targetShip->owner->clientId;
+	bDmg.bulletId = bullet->bulletId;
+	bDmg.bulletLifetime = bullet->lifeTimeCounter.getElapsedTime().asSeconds() - 0.02F; //minus a little over 1 frame to account for delayed garbage deletion
+	bDmg.damage = bullet->damage;
+	bDmg.newHealth = targetShip->health;
+
 	BitStream bitStream;
-	bitStream.Write((MessageID)ID_BULLET_HIT_SHIP);
-	bitStream.Write(bullet->clientId);
-	bitStream.Write(bullet->bulletId);
-	bitStream.Write(targetShip->owner->clientId);
-	bitStream.Write(bullet->damage);
+	bitStream.Write((MessageID)ID_DAMAGE_DEALT_BULLET);
+	bDmg.serialize(bitStream, true);
+
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+}
+
+void Server::sendShipsCollided(Ship* s1, Ship* s2) {
+	ShipsCollisionDamage scDmg;
+	scDmg.clientId1 = s1->owner->clientId;
+	scDmg.dmgTo1 = s2->bodyHitDamage;
+	scDmg.newHealth1 = s1->health;
+	scDmg.clientId2 = s2->owner->clientId;
+	scDmg.dmgTo2 = s1->bodyHitDamage;
+	scDmg.newHealth2 = s2->health;
+
+	BitStream bitStream;
+	bitStream.Write((MessageID)ID_DAMAGE_DEALT_SHIP_COLLISION);
+	scDmg.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 }

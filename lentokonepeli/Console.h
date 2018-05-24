@@ -12,5 +12,13 @@ namespace console {
 
 	void dlog(std::string s);
 
+	// log the current stream
+	void log();
+
+	// dlog the current stream
+	void dlogStream();
+
+	extern std::ostringstream stream;
+
 	void clearLogFile();
 }

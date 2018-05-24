@@ -56,6 +56,7 @@ private:
 	void handleOtherUserDisconnect(Packet* packet);
 	void processShipUpdate(Packet* packet);
 	void processBulletHit(Packet* packet);
+	void processShipsCollision(Packet* packet);
 
 	RakNetGUID hostguid;
 };

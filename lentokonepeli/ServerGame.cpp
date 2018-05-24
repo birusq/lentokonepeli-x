@@ -154,16 +154,18 @@ void ServerGame::collisionDetectAll() {
 					// Bullet collisions
 					for (auto& pair : goManager.bullets[t1Client]) {
 						if (pair.second.collidesWith(goManager.ships.at(t2Client))) {
-							console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " hit " + std::string(server.users.at(t2Client).username.C_String()) + " with a bullet");
-							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t2Client));
+							console::stream << server.users.at(t1Client).username.C_String() << " hit " << server.users.at(t2Client).username.C_String() << " with a bullet";
+							console::dlogStream();
 							goManager.ships.at(t2Client).takeDmg(pair.second.damage);
+							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t2Client));
 						}
 					}
 					for (auto& pair : goManager.bullets[t2Client]) {
 						if (pair.second.collidesWith(goManager.ships.at(t1Client))) {
-							console::dlog(std::string(server.users.at(t2Client).username.C_String()) + " hit " + std::string(server.users.at(t1Client).username.C_String()) + " with a bullet");
-							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t1Client));
+							console::stream << server.users.at(t1Client).username.C_String() << " hit " << server.users.at(t2Client).username.C_String() << " with a bullet";
+							console::dlogStream();
 							goManager.ships.at(t1Client).takeDmg(pair.second.damage);
+							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t1Client));
 						}
 					}
 
@@ -171,6 +173,11 @@ void ServerGame::collisionDetectAll() {
 					// Player collisions
 					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
 						console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " collided with " + std::string(server.users.at(t2Client).username.C_String()));
+						Ship& ship1 = goManager.ships.at(t1Client);
+						Ship& ship2 = goManager.ships.at(t2Client);
+						ship1.takeDmg(ship2.bodyHitDamage);
+						ship2.takeDmg(ship1.bodyHitDamage);
+						server.sendShipsCollided(&ship1, &ship2);
 					}
 				}
 			}

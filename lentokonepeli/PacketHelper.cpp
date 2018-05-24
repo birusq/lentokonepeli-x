@@ -63,23 +63,23 @@ void ShipState::generateFromPTrans(const PhysicsTransformable& ship) {
 	angularVelocity = ship.angularVelocity;
 }
 
-void ServerShipStates::serialize(RakNet::BitStream& bitStream, ServerShipStates& shipStates, bool write) {
+void ServerShipStates::serialize(RakNet::BitStream& bitStream, bool write) {
 	sf::Uint8 size = 0;
 	if (write) {
-		size = (sf::Uint8)shipStates.states.size();
+		size = (sf::Uint8)states.size();
 	}
 
 	bitStream.Serialize(write, size);
 
 	if (write) {
-		for (auto& pair : shipStates.states) {
+		for (auto& pair : states) {
 			bitStream.Write(pair.first);
 			pair.second.serialize(bitStream, true);
 		}
 	}
 	else {
 
-		shipStates.states.clear();
+		states.clear();
 
 		for (sf::Uint8 i = 0; i < size; i++) {
 			sf::Uint8 clientId;
@@ -87,7 +87,34 @@ void ServerShipStates::serialize(RakNet::BitStream& bitStream, ServerShipStates&
 			ShipState ss;
 			ss.serialize(bitStream, false);
 
-			shipStates.states[clientId] = ss;
+			states[clientId] = ss;
 		}
 	}
+}
+
+void BulletDamage::serialize(BitStream & bitStream, bool write) {
+	bitStream.Serialize(write, shooterId);
+	bitStream.Serialize(write, targetId);
+	bitStream.Serialize(write, bulletId);
+	bitStream.Serialize(write, damage);
+	bitStream.Serialize(write, newHealth);
+
+	if (write) {
+		sf::Uint16 temp_bulletLifetime = (sf::Uint16)(bulletLifetime * 100.0F);
+		bitStream.Write(temp_bulletLifetime);
+	}
+	else {
+		sf::Uint16 temp_bulletLifetime;
+		bitStream.Read(temp_bulletLifetime);
+		bulletLifetime = (float)temp_bulletLifetime / 100.0F;
+	}
+}
+
+void ShipsCollisionDamage::serialize(BitStream & bitStream, bool write) {
+	bitStream.Serialize(write, clientId1);
+	bitStream.Serialize(write, dmgTo1);
+	bitStream.Serialize(write, newHealth1);
+	bitStream.Serialize(write, clientId2);
+	bitStream.Serialize(write, dmgTo2);
+	bitStream.Serialize(write, newHealth2);
 }

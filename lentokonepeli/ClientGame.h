@@ -22,11 +22,14 @@ public:
 
 	void onTeamJoin(sf::Uint8 clientId, TeamId newTeam);
 
-	void onBulletHit(sf::Uint8 shooterId, sf::Uint16 bulletId, sf::Uint8 targetId, sf::Uint16 damage);
+	void onBulletHit(BulletDamage& bDmg);
+	void onShipsCollision(ShipsCollisionDamage& scDmg);
 
 	void respawnMyShip();
 
 private:
+
+	void fixHealthDesyncIfNeeded(Damageable& target, int newHealth);
 
 	void applyServerStates(ServerShipStates& sss);
 

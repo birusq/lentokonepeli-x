@@ -42,7 +42,12 @@ void Client::start(std::string hostIp, RakString username) {
 	myUsername = username;
 
 	std::string connectToIp = hostIp;
-	if (hostIp == "" || hostIp == "local" || hostIp == "localhost") {
+#ifdef _DEBUG
+	if (hostIp == "") {
+		connectToIp = peer->GetLocalIP(0);
+	}
+#endif
+	if (hostIp == "local" || hostIp == "localhost") {
 		connectToIp = peer->GetLocalIP(0);
 	}
 
@@ -102,8 +107,11 @@ void Client::update() {
 		else if (packetId == ID_SHIP_UPDATE) {
 			processShipUpdate(packet);
 		}
-		else if (packetId == ID_BULLET_HIT_SHIP) {
+		else if (packetId == ID_DAMAGE_DEALT_BULLET) {
 			processBulletHit(packet);
+		}
+		else if (packetId == ID_DAMAGE_DEALT_SHIP_COLLISION) {
+			processShipsCollision(packet);
 		}
 		else {
 			if (packetId <= 134)
@@ -177,7 +185,7 @@ void Client::processShipUpdate(Packet* packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 	ServerShipStates sss;
-	ServerShipStates::serialize(bitStream, sss, false);
+	sss.serialize(bitStream, false);
 
 	serverStateJitterBuffer.push_back(sss);
 
@@ -192,17 +200,20 @@ void Client::processBulletHit(Packet * packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 	
-	sf::Uint8 shooterId;
-	sf::Uint16 bulletId;
-	sf::Uint8 targetId;
-	sf::Uint16 damage;
+	BulletDamage bulletDamage;
+	bulletDamage.serialize(bitStream, false);
 
-	bitStream.Read(shooterId);
-	bitStream.Read(bulletId);
-	bitStream.Read(targetId);
-	bitStream.Read(damage);
+	game->onBulletHit(bulletDamage);
+}
 
-	game->onBulletHit(shooterId, bulletId, targetId, damage);
+void Client::processShipsCollision(Packet * packet) {
+	BitStream bitStream(packet->data, packet->length, false);
+	bitStream.IgnoreBytes(1);
+
+	ShipsCollisionDamage scDamage;
+	scDamage.serialize(bitStream, false);
+
+	game->onShipsCollision(scDamage);
 }
 
 void Client::sendShipUpdate(ShipState& shipState) {

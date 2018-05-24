@@ -21,9 +21,9 @@ public:
 
 	TeamId teamId;
 
-	void takeDmg(float dmg) override;
+	void takeDmg(int dmg, DamageType dmgType = DMG_UNIDENTIFIED) override;
 
-	void restoreHealth(float heal) override;
+	void restoreHealth(int heal) override;
 
 	void onDeath() override;
 
@@ -47,6 +47,8 @@ public:
 	float turnSpeed = 180.0F;
 	float turnSmoothingFrames = 4.0F;
 
+	int bodyHitDamage = 5;
+
 private:
 
 	sf::Text usernameLabel;
@@ -61,5 +63,5 @@ private:
 	float hbBorderSize = 0.5F;
 
 	sf::Clock dmgTimer;
-	float dmgTime = 0.05F;
+	float dmgTime = 0.04F;
 };

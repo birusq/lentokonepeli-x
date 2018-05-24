@@ -4,6 +4,7 @@
 #include "User.h"
 #include "Weapon.h"
 #include "Master.h"
+#include "PacketHelper.h"
 
 Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
 	pTransId = pTransId_;
@@ -125,8 +126,12 @@ void Ship::respawn() {
 	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
 }
 
-void Ship::takeDmg(float dmg) {
-	console::dlog(std::string(owner->username.C_String()) + std::string(" took damage"));
+void Ship::takeDmg(int dmg, DamageType dmgType) {
+
+	//maybe react differently to different damage types
+
+	console::stream << owner->username.C_String() << " took " << dmg << " damage";
+	console::dlogStream();
 	shipBody.setFillColor(sf::Color::Red);
 	health -= dmg;
 	if (health <= 0.0F)
@@ -134,16 +139,18 @@ void Ship::takeDmg(float dmg) {
 
 	dmgTimer.restart();
 	master->soundPlayer.playSound(getPosition(), "hurt");
-	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
+	healthBar.setSize(sf::Vector2f((float)health / (float)maxHealth * hbMaxLength, healthBar.getSize().y));
 }
 
-void Ship::restoreHealth(float heal) {
+void Ship::restoreHealth(int heal) {
+	console::stream << owner->username.C_String() << " healed " << heal << " health";
+	console::dlogStream();
 	health += heal;
 	if (health > maxHealth) {
 		health = maxHealth;
 	}
 
-	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
+	healthBar.setSize(sf::Vector2f((float)health / (float)maxHealth * hbMaxLength, healthBar.getSize().y));
 }
 
 void Ship::onDeath() {
