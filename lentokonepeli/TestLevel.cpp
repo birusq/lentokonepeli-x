@@ -20,8 +20,8 @@ TestLevel::TestLevel() {
 
 	center = sf::Vector2f(200, 100);
 
-	spawnPoints[RED_TEAM] = sf::Vector2f(50, 190);
-	spawnPoints[BLUE_TEAM] = sf::Vector2f(150, 190);
+	spawnPoints[Team::RED_TEAM] = sf::Vector2f(50, 190);
+	spawnPoints[Team::BLUE_TEAM] = sf::Vector2f(150, 190);
 }
 
 void TestLevel::draw(sf::RenderTarget& target, sf::RenderStates states) const {

@@ -12,7 +12,7 @@ public:
 
 	std::vector<Collider<sf::ConvexShape>*> getColliders() {};
 
-	std::unordered_map<TeamId, sf::Vector2f> spawnPoints;
+	std::unordered_map<Team::Id, sf::Vector2f> spawnPoints;
 
 	sf::Vector2f center;
 

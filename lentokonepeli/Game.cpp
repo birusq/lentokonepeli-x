@@ -38,6 +38,52 @@ void Game::improveHandling(Ship& ship) {
 	}
 }
 
+void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
+	// Update all hitbox positions
+	for (auto& pair : goManager.ships) {
+		pair.second.updateHitbox();
+	}
+	for (auto& pair : goManager.bullets) {
+		for (auto& innerPair : pair.second) {
+			innerPair.second.updateHitbox();
+		}
+	}
+
+	// Check collision (check all variations of teams)
+	auto it1 = teams.begin();
+	auto it2 = std::next(it1, 1);
+	for (it1; it1 != teams.end(); it1++) {
+		for (it2; it2 != teams.end(); it2++) {
+
+			for (sf::Uint8& t1Client : it1->second.members) {
+				for (sf::Uint8& t2Client : it2->second.members) {
+
+					// Bullet collisions
+					for (auto& pair : goManager.bullets[t1Client]) {
+						if (pair.second.collidesWith(goManager.ships.at(t2Client))) {
+							onBulletCollision(pair.second, goManager.ships[t2Client]);
+						}
+					}
+					for (auto& pair : goManager.bullets[t2Client]) {
+						if (pair.second.collidesWith(goManager.ships.at(t1Client))) {
+							onBulletCollision(pair.second, goManager.ships[t1Client]);
+						}
+					}
+
+					// Player collisions
+					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
+						onShipCollision(goManager.ships[t1Client], goManager.ships[t2Client]);
+					}
+				}
+			}
+
+		}
+		it2 = std::next(it1, 1);
+		if (it2 != teams.end())
+			it2++;
+	}
+}
+
 
 void Game::quit() {
 	running = false;

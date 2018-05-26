@@ -22,8 +22,8 @@ void Client::init(ClientGame* game_) {
 		console::log("Client started");
 	}
 
-	for (int i = 0; i < TEAMS_SIZE; i++) {
-		teams[(TeamId)i] = Team((TeamId)i);
+	for (int i = 0; i < Team::TEAMS_SIZE; i++) {
+		teams[(Team::Id)i] = Team((Team::Id)i);
 	}
 }
 
@@ -58,7 +58,7 @@ void Client::start(std::string hostIp, RakString username) {
 	peer->SetOccasionalPing(true);
 }
 
-void Client::requestTeamJoin(TeamId toTeam) {
+void Client::requestTeamJoin(Team::Id toTeam) {
 	console::dlog("Sending team join request: " + std::to_string(toTeam));
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_JOIN_TEAM_REQUEST);
@@ -107,11 +107,8 @@ void Client::update() {
 		else if (packetId == ID_SHIP_UPDATE) {
 			processShipUpdate(packet);
 		}
-		else if (packetId == ID_DAMAGE_DEALT_BULLET) {
-			processBulletHit(packet);
-		}
-		else if (packetId == ID_DAMAGE_DEALT_SHIP_COLLISION) {
-			processShipsCollision(packet);
+		else if (packetId == ID_DAMAGE_DEALT) {
+			processDamage(packet);
 		}
 		else {
 			if (packetId <= 134)
@@ -135,6 +132,10 @@ void Client::processUser(Packet* packet) {
 	bitStream.Read(c);
 	User::serialize(bitStream, user, false);
 
+	bool newUser = false;
+	if (users.count(user.clientId) == 0)
+		newUser = true;
+
 	users[user.clientId] = user;
 
 	if (user.guid == peer->GetMyGUID()) {
@@ -142,9 +143,14 @@ void Client::processUser(Packet* packet) {
 		connectionDone = true;
 		game->onConnectionComplete();
 	}
-	else {
+	else if (newUser) {
+		// create ship for new user
 		game->onOtherUserConnect(&users[user.clientId]);
 	}
+
+	users[user.clientId] = user;
+
+	teams[user.teamId].members.push_back(user.clientId);
 
 	console::dlog("User update: " + std::to_string((unsigned int)user.clientId) + (std::string)user.username + user.guid.ToString());
 }
@@ -154,10 +160,14 @@ void Client::handleOtherUserDisconnect(Packet* packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 	User::serialize(bitStream, user, false);
-	users.erase(user.clientId);
+
 	console::log((std::string)user.username.C_String() + " disconnected");
 
 	game->onOtherUserDisconnect(user.clientId);
+
+	teams[user.teamId].removeClient(user.clientId);
+
+	users.erase(user.clientId);
 }
 
 void Client::processTeamUpdate(Packet* packet) {
@@ -166,14 +176,11 @@ void Client::processTeamUpdate(Packet* packet) {
 	TeamChange tc;
 	tc.serialize(bitStream, false);
 
-	TeamId oldTeam = (TeamId)tc.oldTeamId;
-	TeamId newTeam = (TeamId)tc.newTeamId;
+	Team::Id oldTeam = (Team::Id)tc.oldTeamId;
+	Team::Id newTeam = (Team::Id)tc.newTeamId;
 	sf::Uint8 clientId = tc.clientId;
 
-	auto it = std::find(teams[oldTeam].members.begin(), teams[oldTeam].members.end(), clientId);
-	if (it != teams[oldTeam].members.end()) {
-		teams[oldTeam].members.erase(it);
-	}
+	teams[oldTeam].removeClient(clientId);
 
 	teams[newTeam].members.push_back(clientId);
 	users.at(clientId).teamId = newTeam;
@@ -196,24 +203,14 @@ void Client::processShipUpdate(Packet* packet) {
 	//console::dlog("Ship update received");
 }
 
-void Client::processBulletHit(Packet * packet) {
+void Client::processDamage(Packet * packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 	
-	BulletDamage bulletDamage;
-	bulletDamage.serialize(bitStream, false);
+	DamageMessage dmg;
+	dmg.serialize(bitStream, false);
 
-	game->onBulletHit(bulletDamage);
-}
-
-void Client::processShipsCollision(Packet * packet) {
-	BitStream bitStream(packet->data, packet->length, false);
-	bitStream.IgnoreBytes(1);
-
-	ShipsCollisionDamage scDamage;
-	scDamage.serialize(bitStream, false);
-
-	game->onShipsCollision(scDamage);
+	game->onDamage(dmg);
 }
 
 void Client::sendShipUpdate(ShipState& shipState) {

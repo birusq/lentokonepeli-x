@@ -29,6 +29,11 @@ protected:
 	// Call when player presses throttle
 	void improveHandling(Ship& ship);
 
+	void collisionDetectAll(std::unordered_map<Team::Id, Team>& teams);
+
+	virtual void onBulletCollision(Bullet& bullet, Ship& targetShip) = 0;
+	virtual void onShipCollision(Ship& s1, Ship& s2) = 0;
+
 	GOManager goManager;
 	
 	void quit();

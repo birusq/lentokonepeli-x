@@ -7,7 +7,7 @@
 #include "User.h"
 #include "Bullet.h"
 
-void GOManager::createShip(User* user, TeamId teamId) {
+void GOManager::createShip(User* user, Team::Id teamId) {
 	ships[user->clientId] = Ship(getUnusedPTransId(), user, teamId);
 	ships[user->clientId].weapon = std::make_unique<DefaultGun>(this, user->clientId);
 	addToPhysics(&ships[user->clientId]);

@@ -11,15 +11,15 @@ struct User;
 class Ship : public PhysicsTransformable, public Collider<sf::RectangleShape>, public Damageable {
 public:
 	Ship() {}
-	Ship(sf::Uint32 pTransId_, User* user_, TeamId teamId_ = NO_TEAM);
+	Ship(sf::Uint32 pTransId_, User* user_, Team::Id teamId_ = Team::NO_TEAM);
 
-	void assignTeam(TeamId teamId_);
+	void assignTeam(Team::Id teamId_);
 
-	bool hasTeam() const { return (teamId != NO_TEAM); }
+	bool hasTeam() const { return (teamId != Team::NO_TEAM); }
 
 	User* owner = nullptr;
 
-	TeamId teamId;
+	Team::Id teamId;
 
 	void takeDmg(int dmg, DamageType dmgType = DMG_UNIDENTIFIED) override;
 

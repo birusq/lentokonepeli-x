@@ -28,7 +28,7 @@ public:
 	
 	std::unordered_map<sf::Uint8, User> users;
 	std::unordered_map<sf::Uint8, std::deque<ShipState>> shipStateJitterBuffers;
-	std::unordered_map<TeamId, Team> teams;
+	std::unordered_map<Team::Id, Team> teams;
 
 	void broadcastShipStates(ServerShipStates& newStates);
 
@@ -38,7 +38,7 @@ public:
 private:
 	ServerGame* game;
 
-	void changeTeam(TeamId newTeam, sf::Uint8 clientId);
+	void changeTeam(Team::Id newTeam, sf::Uint8 clientId);
 
 	void sendUserUpdate(User& user, SystemAddress toAddress, bool broadcast);
 

@@ -42,7 +42,6 @@ public:
 	// Internal, don't call
 	virtual void onCollision() = 0;
 
-	// Only server checks collisions (clients don't call this)
 	virtual void updateHitbox() = 0;
 
 	std::vector<sf::Vector2f> getNormals() {

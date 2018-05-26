@@ -92,29 +92,8 @@ void ServerShipStates::serialize(RakNet::BitStream& bitStream, bool write) {
 	}
 }
 
-void BulletDamage::serialize(BitStream & bitStream, bool write) {
-	bitStream.Serialize(write, shooterId);
+void DamageMessage::serialize(BitStream & bitStream, bool write) {
+	bitStream.Serialize(write, dealerId);
 	bitStream.Serialize(write, targetId);
-	bitStream.Serialize(write, bulletId);
 	bitStream.Serialize(write, damage);
-	bitStream.Serialize(write, newHealth);
-
-	if (write) {
-		sf::Uint16 temp_bulletLifetime = (sf::Uint16)(bulletLifetime * 100.0F);
-		bitStream.Write(temp_bulletLifetime);
-	}
-	else {
-		sf::Uint16 temp_bulletLifetime;
-		bitStream.Read(temp_bulletLifetime);
-		bulletLifetime = (float)temp_bulletLifetime / 100.0F;
-	}
-}
-
-void ShipsCollisionDamage::serialize(BitStream & bitStream, bool write) {
-	bitStream.Serialize(write, clientId1);
-	bitStream.Serialize(write, dmgTo1);
-	bitStream.Serialize(write, newHealth1);
-	bitStream.Serialize(write, clientId2);
-	bitStream.Serialize(write, dmgTo2);
-	bitStream.Serialize(write, newHealth2);
 }

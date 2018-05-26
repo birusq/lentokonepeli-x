@@ -50,7 +50,7 @@ void ServerGame::onUserDisconnect(sf::Uint8 clientId) {
 	goManager.removeShip(clientId);
 }
 
-void ServerGame::onClientJoinTeam(sf::Uint8 clientId, TeamId newTeam) {
+void ServerGame::onClientJoinTeam(sf::Uint8 clientId, Team::Id newTeam) {
 	// Nothing yet
 }
 
@@ -88,7 +88,7 @@ void ServerGame::fixedUpdate(float dt) {
 
 	goManager.applyTransforms(goManager.currentPTransformsState);
 
-	collisionDetectAll();
+	collisionDetectAll(server.teams);
 
 	goManager.deleteGarbage();
 
@@ -131,60 +131,16 @@ void ServerGame::updateServerStates(ServerShipStates& sss) {
 	}
 }
 
-void ServerGame::collisionDetectAll() {
-	// Update all hitbox positions
-	for (auto& pair : goManager.ships) {
-		pair.second.updateHitbox();
-	}
-	for (auto& pair : goManager.bullets) {
-		for (auto& innerPair : pair.second) {
-			innerPair.second.updateHitbox();
-		}
-	}
+void ServerGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
+	console::stream << server.users.at(bullet.clientId).username.C_String() << " hit " << targetShip.owner->username.C_String() << " with a bullet";
+	console::dlogStream();
+	targetShip.takeDmg(bullet.damage);
+	server.sendBulletHitShip(&bullet, &targetShip);
+}
 
-	// Check collision (check all variations of teams)
-	auto it1 = server.teams.begin();
-	auto it2 = std::next(it1, 1);
-	for (it1; it1 != server.teams.end(); it1++) {
-		for (it2; it2 != server.teams.end(); it2++) {
-
-			for (sf::Uint8& t1Client : it1->second.members) {
-				for (sf::Uint8& t2Client : it2->second.members) {
-
-					// Bullet collisions
-					for (auto& pair : goManager.bullets[t1Client]) {
-						if (pair.second.collidesWith(goManager.ships.at(t2Client))) {
-							console::stream << server.users.at(t1Client).username.C_String() << " hit " << server.users.at(t2Client).username.C_String() << " with a bullet";
-							console::dlogStream();
-							goManager.ships.at(t2Client).takeDmg(pair.second.damage);
-							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t2Client));
-						}
-					}
-					for (auto& pair : goManager.bullets[t2Client]) {
-						if (pair.second.collidesWith(goManager.ships.at(t1Client))) {
-							console::stream << server.users.at(t1Client).username.C_String() << " hit " << server.users.at(t2Client).username.C_String() << " with a bullet";
-							console::dlogStream();
-							goManager.ships.at(t1Client).takeDmg(pair.second.damage);
-							server.sendBulletHitShip(&pair.second, &goManager.ships.at(t1Client));
-						}
-					}
-
-
-					// Player collisions
-					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
-						console::dlog(std::string(server.users.at(t1Client).username.C_String()) + " collided with " + std::string(server.users.at(t2Client).username.C_String()));
-						Ship& ship1 = goManager.ships.at(t1Client);
-						Ship& ship2 = goManager.ships.at(t2Client);
-						ship1.takeDmg(ship2.bodyHitDamage);
-						ship2.takeDmg(ship1.bodyHitDamage);
-						server.sendShipsCollided(&ship1, &ship2);
-					}
-				}
-			}
-
-		}
-		it2 = std::next(it1, 1);
-		if (it2 != server.teams.end())
-			it2++;
-	}
+void ServerGame::onShipCollision(Ship& ship1, Ship& ship2) {
+	console::dlog(std::string(ship1.owner->username.C_String()) + " collided with " + std::string(ship2.owner->username.C_String()));
+	ship1.takeDmg(ship2.bodyHitDamage);
+	ship2.takeDmg(ship1.bodyHitDamage);
+	server.sendShipsCollided(&ship1, &ship2);
 }

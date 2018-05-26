@@ -29,18 +29,15 @@ void Server::start(sf::Uint8 maxClients) {
 
 	peer->SetMaximumIncomingConnections(maxClients);
 
-	for (int i = 0; i < TEAMS_SIZE; i++) {
-		teams[(TeamId)i] = Team((TeamId)i);
+	for (int i = 0; i < Team::TEAMS_SIZE; i++) {
+		teams[(Team::Id)i] = Team((Team::Id)i);
 	}
 }
 
-void Server::changeTeam(TeamId newTeam, sf::Uint8 clientId) {
-	TeamId oldTeam = users.at(clientId).teamId;
+void Server::changeTeam(Team::Id newTeam, sf::Uint8 clientId) {
+	Team::Id oldTeam = users.at(clientId).teamId;
 
-	auto it = std::find(teams[oldTeam].members.begin(), teams[oldTeam].members.end(), clientId);
-	if (it != teams[oldTeam].members.end()) {
-		teams[oldTeam].members.erase(it);
-	}
+	teams[oldTeam].removeClient(clientId);
 
 	teams[newTeam].members.push_back(clientId);
 	users.at(clientId).teamId = newTeam;
@@ -133,16 +130,14 @@ void Server::sendUserUpdate(User& user, SystemAddress toAddress, bool broadcast)
 }
 
 void Server::handleUserDisconnect() {
-	for (auto it = users.begin(); it != users.end();) {
+	for (auto& it = users.begin(); it != users.end();) {
 		ConnectionState cs = peer->GetConnectionState(it->second.guid);
 		if (cs == IS_DISCONNECTED || cs == IS_DISCONNECTING || cs == IS_NOT_CONNECTED || cs == IS_SILENTLY_DISCONNECTING) {
 			broadcastUserDisconnect(it->second);
 			console::log("User disconnected: " + (std::string)it->second.username.C_String());
 			shipStateJitterBuffers.erase(it->second.clientId);
-			
-			auto teamit = std::find(teams[it->second.teamId].members.begin(), teams[it->second.teamId].members.end(), it->second.clientId);
-			if (teamit != teams[it->second.teamId].members.end())
-				teams[it->second.teamId].members.erase(teamit);
+
+			teams[it->second.teamId].removeClient(it->second.clientId);
 
 			game->onUserDisconnect(it->second.clientId);
 			it = users.erase(it);
@@ -161,7 +156,7 @@ void Server::broadcastUserDisconnect(User& user) {
 void Server::handleJoinTeamReq(Packet* packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
-	TeamId toTeam;
+	Team::Id toTeam;
 	bitStream.Read(toTeam);
 
 	// possibly in future check more restrictions
@@ -220,33 +215,29 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 }
 
 void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip) {
-	BulletDamage bDmg;
-	bDmg.shooterId = bullet->clientId;
-	bDmg.targetId = targetShip->owner->clientId;
-	bDmg.bulletId = bullet->bulletId;
-	bDmg.bulletLifetime = bullet->lifeTimeCounter.getElapsedTime().asSeconds() - 0.02F; //minus a little over 1 frame to account for delayed garbage deletion
-	bDmg.damage = bullet->damage;
-	bDmg.newHealth = targetShip->health;
+	DamageMessage dmg(bullet->clientId, bullet->damage, targetShip->owner->clientId);
 
 	BitStream bitStream;
-	bitStream.Write((MessageID)ID_DAMAGE_DEALT_BULLET);
-	bDmg.serialize(bitStream, true);
+	bitStream.Write((MessageID)ID_DAMAGE_DEALT);
+	dmg.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 }
 
 void Server::sendShipsCollided(Ship* s1, Ship* s2) {
-	ShipsCollisionDamage scDmg;
-	scDmg.clientId1 = s1->owner->clientId;
-	scDmg.dmgTo1 = s2->bodyHitDamage;
-	scDmg.newHealth1 = s1->health;
-	scDmg.clientId2 = s2->owner->clientId;
-	scDmg.dmgTo2 = s1->bodyHitDamage;
-	scDmg.newHealth2 = s2->health;
+	DamageMessage dmg(s1->owner->clientId, s1->bodyHitDamage, s2->owner->clientId);
 
 	BitStream bitStream;
-	bitStream.Write((MessageID)ID_DAMAGE_DEALT_SHIP_COLLISION);
-	scDmg.serialize(bitStream, true);
+	bitStream.Write((MessageID)ID_DAMAGE_DEALT);
+	dmg.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+
+	DamageMessage dmg2(s2->owner->clientId, s2->bodyHitDamage, s1->owner->clientId);
+
+	BitStream bitStream2;
+	bitStream2.Write((MessageID)ID_DAMAGE_DEALT);
+	dmg2.serialize(bitStream2, true);
+
+	peer->Send(&bitStream2, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 }

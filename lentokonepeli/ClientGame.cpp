@@ -26,7 +26,7 @@ void ClientGame::onOtherUserDisconnect(sf::Uint8 clientId) {
 	goManager.removeShip(clientId);
 }
 
-void ClientGame::onTeamJoin(sf::Uint8 clientId, TeamId newTeam) {
+void ClientGame::onTeamJoin(sf::Uint8 clientId, Team::Id newTeam) {
 	std::string message;
 	if (clientId == client.myId) {
 		message += "You have";
@@ -37,48 +37,22 @@ void ClientGame::onTeamJoin(sf::Uint8 clientId, TeamId newTeam) {
 	}
 	message += " joined";
 	switch (newTeam) {
-	case RED_TEAM:
+	case Team::RED_TEAM:
 		message += " the red team";
 		break;
-	case BLUE_TEAM:
+	case Team::BLUE_TEAM:
 		message += " the blue team";
 		break;
 	}
-	if (newTeam != NO_TEAM)
+	if (newTeam != Team::NO_TEAM)
 		console::log(message);
 
 	goManager.ships.at(clientId).assignTeam(newTeam);
 }
 
-void ClientGame::onBulletHit(BulletDamage& bDmg) {
-	if (goManager.ships.count(bDmg.shooterId) == 1 && goManager.bullets[bDmg.shooterId].count(bDmg.bulletId) == 1 && goManager.ships.count(bDmg.targetId) == 1) {
-		goManager.bullets[bDmg.shooterId][bDmg.bulletId].lifeTime = bDmg.bulletLifetime;
-		Ship& targetShip = goManager.ships[bDmg.targetId];
-		targetShip.takeDmg(bDmg.damage);
-
-		fixHealthDesyncIfNeeded(targetShip, bDmg.newHealth);
-	}
-}
-
-void ClientGame::onShipsCollision(ShipsCollisionDamage & scDmg) {
-	if (goManager.ships.count(scDmg.clientId1) == 1 && goManager.ships.count(scDmg.clientId2) == 1) {
-		Ship& ship1 = goManager.ships[scDmg.clientId1];
-		Ship& ship2 = goManager.ships[scDmg.clientId2];
-
-		ship1.takeDmg(scDmg.dmgTo1);
-		ship2.takeDmg(scDmg.dmgTo2);
-
-		fixHealthDesyncIfNeeded(ship1, scDmg.newHealth1);
-		fixHealthDesyncIfNeeded(ship2, scDmg.newHealth2);
-	}
-}
-
-void ClientGame::fixHealthDesyncIfNeeded(Damageable & target, int newHealth) {
-	if (target.health > newHealth) {
-		target.takeDmg(target.health - newHealth);
-	}
-	else if (target.health < newHealth) {
-		target.restoreHealth(newHealth - target.health);
+void ClientGame::onDamage(DamageMessage& dmg) {
+	if (goManager.ships.count(dmg.dealerId) == 1 && goManager.ships.count(dmg.targetId) == 1) {
+		goManager.ships[dmg.targetId].takeDmg(dmg.damage);
 	}
 }
 
@@ -188,6 +162,10 @@ void ClientGame::fixedUpdate(float dt) {
 			integrate(pair.second, dt);
 		}
 
+		collisionDetectAll(client.teams);
+		
+		goManager.deleteGarbage();
+
 		//Send my state to server
 		ShipState ss = goManager.getShipState(client.myId);
 		ss.throttle = input.moveForward;
@@ -195,10 +173,7 @@ void ClientGame::fixedUpdate(float dt) {
 			ss.shoot = true;
 			ss.bulletId = sf::Uint16(bulletId);
 		}
-		
 		client.sendShipUpdate(ss);
-
-		goManager.deleteGarbage();
 	}
 }
 
@@ -311,3 +286,7 @@ int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	}
 	return -1;
 }
+
+// used for things the bullets and ships can't access themselves
+void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {}
+void ClientGame::onShipCollision(Ship& ship1, Ship& ship2) {}

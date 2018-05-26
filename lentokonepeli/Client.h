@@ -31,14 +31,14 @@ public:
 	User* const myUser() { return &users.at(myId); }
 	
 	std::unordered_map<sf::Uint8, User> users;
-	std::unordered_map<TeamId, Team> teams;
+	std::unordered_map<Team::Id, Team> teams;
 	std::deque<ServerShipStates> serverStateJitterBuffer;
 	const unsigned int jitterBufferMaxSize = 3;
 
 	RakPeerInterface* peer = nullptr;
 	int lastPing = -1;
 
-	void requestTeamJoin(TeamId toTeam);
+	void requestTeamJoin(Team::Id toTeam);
 
 	void close();
 
@@ -55,8 +55,7 @@ private:
 	void processTeamUpdate(Packet* packet);
 	void handleOtherUserDisconnect(Packet* packet);
 	void processShipUpdate(Packet* packet);
-	void processBulletHit(Packet* packet);
-	void processShipsCollision(Packet* packet);
+	void processDamage(Packet* packet);
 
 	RakNetGUID hostguid;
 };

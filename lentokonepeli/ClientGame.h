@@ -20,16 +20,16 @@ public:
 
 	void onOtherUserDisconnect(sf::Uint8 clientId);
 
-	void onTeamJoin(sf::Uint8 clientId, TeamId newTeam);
+	void onTeamJoin(sf::Uint8 clientId, Team::Id newTeam);
 
-	void onBulletHit(BulletDamage& bDmg);
-	void onShipsCollision(ShipsCollisionDamage& scDmg);
+	void onDamage(DamageMessage& dmg);
 
 	void respawnMyShip();
 
+protected:
+	void onBulletCollision(Bullet& bullet, Ship& targetShip) override;
+	void onShipCollision(Ship& s1, Ship& s2) override;
 private:
-
-	void fixHealthDesyncIfNeeded(Damageable& target, int newHealth);
 
 	void applyServerStates(ServerShipStates& sss);
 

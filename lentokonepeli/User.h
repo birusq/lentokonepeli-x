@@ -11,5 +11,5 @@ struct User {
 	RakNet::RakNetGUID guid;
 	RakNet::RakString username;
 
-	TeamId teamId;
+	Team::Id teamId;
 };

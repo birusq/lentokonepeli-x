@@ -6,7 +6,7 @@
 #include "Master.h"
 #include "PacketHelper.h"
 
-Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }, teamId{ teamId_ } {
+Ship::Ship(sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : owner{ owner_ }, teamId{ teamId_ } {
 	pTransId = pTransId_;
 	gravity = false;
 	drag = 0.01F;
@@ -42,12 +42,12 @@ Ship::Ship(sf::Uint32 pTransId_, User* owner_, TeamId teamId_) : owner{ owner_ }
 	assignTeam(teamId);
 }
 
-void Ship::assignTeam(TeamId teamId_) {
+void Ship::assignTeam(Team::Id teamId_) {
 	teamId = teamId_;
-	if (teamId == RED_TEAM) {
+	if (teamId == Team::RED_TEAM) {
 		healthBar.setFillColor(palette::red);
 	}
-	else if (teamId == BLUE_TEAM) {
+	else if (teamId == Team::BLUE_TEAM) {
 		healthBar.setFillColor(palette::blue);
 	}
 }
@@ -116,7 +116,6 @@ void Ship::setWeaponTrans(sf::Vector2f pos, float rot) {
 
 void Ship::onCollision() {
 	hitboxDisabled = true;
-	shipBody.setFillColor(sf::Color::Red);
 }
 
 void Ship::respawn() {

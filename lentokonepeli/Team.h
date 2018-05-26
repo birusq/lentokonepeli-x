@@ -2,33 +2,36 @@
 
 #include "Raknet\BitStream.h"
 #include <vector>
-
-enum TeamId : unsigned char {
-	NO_TEAM,
-	RED_TEAM,
-	BLUE_TEAM,
-	TEAMS_SIZE
-};
+#include <SFML/System.hpp>
 
 class Team {
 public:
+	enum Id : sf::Uint8 {
+		NO_TEAM,
+		RED_TEAM,
+		BLUE_TEAM,
+		TEAMS_SIZE
+	};
+
 	Team() {}
-	Team(TeamId id_) : id{ id_ } {}
+	Team(Team::Id id_) : id{ id_ } {}
 
-	unsigned char id;
+	void removeClient(sf::Uint8 clientId);
 
-	std::vector<unsigned char> members;
+	sf::Uint8 id;
+
+	std::vector<sf::Uint8> members;
 };
 
 struct TeamChange {
 
 	TeamChange() {}
-	TeamChange(unsigned char oldTeamId_, unsigned char newTeamId_, unsigned char clientId_) : oldTeamId{ oldTeamId_ }, newTeamId{ newTeamId_ }, clientId{ clientId_ } {}
+	TeamChange(sf::Uint8 oldTeamId_, sf::Uint8 newTeamId_, sf::Uint8 clientId_) : oldTeamId{ oldTeamId_ }, newTeamId{ newTeamId_ }, clientId{ clientId_ } {}
 
 	void serialize(RakNet::BitStream& bitStream, bool write);
 
-	unsigned char oldTeamId;
-	unsigned char newTeamId;
-	unsigned char clientId;
+	sf::Uint8 oldTeamId;
+	sf::Uint8 newTeamId;
+	sf::Uint8 clientId;
 };
 

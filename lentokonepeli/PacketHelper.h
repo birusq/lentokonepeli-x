@@ -27,8 +27,7 @@ namespace ph {
 		ID_TEAM_UPDATE,
 		ID_SHIP_UPDATE,
 		ID_CAN_SPAWN,
-		ID_DAMAGE_DEALT_BULLET,
-		ID_DAMAGE_DEALT_SHIP_COLLISION
+		ID_DAMAGE_DEALT
 	};
 
 	std::string msgIDToString(MessageIndetifier id);
@@ -63,27 +62,14 @@ struct ServerShipStates {
 	std::unordered_map<sf::Uint8, ShipState> states;
 };
 
-struct BulletDamage {
+struct DamageMessage {
+	DamageMessage() {}
+	DamageMessage(sf::Uint8 dealerId_, sf::Int16 damage_, sf::Uint8 targetId_) : dealerId{ dealerId_ }, targetId{ targetId_ }, damage{ damage_ } {}
 
 	void serialize(BitStream& bitStream, bool write);
 
-	sf::Uint8 shooterId;
+	sf::Uint8 dealerId;
 	sf::Uint8 targetId;
-	sf::Uint16 bulletId;
-	sf::Uint16 damage;
-	sf::Uint16 newHealth;
-	float bulletLifetime;
-};
-
-struct ShipsCollisionDamage {
-
-	void serialize(BitStream& bitStream, bool write);
-
-	sf::Uint8 clientId1;
-	sf::Uint16 dmgTo1;
-	sf::Uint16 newHealth1;
-	sf::Uint8 clientId2;
-	sf::Uint16 dmgTo2;
-	sf::Uint16 newHealth2;
+	sf::Int16 damage;
 };
 

@@ -178,12 +178,12 @@ void GUI::initClient() {
 	auto redTeamButton = createButton(chooseTeamPanel, "Red", 24, palette::red, false);
 	redTeamButton->setSize("40%", "40%");
 	redTeamButton->setPosition("&.width/4 - width/2", "40%");
-	redTeamButton->connect("pressed", [&]() { client->requestTeamJoin(RED_TEAM); });
+	redTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::RED_TEAM); });
 
 	auto blueTeamButton = createButton(chooseTeamPanel, "Blue", 24, palette::blue, false);
 	blueTeamButton->setSize("40%", "40%");
 	blueTeamButton->setPosition("&.width*3/4 - width/2", "40%");
-	blueTeamButton->connect("pressed", [&]() { client->requestTeamJoin(BLUE_TEAM); });
+	blueTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::BLUE_TEAM); });
 	
 	clientUIInitalized = true;
 	// NOT DONE
