@@ -2,6 +2,7 @@
 #include <Thor/Vectors.hpp>
 #include <iostream>
 #include "PhysicsTransformable.h"
+#include "Console.h"
 
 void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	if (currPTrans.constantVelocity == false) {
@@ -45,7 +46,7 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 	}
 	for (auto& pair : goManager.bullets) {
 		for (auto& innerPair : pair.second) {
-			innerPair.second.updateHitbox();
+			innerPair.second->updateHitbox();
 		}
 	}
 
@@ -60,17 +61,24 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 
 					// Bullet collisions
 					for (auto& pair : goManager.bullets[t1Client]) {
-						if (pair.second.collidesWith(goManager.ships.at(t2Client))) {
-							onBulletCollision(pair.second, goManager.ships[t2Client]);
+						if (pair.second->collidesWith(level.spawnPointColliders.at(it2->first))) {
+							// bullet destroys itself on collision
+						}
+						if (pair.second->collidesWith(goManager.ships.at(t2Client))) {
+							onBulletCollision(*pair.second, goManager.ships[t2Client]);
 						}
 					}
 					for (auto& pair : goManager.bullets[t2Client]) {
-						if (pair.second.collidesWith(goManager.ships.at(t1Client))) {
-							onBulletCollision(pair.second, goManager.ships[t1Client]);
+						if (pair.second->collidesWith(level.spawnPointColliders.at(it1->first))) {
+							// bullet destroys itself on collision
 						}
+						if (pair.second->collidesWith(goManager.ships.at(t1Client))) {
+							onBulletCollision(*pair.second, goManager.ships[t1Client]);
+						}
+						
 					}
 
-					// Player collisions
+					// Player on player collisions
 					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
 						onShipCollision(goManager.ships[t1Client], goManager.ships[t2Client]);
 					}
@@ -82,9 +90,32 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 		if (it2 != teams.end())
 			it2++;
 	}
+
+	// Check level collisions
+	for (auto& team : teams) {
+		for (sf::Uint8& clientId : team.second.members) {
+			for (auto& pair : goManager.bullets[clientId]) {
+				// todo
+			}
+		}
+	}
 }
 
+void Game::handleSpawnTimers(float dt) {
+	for (auto it = spawnTimers.begin(); it != spawnTimers.end();) {
+		it->second -= dt;
+		if (it->second <= 0.0F) {
+			spawnShip(it->first);
+			it = spawnTimers.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+}
 
 void Game::quit() {
 	running = false;
 }
+
+

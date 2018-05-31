@@ -6,6 +6,7 @@
 
 MainMenu::MainMenu() {
 	gui = &master->gui;
+	gui->showMainMenu();
 }
 
 void MainMenu::loop() {

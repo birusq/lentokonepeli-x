@@ -24,7 +24,7 @@ public:
 
 	void onDamage(DamageMessage& dmg);
 
-	void respawnMyShip();
+	void onSpawnScheduled(sf::Uint8 clientId, float timeLeft);
 
 protected:
 	void onBulletCollision(Bullet& bullet, Ship& targetShip) override;
@@ -45,6 +45,12 @@ private:
 
 	void update(float frameTime, float alpha);
 
+	// Doesn't create new one, just makes current one come alive
+	void spawnShip(sf::Uint8 clientId) override;
+
 	sf::Clock inputDisabledTimer;
-	float inputDisabledTime = 0.5F;
+	float inputDisabledDuration = 0.6F;
+
+	sf::Clock spawnRequestTimer = sf::Clock();
+	float spawnRequestBlockDuration = 1.0F;
 };

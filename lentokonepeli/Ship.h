@@ -11,7 +11,9 @@ struct User;
 class Ship : public PhysicsTransformable, public Collider<sf::RectangleShape>, public Damageable {
 public:
 	Ship() {}
-	Ship(sf::Uint32 pTransId_, User* user_, Team::Id teamId_ = Team::NO_TEAM);
+	Ship(GOManager* goManager_, sf::Uint32 pTransId_, User* user_, Team::Id teamId_ = Team::NO_TEAM);
+
+	GOManager* goManager;
 
 	void assignTeam(Team::Id teamId_);
 
@@ -63,5 +65,10 @@ private:
 	float hbBorderSize = 0.5F;
 
 	sf::Clock dmgTimer;
-	float dmgTime = 0.04F;
+	float dmgDuration = 0.04F;
+
+	int flickerIntervalMS = 100;
+
+	sf::Clock respawnAnimTimer;
+	float respawnAnimDuration = 0.6F;
 };

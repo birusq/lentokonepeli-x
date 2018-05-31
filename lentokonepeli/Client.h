@@ -40,6 +40,9 @@ public:
 
 	void requestTeamJoin(Team::Id toTeam);
 
+	// Server responds to this with seconds until can respawn, negative if already can
+	void requestSpawn();
+
 	void close();
 
 	sf::Uint8 myId;
@@ -56,6 +59,7 @@ private:
 	void handleOtherUserDisconnect(Packet* packet);
 	void processShipUpdate(Packet* packet);
 	void processDamage(Packet* packet);
+	void processSpawnAfterTime(Packet* packet);
 
 	RakNetGUID hostguid;
 };

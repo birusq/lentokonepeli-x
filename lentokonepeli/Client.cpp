@@ -66,6 +66,13 @@ void Client::requestTeamJoin(Team::Id toTeam) {
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, hostguid, false);
 }
 
+void Client::requestSpawn() {
+	console::dlog("Sending spawn timer request");
+	BitStream bitStream;
+	bitStream.Write((MessageID)ID_SPAWN_REQUEST);
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, hostguid, false);
+}
+
 void Client::update() {
 	Packet* packet = peer->Receive();
 
@@ -109,6 +116,12 @@ void Client::update() {
 		}
 		else if (packetId == ID_DAMAGE_DEALT) {
 			processDamage(packet);
+		}
+		else if (packetId == ID_SPAWN_NOT_ALLOWED) {
+			console::dlog("spawn isn't allowed now");
+		}
+		else if (packetId == ID_SPAWN_AFTER_TIME) {
+			processSpawnAfterTime(packet);
 		}
 		else {
 			if (packetId <= 134)
@@ -203,7 +216,7 @@ void Client::processShipUpdate(Packet* packet) {
 	//console::dlog("Ship update received");
 }
 
-void Client::processDamage(Packet * packet) {
+void Client::processDamage(Packet* packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 	
@@ -211,6 +224,25 @@ void Client::processDamage(Packet * packet) {
 	dmg.serialize(bitStream, false);
 
 	game->onDamage(dmg);
+}
+
+void Client::processSpawnAfterTime(Packet* packet) {
+	BitStream bitStream(packet->data, packet->length, false);
+	bitStream.IgnoreBytes(1);
+	
+	sf::Uint8 clientId;
+	bitStream.Read(clientId);
+
+	float timeUntilSpawn;
+	bitStream.Read(timeUntilSpawn);
+
+	if (peer->GetLastPing(packet->guid) > 0) {
+		timeUntilSpawn -= (float)peer->GetLastPing(packet->guid) / 1000.0F;
+	}
+
+	console::stream << "Spawn response received, will spawn in " << timeUntilSpawn << " seconds";
+	console::dlogStream();
+	game->onSpawnScheduled(clientId, timeUntilSpawn);
 }
 
 void Client::sendShipUpdate(ShipState& shipState) {

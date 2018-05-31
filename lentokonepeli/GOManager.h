@@ -18,7 +18,7 @@ public:
 	std::unordered_map<sf::Uint32, PhysicsTransformable*> pTransPointers;
 
 	std::unordered_map<sf::Uint8, Ship> ships;
-	std::unordered_map<sf::Uint8, std::unordered_map<sf::Uint16, Bullet>> bullets;
+	std::unordered_map<sf::Uint8, std::unordered_map<sf::Uint16, Bullet*>> bullets;
 
 	sf::Uint32 getUnusedPTransId();
 
@@ -30,7 +30,7 @@ public:
 	void removeShip(sf::Uint8 clientId);
 
 	sf::Uint16 getNewBulletId(sf::Uint8 forClientId);
-	Bullet* createBullet(sf::Uint8 clientId, sf::Uint16 bulletId);
+	void addBullet(Bullet* bullet);
 	void removeBullet(sf::Uint8 clientId, sf::Uint16 bulletId);
 
 	ShipState getShipState(sf::Uint8 clientIndex);

@@ -61,18 +61,31 @@ void ClientGame::onConnectionComplete() {
 	goManager.ships.at(client.myId).localPlayer = true;
 }
 
-void ClientGame::respawnMyShip() {
-	inputDisabledTimer.restart();
-	Ship& myShip = goManager.ships.at(client.myId);
-	myShip.respawn();
-	goManager.previousPTransformsState.at(myShip.pTransId).setPosition(level.spawnPoints[client.myUser()->teamId]);
-	goManager.currentPTransformsState.at(myShip.pTransId).setPosition(level.spawnPoints[client.myUser()->teamId]);
+void ClientGame::spawnShip(sf::Uint8 clientId) {
+	Ship& ship = goManager.ships.at(clientId);
+
+	ship.respawn();
+
+	// Reset all transforms
+	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
+	ppTrans.setPosition(level.spawnPoints[client.users.at(clientId).teamId]);
+	ppTrans.setRotation(0);
+	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
+}
+
+void ClientGame::onSpawnScheduled(sf::Uint8 clientId, float timeLeft) {
+	if (timeLeft > 0.0F) {
+		spawnTimers[clientId] = timeLeft;
+	}
+	else {
+		spawnShip(clientId);
+	}
 }
 
 void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
 	window.clear(sf::Color(50, 50, 50));
 
-	window.draw(level);
+	level.draw(window);
 
 	goManager.drawAll(window);
 
@@ -101,6 +114,11 @@ void ClientGame::loop() {
 		while (master->window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) {
 				master->quit();
+			}
+			else if (event.type == sf::Event::KeyPressed) {
+				if (event.key.code == master->settings.inGameMenu) {
+					master->gui.toggleEscMenu();
+				}
 			}
 			master->gui.handleEvent(event);
 		}
@@ -135,6 +153,8 @@ void ClientGame::fixedUpdate(float dt) {
 	if (client.connectionDone) {
 
 		goManager.previousPTransformsState = goManager.currentPTransformsState;
+
+		handleSpawnTimers(dt);
 
 		// Input
 		Input input;
@@ -187,7 +207,7 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 
 			Ship& ship = goManager.ships.at(clientId);
 
-			if (clientId != client.myId) {
+			if (clientId != client.myId && ship.isDead() == false) {
 				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
 
 				if (shipState.shoot) {
@@ -198,10 +218,6 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 					ship.throttle = true;
 				else
 					ship.throttle = false;
-
-				if (ship.isDead() == true && shipState.dead == false && ship.timeSinceDeath.getElapsedTime().asSeconds() > 0.25F) {
-					ship.respawn();
-				}
 			}
 		}
 	}
@@ -218,7 +234,7 @@ void ClientGame::update(float frameTime, float alpha) {
 
 Input ClientGame::processInput() {
 	Input input;
-	if (inputDisabledTimer.getElapsedTime().asSeconds() > inputDisabledTime) {
+	if (inputDisabledTimer.getElapsedTime().asSeconds() > inputDisabledDuration) {
 		if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey)) {
 			input.moveForward = true;
 		}
@@ -238,7 +254,11 @@ Input ClientGame::processInput() {
 int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	
 	if (ship.isDead() && input.any()) {
-		respawnMyShip();
+		if (spawnRequestTimer.getElapsedTime().asSeconds() > spawnRequestBlockDuration) {
+			client.requestSpawn();
+			spawnRequestTimer.restart();
+		}
+		return -1;
 	}
 	
 	PhysicsTransformable& currTrans = goManager.currentPTransformsState[ship.pTransId];

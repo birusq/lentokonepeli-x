@@ -3,6 +3,7 @@
 #include "Console.h"
 #include "Bullet.h"
 #include "Master.h"
+#include "DefaultBullet.h"
 
 DefaultGun::DefaultGun(GOManager* goManager_, sf::Uint8 ownerId_) : Weapon(goManager_, ownerId_) {
 	localTransform.transformPoint(0, -5);
@@ -25,9 +26,9 @@ int DefaultGun::shoot() {
 int DefaultGun::shoot(sf::Uint16 bulletId, bool myShip) {
 	if (clock.getElapsedTime() > sf::seconds(fireInterval) || (myShip == false && clock.getElapsedTime() > sf::seconds(fireInterval * 0.7F))) { // make timing less harsh for others because of latency
 		clock.restart();
-		Bullet* bullet = goManager->createBullet(ownerId, bulletId);
+		Bullet* bullet = new DefaultBullet(goManager, goManager->getUnusedPTransId(), ownerId, bulletId);
 		bullet->launch(getPosition(), getRotation());
-		goManager->addToPhysics(bullet);
+		goManager->addBullet(bullet);
 		master->soundPlayer.playSound(getPosition(), "shoot");
 		return bulletId;
 	}

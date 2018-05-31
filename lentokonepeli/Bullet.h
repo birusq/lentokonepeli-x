@@ -14,19 +14,17 @@ public:
 	GOManager* goManager;
 
 	sf::Uint16 damage = 10;
-	float radius = 1.0F;
 	float speed = 110.0F;
 	float lifeTime = 3.0F;
 	sf::Clock lifeTimeCounter;
-	sf::CircleShape model;
 
 	sf::Uint8 clientId;
 	sf::Uint16 bulletId;
 
-	void updateHitbox() override;
-	void onCollision() override;
+	virtual void updateHitbox() = 0;
+	virtual void onCollision() = 0;
 
-	void launch(sf::Vector2f pos, float direction);
+	virtual void launch(sf::Vector2f pos, float direction) = 0;
 
-	void draw(sf::RenderTarget& target);
+	virtual void draw(sf::RenderTarget& target) = 0;
 };

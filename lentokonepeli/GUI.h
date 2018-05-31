@@ -9,11 +9,14 @@ class Master;
 
 class GUI {
 private:
+
+	Master* master;
+
 	tgui::Gui gui;
 	
 	sf::Clock clock;
 	float time = 0;
-	void initMainMenu(Master* master);
+	void initMainMenu();
 	tgui::Panel::Ptr mainMenuPanel;
 	tgui::EditBox::Ptr joinIpEditBox;
 	tgui::EditBox::Ptr usernameEditBox;
@@ -23,8 +26,7 @@ private:
 
 	void hostButtonPressed();
 	void clientButtonPressed();
-
-	bool serverUIInitalized;
+	
 	void initServer();
 	void showServer();
 	tgui::Panel::Ptr sPanel;
@@ -33,7 +35,6 @@ private:
 	
 	void onCLIInput();
 	
-	bool clientUIInitalized;
 	void initClient();
 	void showClient();
 	tgui::Panel::Ptr cPanel;
@@ -42,19 +43,27 @@ private:
 	
 	tgui::Panel::Ptr chooseTeamPanel;
 
+	tgui::Panel::Ptr escMenuPanel;
+
 	bool host;
 
+	tgui::Button::Ptr createButton(tgui::Panel::Ptr parent, std::string text = "", unsigned int textSize = 14, tgui::Color bgColor = tgui::Color::White, bool useDarkText = true);
+
+	tgui::Color tint(tgui::Color baseColor, tgui::Color tintColor, float factor);
+
 public:
-	void init(Master* master);
+	void init(Master* master_);
 	void setTarget(sf::RenderTarget& target);
 	void draw();
 	void handleEvent(sf::Event event);
 
 	void teamJoinAccepted();
 
-	tgui::Button::Ptr createButton(tgui::Panel::Ptr parent, std::string text = "", unsigned int textSize = 14, tgui::Color bgColor = tgui::Color::White, bool useDarkText = true);
+	void toggleEscMenu();
+	void showEscMenu();
+	void hideEscMenu();
 
-	tgui::Color tint(tgui::Color baseColor, tgui::Color tintColor, float factor);
+	void showMainMenu();
 
 	Server* server;
 	Client* client;

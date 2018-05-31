@@ -21,4 +21,6 @@ namespace console {
 	extern std::ostringstream stream;
 
 	void clearLogFile();
+
+	extern sf::Uint16 logIndex;
 }

@@ -27,6 +27,7 @@ public:
 	KeySetting turnLeftKey;
 	KeySetting turnRightKey;
 	KeySetting shootKey;
+	KeySetting inGameMenu;
 
 	StringSetting username;
 

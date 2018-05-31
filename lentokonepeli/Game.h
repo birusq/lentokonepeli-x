@@ -19,7 +19,9 @@ struct Input {
 class Game : public FpsCounter, public Closeable {
 public:
 	virtual void loop() = 0;
+
 protected:
+	virtual void spawnShip(sf::Uint8 clientId) = 0;
 
 	const float fixedUpdateFps = 60.0F;
 	const sf::Vector2f gravity{0, 10.0F};
@@ -39,5 +41,10 @@ protected:
 	void quit();
 
 	TestLevel level;
+
+	std::unordered_map<sf::Uint8, float> spawnTimers;
+	
+	// checks timers and spawns ships if timer allows
+	void handleSpawnTimers(float dt);
 };
 

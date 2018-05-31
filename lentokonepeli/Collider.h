@@ -2,6 +2,7 @@
 #include <Thor/Vectors.hpp>
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "Team.h"
 
 template <class S> class Collider {
 public:
@@ -22,7 +23,7 @@ public:
 			std::pair<float, float> res1 = getMinMax(myNormals.at(i));
 			std::pair<float, float> res2 = other.getMinMax(myNormals.at(i));
 
-			if (std::get<0>(res1) > std::get<1>(res2) || std::get<0>(res2) > std::get<1>(res1))
+			if (res1.first > res2.second || res2.first > res1.second)
 				return false;
 		}
 
@@ -30,7 +31,7 @@ public:
 			std::pair<float, float> res1 = getMinMax(otherNormals.at(i));
 			std::pair<float, float> res2 = other.getMinMax(otherNormals.at(i));
 
-			if (std::get<0>(res1) > std::get<1>(res2) || std::get<0>(res2) > std::get<1>(res1))
+			if (res1.first > res2.second ||res2.first > res1.second)
 				return false;
 		}
 
@@ -40,9 +41,9 @@ public:
 	}
 
 	// Internal, don't call
-	virtual void onCollision() = 0;
+	virtual void onCollision() {};
 
-	virtual void updateHitbox() = 0;
+	virtual void updateHitbox() {};
 
 	std::vector<sf::Vector2f> getNormals() {
 		std::vector<sf::Vector2f> normals;
@@ -77,5 +78,9 @@ public:
 		}
 
 		return std::make_pair(minProj, maxProj);
+	}
+
+	void draw(sf::RenderTarget& target) {
+		target.draw(hitbox);
 	}
 };

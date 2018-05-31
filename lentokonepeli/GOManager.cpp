@@ -8,8 +8,7 @@
 #include "Bullet.h"
 
 void GOManager::createShip(User* user, Team::Id teamId) {
-	ships[user->clientId] = Ship(getUnusedPTransId(), user, teamId);
-	ships[user->clientId].weapon = std::make_unique<DefaultGun>(this, user->clientId);
+	ships[user->clientId] = Ship(this, getUnusedPTransId(), user, teamId);
 	addToPhysics(&ships[user->clientId]);
 }
 
@@ -26,10 +25,9 @@ sf::Uint16 GOManager::getNewBulletId(sf::Uint8 forClientId) {
 	return bulletId;
 }
 
-Bullet* GOManager::createBullet(sf::Uint8 forClientId, sf::Uint16 bulletId) {
-	bullets[forClientId][bulletId] = Bullet(this, getUnusedPTransId(), forClientId, bulletId);
-	// Don't add to physics because weapon does it after shooting
-	return &(bullets[forClientId][bulletId]);
+void GOManager::addBullet(Bullet* bullet) {
+	bullets[bullet->clientId][bullet->bulletId] = bullet;
+	addToPhysics(bullet);
 }
 
 void GOManager::removeBullet(sf::Uint8 clientId, sf::Uint16 bulletId) {
@@ -40,7 +38,7 @@ void GOManager::drawAll(sf::RenderWindow& window) {
 
 	for (auto& pair : bullets) {
 		for (auto& innerPair : pair.second) {
-			innerPair.second.draw(window);
+			innerPair.second->draw(window);
 		}
 	}
 
@@ -85,9 +83,10 @@ ShipState GOManager::getShipState(sf::Uint8 index) {
 
 void GOManager::deleteGarbage() {
 	for (auto& b : bulletGarbage) {
-		if (bullets[std::get<0>(b)].count(std::get<1>(b)) == 1) {
-			removeFromPhysics(&bullets[std::get<0>(b)].at(std::get<1>(b)));
-			bullets[std::get<0>(b)].erase(std::get<1>(b));
+		if (bullets[b.first].count(b.second) == 1) {
+			removeFromPhysics(bullets[b.first].at(b.second));
+			delete bullets[b.first].at(b.second);
+			bullets[b.first].erase(b.second);
 		}
 	}
 	bulletGarbage.clear();

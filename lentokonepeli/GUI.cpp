@@ -6,7 +6,8 @@
 #include "Client.h"
 #include "Globals.h"
 
-void GUI::init(Master* master) {
+void GUI::init(Master* master_) {
+	master = master_;
 
 	gui.setFont(g::font);
 
@@ -23,8 +24,6 @@ void GUI::init(Master* master) {
 		pingLabel->setPosition(0 , 18);
 		gui.add(pingLabel);
 	}
-
-	initMainMenu(master);
 	clock.restart();
 }
 
@@ -53,10 +52,11 @@ void GUI::handleEvent(sf::Event event) {
 	gui.handleEvent(event);
 }
 
-void GUI::initMainMenu(Master* master) {
+void GUI::initMainMenu() {
 	mainMenuPanel = tgui::Panel::create({"100%", "100%"});
 	mainMenuPanel->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
 	gui.add(mainMenuPanel);
+	mainMenuPanel->hide();
 
 	auto logo = tgui::Label::create("Lentokonepeli X");
 	mainMenuPanel->add(logo);
@@ -102,6 +102,17 @@ void GUI::initMainMenu(Master* master) {
 	guitButton->connect("pressed", [&]() { master->quit(); });
 }
 
+void GUI::showMainMenu() {
+	if (sPanel) {
+		gui.remove(sPanel);
+	}
+	if (cPanel) {
+		gui.remove(cPanel);
+	}
+	initMainMenu();
+	mainMenuPanel->show();
+}
+
 void GUI::initServer() {
 	sPanel = tgui::Panel::create();
 	sPanel->getRenderer()->setBackgroundColor(tgui::Color(0, 0, 0, 0));
@@ -134,18 +145,16 @@ void GUI::initServer() {
 	sCLI->setLineLimit(500);
 
 	console::currentOut = &sCLI;
-
-	serverUIInitalized = true;
 }
 
 void GUI::showServer() {
-	mainMenuPanel->hide();
-	if (clientUIInitalized) {
-		cPanel->hide();
+	if (cPanel) {
+		gui.remove(cPanel);
 	}
-	if (!serverUIInitalized) {
-		initServer();
+	if (mainMenuPanel) {
+		gui.remove(mainMenuPanel);
 	}
+	initServer();
 	sPanel->show();
 }
 
@@ -167,7 +176,7 @@ void GUI::initClient() {
 	chooseTeamPanel = tgui::Panel::create({ "60%", "40%" });
 	chooseTeamPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
 	chooseTeamPanel->getRenderer()->setBackgroundColor(tgui::Color(palette::strongGrey));
-	gui.add(chooseTeamPanel);
+	cPanel->add(chooseTeamPanel);
 
 	auto chooseTeamLabel = tgui::Label::create("Choose team");
 	chooseTeamPanel->add(chooseTeamLabel);
@@ -185,12 +194,43 @@ void GUI::initClient() {
 	blueTeamButton->setPosition("&.width*3/4 - width/2", "40%");
 	blueTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::BLUE_TEAM); });
 	
-	clientUIInitalized = true;
-	// NOT DONE
+	escMenuPanel = tgui::Panel::create();
+	escMenuPanel->hide();
+	escMenuPanel->getRenderer()->setBackgroundColor(palette::strongGrey);
+	cPanel->add(escMenuPanel);
+
+	auto resume = createButton(escMenuPanel, "Resume", 20, sf::Color::White, true);
+	resume->setPosition("&.width/2 - width/2", "40%");
+	resume->connect("pressed", [&]() { hideEscMenu(); });
+
+	auto quitToMainMenu = createButton(escMenuPanel, "Exit to main menu", 20, sf::Color::White, true);
+	quitToMainMenu->setPosition("&.width/2 - width/2", "50%");
+	quitToMainMenu->connect("pressed", [&]() { master->launchMainMenu(); });
+
+	auto quitToDesktop = createButton(escMenuPanel, "Quit to desktop", 20, sf::Color::White, true);
+	quitToDesktop->setPosition("&.width/2 - width/2", "60%");
+	quitToDesktop->connect("pressed", [&]() { master->quit(); });
 }
 
 void GUI::teamJoinAccepted() {
 	chooseTeamPanel->hide();
+}
+
+void GUI::toggleEscMenu() {
+	if (escMenuPanel->isVisible()) {
+		hideEscMenu();
+	}
+	else {
+		showEscMenu();
+	}
+}
+
+void GUI::showEscMenu() {
+	escMenuPanel->show();
+}
+
+void GUI::hideEscMenu() {
+	escMenuPanel->hide();
 }
 
 tgui::Button::Ptr GUI::createButton(tgui::Panel::Ptr parent, std::string text, unsigned int textSize, tgui::Color bgColor, bool userDarkText) {
@@ -246,13 +286,13 @@ tgui::Color GUI::tint(tgui::Color baseColor, tgui::Color tintColor, float factor
 }
 
 void GUI::showClient() {
-	mainMenuPanel->hide();
-	if (serverUIInitalized) {
-		sPanel->hide();
+	if (sPanel) {
+		gui.remove(sPanel);
 	}
-	if (!clientUIInitalized) {
-		initClient();
+	if (mainMenuPanel) {
+		gui.remove(mainMenuPanel);
 	}
+	initClient();
 	cPanel->show();
 }
 

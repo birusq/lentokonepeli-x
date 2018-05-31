@@ -5,8 +5,11 @@
 #include "Weapon.h"
 #include "Master.h"
 #include "PacketHelper.h"
+#include "DefaultGun.h"
 
-Ship::Ship(sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : owner{ owner_ }, teamId{ teamId_ } {
+Ship::Ship(GOManager* goManager_, sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : owner{ owner_ }, goManager{goManager_}, teamId { teamId_ } {
+	weapon = std::make_unique<DefaultGun>(goManager, owner->clientId);
+	
 	pTransId = pTransId_;
 	gravity = false;
 	drag = 0.01F;
@@ -59,7 +62,7 @@ void Ship::draw(sf::RenderTarget& target) {
 	
 	if (isDead() == false) {
 
-		if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
+		if (dmgTimer.getElapsedTime().asSeconds() > dmgDuration) {
 			shipBody.setFillColor(sf::Color::Black);
 		}
 
@@ -70,7 +73,11 @@ void Ship::draw(sf::RenderTarget& target) {
 
 		shipBody.setPosition(getPosition());
 		shipBody.setRotation(getRotation());
-		target.draw(shipBody);
+		
+		if (respawnAnimTimer.getElapsedTime().asSeconds() > respawnAnimDuration || 
+			respawnAnimTimer.getElapsedTime().asMilliseconds() % (flickerIntervalMS * 2) < flickerIntervalMS) {
+			target.draw(shipBody);
+		}
 
 		if (throttle) {
 			master->soundPlayer.playThrottle(getPosition(), owner->clientId);
@@ -100,7 +107,7 @@ void Ship::updateHitbox() {
 	if (isDead())
 		return;
 
-	if (dmgTimer.getElapsedTime().asSeconds() > dmgTime) {
+	if (dmgTimer.getElapsedTime().asSeconds() > dmgDuration) {
 		hitboxDisabled = false;
 	}
 
@@ -121,8 +128,8 @@ void Ship::onCollision() {
 void Ship::respawn() {
 	setHealthToFull();
 	hitboxDisabled = false;
-
 	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
+	respawnAnimTimer.restart();
 }
 
 void Ship::takeDmg(int dmg, DamageType dmgType) {

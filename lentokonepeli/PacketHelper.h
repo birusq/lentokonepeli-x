@@ -26,8 +26,10 @@ namespace ph {
 		ID_JOIN_TEAM_FAILED_TEAM_FULL,
 		ID_TEAM_UPDATE,
 		ID_SHIP_UPDATE,
-		ID_CAN_SPAWN,
-		ID_DAMAGE_DEALT
+		ID_SPAWN_REQUEST,
+		ID_SPAWN_AFTER_TIME,
+		ID_SPAWN_NOT_ALLOWED,
+		ID_DAMAGE_DEALT,
 	};
 
 	std::string msgIDToString(MessageIndetifier id);

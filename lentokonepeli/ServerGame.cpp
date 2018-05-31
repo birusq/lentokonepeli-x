@@ -54,6 +54,30 @@ void ServerGame::onClientJoinTeam(sf::Uint8 clientId, Team::Id newTeam) {
 	// Nothing yet
 }
 
+void ServerGame::onSpawnRequest(sf::Uint8 clientId) {
+	if (goManager.ships.count(clientId) == 1) {
+		if (goManager.ships[clientId].isDead()) {
+			float spawnTime = level.respawnTime - goManager.ships[clientId].timeSinceDeath.getElapsedTime().asSeconds();
+			server.sendShipSpawn(clientId, true, spawnTime);
+			if (spawnTime > 0.0F) {
+				spawnTimers[clientId] = spawnTime;
+			}
+		}
+	}
+}
+
+void ServerGame::spawnShip(sf::Uint8 clientId) {
+	Ship& ship = goManager.ships.at(clientId);
+
+	ship.respawn();
+
+	// Reset all transforms
+	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
+	ppTrans.setPosition(level.spawnPoints[server.users.at(clientId).teamId]);
+	ppTrans.setRotation(0);
+	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
+}
+
 void ServerGame::render(sf::RenderWindow& window) {
 	window.clear(sf::Color(62, 65, 71));
 
@@ -69,7 +93,7 @@ void ServerGame::fixedUpdate(float dt) {
 
 	ServerShipStates serverStates;
 	
-	// TODO: integrate ships when we don't receive a movement packet
+	handleSpawnTimers(dt);
 
 	for (auto& pair : server.shipStateJitterBuffers) {
 		if (pair.second.size() > 0) {
@@ -78,11 +102,11 @@ void ServerGame::fixedUpdate(float dt) {
 		}
 	}
 
-	applyClientShipStates(serverStates);
+	applyClientShipStates(serverStates, dt);
 
 	for (auto& pair : goManager.bullets) {
 		for (auto& innerPair : pair.second) {
-			integrate(goManager.currentPTransformsState.at(innerPair.second.pTransId), dt);
+			integrate(goManager.currentPTransformsState.at(innerPair.second->pTransId), dt);
 		}
 	}
 
@@ -99,14 +123,12 @@ void ServerGame::fixedUpdate(float dt) {
 	server.broadcastShipStates(serverStates);
 }
 
-void ServerGame::applyClientShipStates(ServerShipStates& sss) {
-	for (auto& pair : sss.states) {
-		
-		ShipState& shipState = pair.second;
+void ServerGame::applyClientShipStates(ServerShipStates& sss, float dt) {
+	for (auto& pair : server.users) {
 		sf::Uint8 clientId = pair.first;
 
-		if (server.users.count(clientId) == 1) {
-
+		if (sss.states.count(clientId) == 1) {
+			ShipState& shipState = sss.states[clientId];
 			Ship& ship = goManager.ships.at(clientId);
 
 			if (ship.isDead() == false) {
@@ -116,10 +138,9 @@ void ServerGame::applyClientShipStates(ServerShipStates& sss) {
 					ship.weapon->shoot(shipState.bulletId, false);
 				}
 			}
-			
-			if (ship.isDead() == true && shipState.dead == false && ship.timeSinceDeath.getElapsedTime().asSeconds() > 0.25F) {
-				ship.respawn();
-			}
+		}
+		else {
+			integrate(goManager.ships.at(clientId), dt);
 		}
 	}
 }

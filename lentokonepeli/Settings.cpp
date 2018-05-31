@@ -49,4 +49,5 @@ Settings::Settings() {
 	turnLeftKey = KeySetting(&ini, "keybinds", "turnLeft", sf::Keyboard::Left);
 	turnRightKey = KeySetting(&ini, "keybinds", "turnRight", sf::Keyboard::Right);
 	shootKey = KeySetting(&ini, "keybinds", "shoot", sf::Keyboard::Space);
+	inGameMenu = KeySetting(&ini, "keybinds", "inGameMenu", sf::Keyboard::Escape);
 }

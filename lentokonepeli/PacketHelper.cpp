@@ -24,8 +24,6 @@ namespace ph {
 			return "ID_TEAM_UPDATE";
 		case ID_SHIP_UPDATE:
 			return "ID_SHIP_UPDATE";
-		case ID_CAN_SPAWN:
-			return "ID_CAN_SPAWN";
 		default:
 			return "id " + std::to_string((unsigned char)id);
 		}

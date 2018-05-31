@@ -7,6 +7,7 @@
 #include "ServerGame.h"
 #include "Bullet.h"
 #include "Master.h"
+#include "Raknet/GetTime.h"
 
 using namespace ph;
 
@@ -71,6 +72,9 @@ void Server::update() {
 		else if (packetId == ID_JOIN_TEAM_REQUEST) {
 			handleJoinTeamReq(packet);
 		}
+		else if (packetId == ID_SPAWN_REQUEST) {
+			handleSpawnReq(packet);
+		}
 		else {
 			if (packetId <= 134)
 				console::log("Packet type not handled: " + (std::string)PacketLogger::BaseIDTOString(packetId));
@@ -113,11 +117,14 @@ void Server::handleUserUpdate(Packet* packet) {
 
 		// send data of all users to new connected user
 		for (auto& pair : users) {
-			sendUserUpdate(pair.second, packet->systemAddress, false);
+			if (pair.second.clientId != user.clientId) {
+				sendUserUpdate(pair.second, packet->systemAddress, false);
+				sendShipSpawn(pair.second.clientId, true, -1.0F, packet->systemAddress, false);
+			}
 		}
 	}
 
-	sendUserUpdate(user, packet->systemAddress, true); // send data of this user to all others
+	sendUserUpdate(user, UNASSIGNED_SYSTEM_ADDRESS , true); // send data of this user to all others
 
 	//console::log("User update: " + std::to_string(user.clientId) + (std::string)user.username.C_String() + user.guid.ToString());
 }
@@ -201,6 +208,13 @@ void Server::handleShipUpdate(Packet* packet) {
 	//console::dlog("Received ship state from " + std::to_string((int)clientId) + ", ship ypos: " + std::to_string(shipStates[clientId].position.y));
 }
 
+void Server::handleSpawnReq(Packet * packet) {
+	console::stream << "Got spawn request from " << users[peer->GetIndexFromSystemAddress(packet->systemAddress)].username.C_String();
+	console::dlogStream();
+	game->onSpawnRequest(peer->GetIndexFromSystemAddress(packet->systemAddress));
+}
+
+
 void Server::broadcastShipStates(ServerShipStates& newStates) {
 	if (newStates.states.size() == 0)
 		return;
@@ -240,4 +254,28 @@ void Server::sendShipsCollided(Ship* s1, Ship* s2) {
 	dmg2.serialize(bitStream2, true);
 
 	peer->Send(&bitStream2, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+}
+
+void Server::sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpawn, SystemAddress toAddress, bool broadcast) {
+	BitStream bitStream;
+
+	if (canSpawn == false) {
+		// Only send to requester if spawn not allowed
+		bitStream.Write((MessageID)ID_SPAWN_NOT_ALLOWED);
+		peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, users[clientId].guid, false);
+
+		console::stream << "Sent spawn not allowed message to " << users[clientId].username.C_String();
+		console::dlogStream();
+	}
+	else {
+
+		bitStream.Write((MessageID)ID_SPAWN_AFTER_TIME);
+		bitStream.Write(clientId);
+		bitStream.Write(timeUntilSpawn);
+
+		peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, toAddress, broadcast);
+
+		console::stream << "Broadcasting spawn " << users[clientId].username.C_String() << " in " << timeUntilSpawn << " seconds";
+		console::dlogStream();
+	}
 }

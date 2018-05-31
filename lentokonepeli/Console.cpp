@@ -14,8 +14,10 @@ namespace console {
 	}
 
 	void dlog(std::string s) {
-		if (s != "")
-			log("[debug] " + s);
+		if (s != "") {
+			logIndex++;
+			log("[d" + std::to_string(logIndex) + "] " + s);
+		}
 	}
 
 	void clearLogFile() {
@@ -37,4 +39,6 @@ namespace console {
 	std::ostringstream stream;
 
 	tgui::ChatBox::Ptr* currentOut;
+
+	sf::Uint16 logIndex = -1;
 }

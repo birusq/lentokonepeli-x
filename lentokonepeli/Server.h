@@ -35,6 +35,8 @@ public:
 	void sendBulletHitShip(Bullet* bullet, Ship* targetShip);
 	void sendShipsCollided(Ship* s1, Ship* s2);
 
+	void sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpawn, SystemAddress toAddress = UNASSIGNED_SYSTEM_ADDRESS, bool broadcast = true);
+
 private:
 	ServerGame* game;
 
@@ -52,6 +54,8 @@ private:
 	void sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clientId, SystemAddress toAddress, bool broadcast);
 
 	void handleShipUpdate(Packet* packet);
+
+	void handleSpawnReq(Packet* packet);
 
 	int timer;
 };
