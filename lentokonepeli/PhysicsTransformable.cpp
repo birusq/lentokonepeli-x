@@ -27,6 +27,13 @@ sf::Vector2f PhysicsTransformable::getRotationVector() {
 	return sf::Vector2f(x,y);
 }
 
+void PhysicsTransformable::setToRest() {
+	velocity = sf::Vector2f();
+	acceleration = sf::Vector2f();
+	forceOnSelf = sf::Vector2f();
+	angularVelocity = 0.0F;
+}
+
 void PhysicsTransformable::updateValues(PhysicsTransformable& newPT) {
 	setPosition(newPT.getPosition());
 	setRotation(newPT.getRotation());

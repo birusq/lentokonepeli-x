@@ -27,6 +27,8 @@ public:
 	PhysicsTransformable operator+(PhysicsTransformable&);
 	sf::Vector2f getRotationVector();
 
+	void setToRest();
+
 	static PhysicsTransformable lerp(PhysicsTransformable& start, PhysicsTransformable& end, float alpha);
 	static float lerpAngle(float start, float end, float alpha);
 };

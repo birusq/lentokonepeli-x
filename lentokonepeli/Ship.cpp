@@ -74,8 +74,11 @@ void Ship::draw(sf::RenderTarget& target) {
 		shipBody.setPosition(getPosition());
 		shipBody.setRotation(getRotation());
 		
-		if (respawnAnimTimer.getElapsedTime().asSeconds() > respawnAnimDuration || 
-			respawnAnimTimer.getElapsedTime().asMilliseconds() % (flickerIntervalMS * 2) < flickerIntervalMS) {
+		if ((respawnAnimTimer.getElapsedTime().asSeconds() > respawnAnimDuration || 
+			respawnAnimTimer.getElapsedTime().asMilliseconds() % (flickerIntervalMS * 2) < flickerIntervalMS) &&
+			(bodyHitImmunityTimer.getElapsedTime().asSeconds() > bodyHitImmunityDuration ||
+			bodyHitImmunityTimer.getElapsedTime().asMilliseconds() % (flickerIntervalMS * 2) < flickerIntervalMS)) {
+
 			target.draw(shipBody);
 		}
 
@@ -122,7 +125,7 @@ void Ship::setWeaponTrans(sf::Vector2f pos, float rot) {
 }
 
 void Ship::onCollision() {
-	hitboxDisabled = true;
+	
 }
 
 void Ship::respawn() {
@@ -135,6 +138,9 @@ void Ship::respawn() {
 void Ship::takeDmg(int dmg, DamageType dmgType) {
 
 	//maybe react differently to different damage types
+	if (dmgType == Damageable::DMG_SHIP_COLLISION) {
+		bodyHitImmunityTimer.restart();
+	}
 
 	console::stream << owner->username.C_String() << " took " << dmg << " damage";
 	console::dlogStream();

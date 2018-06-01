@@ -45,6 +45,6 @@ protected:
 	std::unordered_map<sf::Uint8, float> spawnTimers;
 	
 	// checks timers and spawns ships if timer allows
-	void handleSpawnTimers(float dt);
+	virtual void handleSpawnTimers(float dt);
 };
 

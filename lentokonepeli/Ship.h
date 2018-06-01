@@ -10,6 +10,8 @@ struct User;
 
 class Ship : public PhysicsTransformable, public Collider<sf::RectangleShape>, public Damageable {
 public:
+
+
 	Ship() {}
 	Ship(GOManager* goManager_, sf::Uint32 pTransId_, User* user_, Team::Id teamId_ = Team::NO_TEAM);
 
@@ -49,7 +51,10 @@ public:
 	float turnSpeed = 180.0F;
 	float turnSmoothingFrames = 4.0F;
 
-	int bodyHitDamage = 5;
+	int bodyHitDamage = 40;
+
+	sf::Clock bodyHitImmunityTimer;
+	float bodyHitImmunityDuration = 0.4F;
 
 private:
 

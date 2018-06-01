@@ -4,6 +4,7 @@
 #include "Server.h"
 #include "Ship.h"
 #include "Weapon.h"
+#include "Damageable.h"
 
 ServerGame::ServerGame() {
 	server.init(this);
@@ -155,13 +156,19 @@ void ServerGame::updateServerStates(ServerShipStates& sss) {
 void ServerGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
 	console::stream << server.users.at(bullet.clientId).username.C_String() << " hit " << targetShip.owner->username.C_String() << " with a bullet";
 	console::dlogStream();
-	targetShip.takeDmg(bullet.damage);
+	targetShip.takeDmg(bullet.damage, Damageable::DMG_BULLET);
 	server.sendBulletHitShip(&bullet, &targetShip);
 }
 
 void ServerGame::onShipCollision(Ship& ship1, Ship& ship2) {
 	console::dlog(std::string(ship1.owner->username.C_String()) + " collided with " + std::string(ship2.owner->username.C_String()));
-	ship1.takeDmg(ship2.bodyHitDamage);
-	ship2.takeDmg(ship1.bodyHitDamage);
-	server.sendShipsCollided(&ship1, &ship2);
+	bool s1Immune = ship1.bodyHitImmunityTimer.getElapsedTime().asSeconds() < ship1.bodyHitImmunityDuration;
+	bool s2Immune = ship2.bodyHitImmunityTimer.getElapsedTime().asSeconds() < ship2.bodyHitImmunityDuration;
+	if (s1Immune == false) {
+		ship1.takeDmg(ship2.bodyHitDamage, Damageable::DMG_SHIP_COLLISION);
+	}
+	if (s2Immune == false) {
+		ship2.takeDmg(ship1.bodyHitDamage, Damageable::DMG_SHIP_COLLISION);
+	}
+	server.sendShipsCollided(&ship1, s1Immune, &ship2, s2Immune);
 }

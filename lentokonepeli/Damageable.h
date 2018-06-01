@@ -2,7 +2,7 @@
 
 class Damageable {
 public:
-	enum DamageType {
+	enum DamageType : sf::Uint8 {
 		DMG_UNIDENTIFIED,
 		DMG_BULLET,
 		DMG_SHIP_COLLISION

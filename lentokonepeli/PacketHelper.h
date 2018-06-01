@@ -66,12 +66,14 @@ struct ServerShipStates {
 
 struct DamageMessage {
 	DamageMessage() {}
-	DamageMessage(sf::Uint8 dealerId_, sf::Int16 damage_, sf::Uint8 targetId_) : dealerId{ dealerId_ }, targetId{ targetId_ }, damage{ damage_ } {}
+	DamageMessage(sf::Uint8 dealerId_, sf::Int16 damage_, sf::Uint8 targetId_, Damageable::DamageType damageType_) 
+		: dealerId{ dealerId_ }, targetId{ targetId_ }, damage{ damage_ }, damageType{ damageType_ } {}
 
 	void serialize(BitStream& bitStream, bool write);
-
+	
 	sf::Uint8 dealerId;
 	sf::Uint8 targetId;
 	sf::Int16 damage;
+	Damageable::DamageType damageType;
 };
 

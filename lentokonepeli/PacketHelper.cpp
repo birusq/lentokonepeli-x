@@ -94,4 +94,5 @@ void DamageMessage::serialize(BitStream & bitStream, bool write) {
 	bitStream.Serialize(write, dealerId);
 	bitStream.Serialize(write, targetId);
 	bitStream.Serialize(write, damage);
+	bitStream.Serialize(write, damageType);
 }

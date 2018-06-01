@@ -45,6 +45,8 @@ private:
 
 	tgui::Panel::Ptr escMenuPanel;
 
+	tgui::Label::Ptr spawnTimeLabel;
+
 	bool host;
 
 	tgui::Button::Ptr createButton(tgui::Panel::Ptr parent, std::string text = "", unsigned int textSize = 14, tgui::Color bgColor = tgui::Color::White, bool useDarkText = true);
@@ -62,6 +64,9 @@ public:
 	void toggleEscMenu();
 	void showEscMenu();
 	void hideEscMenu();
+
+	// Set float to -1 to show key prompt
+	void updateSpawnTimeLabel(bool setVisible, float timer);
 
 	void showMainMenu();
 

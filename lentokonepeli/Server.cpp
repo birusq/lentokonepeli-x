@@ -229,7 +229,7 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 }
 
 void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip) {
-	DamageMessage dmg(bullet->clientId, bullet->damage, targetShip->owner->clientId);
+	DamageMessage dmg(bullet->clientId, bullet->damage, targetShip->owner->clientId, Damageable::DamageType::DMG_BULLET);
 
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_DAMAGE_DEALT);
@@ -238,22 +238,25 @@ void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip) {
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 }
 
-void Server::sendShipsCollided(Ship* s1, Ship* s2) {
-	DamageMessage dmg(s1->owner->clientId, s1->bodyHitDamage, s2->owner->clientId);
+void Server::sendShipsCollided(Ship* s1, bool s1Immune, Ship* s2, bool s2Immune) {
+	if (s1Immune == false) {
+		DamageMessage dmg(s1->owner->clientId, s1->bodyHitDamage, s2->owner->clientId, Damageable::DamageType::DMG_SHIP_COLLISION);
 
-	BitStream bitStream;
-	bitStream.Write((MessageID)ID_DAMAGE_DEALT);
-	dmg.serialize(bitStream, true);
+		BitStream bitStream;
+		bitStream.Write((MessageID)ID_DAMAGE_DEALT);
+		dmg.serialize(bitStream, true);
 
-	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+		peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+	}
+	if (s2Immune == false) {
+		DamageMessage dmg2(s2->owner->clientId, s2->bodyHitDamage, s1->owner->clientId, Damageable::DamageType::DMG_SHIP_COLLISION);
 
-	DamageMessage dmg2(s2->owner->clientId, s2->bodyHitDamage, s1->owner->clientId);
+		BitStream bitStream2;
+		bitStream2.Write((MessageID)ID_DAMAGE_DEALT);
+		dmg2.serialize(bitStream2, true);
 
-	BitStream bitStream2;
-	bitStream2.Write((MessageID)ID_DAMAGE_DEALT);
-	dmg2.serialize(bitStream2, true);
-
-	peer->Send(&bitStream2, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+		peer->Send(&bitStream2, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+	}
 }
 
 void Server::sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpawn, SystemAddress toAddress, bool broadcast) {

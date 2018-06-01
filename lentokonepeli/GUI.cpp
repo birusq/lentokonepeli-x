@@ -5,6 +5,8 @@
 #include "Game.h"
 #include "Client.h"
 #include "Globals.h"
+#include <sstream>
+#include <iomanip>
 
 void GUI::init(Master* master_) {
 	master = master_;
@@ -210,10 +212,18 @@ void GUI::initClient() {
 	auto quitToDesktop = createButton(escMenuPanel, "Quit to desktop", 20, sf::Color::White, true);
 	quitToDesktop->setPosition("&.width/2 - width/2", "60%");
 	quitToDesktop->connect("pressed", [&]() { master->quit(); });
+
+	spawnTimeLabel = tgui::Label::create("Press any key to spawn");
+	cPanel->add(spawnTimeLabel);
+	spawnTimeLabel->getRenderer()->setTextColor(tgui::Color::Red);
+	spawnTimeLabel->setTextSize(26);
+	spawnTimeLabel->setPosition("&.width/2 - width/2", "80%");
+	spawnTimeLabel->hide();
 }
 
 void GUI::teamJoinAccepted() {
 	chooseTeamPanel->hide();
+	updateSpawnTimeLabel(true, -1.0F);
 }
 
 void GUI::toggleEscMenu() {
@@ -231,6 +241,22 @@ void GUI::showEscMenu() {
 
 void GUI::hideEscMenu() {
 	escMenuPanel->hide();
+}
+
+void GUI::updateSpawnTimeLabel(bool setVisible, float timer) {
+	if (setVisible)
+		spawnTimeLabel->show();
+	else
+		spawnTimeLabel->hide();
+
+	if (timer < -0.5F)
+		spawnTimeLabel->setText("Press any key to spawn");
+	else {
+		std::stringstream ss;
+		ss << "Spawning in " << std::fixed << std::setprecision(2) << timer << " s";
+		spawnTimeLabel->setText(ss.str());
+	}
+
 }
 
 tgui::Button::Ptr GUI::createButton(tgui::Panel::Ptr parent, std::string text, unsigned int textSize, tgui::Color bgColor, bool userDarkText) {

@@ -48,9 +48,8 @@ private:
 	// Doesn't create new one, just makes current one come alive
 	void spawnShip(sf::Uint8 clientId) override;
 
-	sf::Clock inputDisabledTimer;
-	float inputDisabledDuration = 0.6F;
-
 	sf::Clock spawnRequestTimer = sf::Clock();
 	float spawnRequestBlockDuration = 1.0F;
+
+	void handleSpawnTimers(float dt) override;
 };

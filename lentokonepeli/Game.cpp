@@ -3,6 +3,7 @@
 #include <iostream>
 #include "PhysicsTransformable.h"
 #include "Console.h"
+#include "Master.h"
 
 void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	if (currPTrans.constantVelocity == false) {

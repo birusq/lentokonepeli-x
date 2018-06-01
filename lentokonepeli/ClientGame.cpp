@@ -52,7 +52,7 @@ void ClientGame::onTeamJoin(sf::Uint8 clientId, Team::Id newTeam) {
 
 void ClientGame::onDamage(DamageMessage& dmg) {
 	if (goManager.ships.count(dmg.dealerId) == 1 && goManager.ships.count(dmg.targetId) == 1) {
-		goManager.ships[dmg.targetId].takeDmg(dmg.damage);
+		goManager.ships[dmg.targetId].takeDmg(dmg.damage, dmg.damageType);
 	}
 }
 
@@ -70,6 +70,7 @@ void ClientGame::spawnShip(sf::Uint8 clientId) {
 	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
 	ppTrans.setPosition(level.spawnPoints[client.users.at(clientId).teamId]);
 	ppTrans.setRotation(0);
+	ppTrans.setToRest();
 	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
 }
 
@@ -234,19 +235,17 @@ void ClientGame::update(float frameTime, float alpha) {
 
 Input ClientGame::processInput() {
 	Input input;
-	if (inputDisabledTimer.getElapsedTime().asSeconds() > inputDisabledDuration) {
-		if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey)) {
-			input.moveForward = true;
-		}
-		if (sf::Keyboard::isKeyPressed(master->settings.turnLeftKey)) {
-			input.turnLeft = true;
-		}
-		if (sf::Keyboard::isKeyPressed(master->settings.turnRightKey)) {
-			input.turnRight = true;
-		}
-		if (sf::Keyboard::isKeyPressed(master->settings.shootKey)) {
-			input.shooting = true;
-		}
+	if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey)) {
+		input.moveForward = true;
+	}
+	if (sf::Keyboard::isKeyPressed(master->settings.turnLeftKey)) {
+		input.turnLeft = true;
+	}
+	if (sf::Keyboard::isKeyPressed(master->settings.turnRightKey)) {
+		input.turnRight = true;
+	}
+	if (sf::Keyboard::isKeyPressed(master->settings.shootKey)) {
+		input.shooting = true;
 	}
 	return input;
 }
@@ -308,5 +307,31 @@ int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 }
 
 // used for things the bullets and ships can't access themselves
-void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {}
-void ClientGame::onShipCollision(Ship& ship1, Ship& ship2) {}
+void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
+	if (targetShip.isDead() && targetShip.owner->clientId == client.myId) {
+		master->gui.updateSpawnTimeLabel(true, -1.0F);
+	}
+}
+void ClientGame::onShipCollision(Ship& ship1, Ship& ship2) {
+	if ((ship1.isDead() && ship1.owner->clientId == client.myId) || (ship2.isDead() && ship2.owner->clientId == client.myId)) {
+		master->gui.updateSpawnTimeLabel(true, -1.0F);
+	}
+}
+
+void ClientGame::handleSpawnTimers(float dt) {
+	for (auto it = spawnTimers.begin(); it != spawnTimers.end();) {
+		it->second -= dt;
+		if (it->first == client.myId)
+			master->gui.updateSpawnTimeLabel(true, it->second);
+
+		if (it->second <= 0.0F) {
+			spawnShip(it->first);
+			if (it->first == client.myId)
+				master->gui.updateSpawnTimeLabel(false, it->second);
+			it = spawnTimers.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+}
