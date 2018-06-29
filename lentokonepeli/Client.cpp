@@ -81,7 +81,7 @@ void Client::update() {
 		MessageID packetId = getPacketIdentifier(packet);
 
 		if (packetId == ID_CONNECTION_ATTEMPT_FAILED) {
-			console::log("Connection failed, possible causes:\nincorrect ip address,\nserver isn't running,\nserver hasn't opened port 65000");
+			console::log("Connection failed, possible causes:\nincorrect ip address,\nserver isn't running,\nserver hasn't opened ports 65000 - 65535");
 		}
 		else if (packetId == ID_CONNECTION_REQUEST_ACCEPTED) {
 			console::log("Connection accepted");
@@ -118,10 +118,16 @@ void Client::update() {
 			processDamage(packet);
 		}
 		else if (packetId == ID_SPAWN_NOT_ALLOWED) {
-			console::dlog("spawn isn't allowed now");
+			console::dlog("Spawn isn't allowed now");
 		}
 		else if (packetId == ID_SPAWN_AFTER_TIME) {
 			processSpawnAfterTime(packet);
+		}
+		else if (packetId == ID_SHIP_INIT) {
+			processShipInit(packet);
+		}
+		else if(packetId == ID_KILL_DETAILS) {
+			processKillDetails(packet);
 		}
 		else {
 			if (packetId <= 134)
@@ -243,6 +249,31 @@ void Client::processSpawnAfterTime(Packet* packet) {
 	console::stream << "Spawn response received, will spawn in " << timeUntilSpawn << " seconds";
 	console::dlogStream();
 	game->onSpawnScheduled(clientId, timeUntilSpawn);
+}
+
+void Client::processShipInit(Packet * packet) {
+	BitStream bitStream(packet->data, packet->length, false);
+	bitStream.IgnoreBytes(1);
+
+	ShipInitMessage shipInitMsg;
+	shipInitMsg.serialize(bitStream, false);
+
+	console::stream << "Ship initalized for client " << (int)shipInitMsg.clientId;
+	console::dlogStream();
+	game->onShipInit(shipInitMsg);
+}
+
+void Client::processKillDetails(Packet * packet) {
+	BitStream bitStream(packet->data, packet->length, false);
+	bitStream.IgnoreBytes(1);
+
+	KillDetails killDetails;
+	killDetails.serialize(bitStream, false);
+
+	console::stream << "Kill details received for client " << (int)killDetails.clientKilled;
+	console::dlogStream();
+
+	game->onReceiveKillDetails(killDetails);
 }
 
 void Client::sendShipUpdate(ShipState& shipState) {

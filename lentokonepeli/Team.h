@@ -3,6 +3,7 @@
 #include "Raknet\BitStream.h"
 #include <vector>
 #include <SFML/System.hpp>
+#include <SFML/Graphics.hpp>
 
 class Team {
 public:
@@ -21,6 +22,8 @@ public:
 	sf::Uint8 id;
 
 	std::vector<sf::Uint8> members;
+
+	sf::Color getColor();
 };
 
 struct TeamChange {

@@ -8,6 +8,7 @@
 void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	if (currPTrans.constantVelocity == false) {
 		sf::Vector2f force;
+
 		if (currPTrans.gravity)
 			force += gravity;
 
@@ -52,9 +53,16 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 	}
 
 	// Check collision (check all variations of teams)
+
+	
+
 	auto it1 = teams.begin();
 	auto it2 = std::next(it1, 1);
 	for (it1; it1 != teams.end(); it1++) {
+
+		//console::stream << "team " << (int)it1->first << ": members " << (int)it1->second.members.size();
+		//console::dlogStream();
+
 		for (it2; it2 != teams.end(); it2++) {
 
 			for (sf::Uint8& t1Client : it1->second.members) {
@@ -104,8 +112,7 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 
 void Game::handleSpawnTimers(float dt) {
 	for (auto it = spawnTimers.begin(); it != spawnTimers.end();) {
-		it->second -= dt;
-		if (it->second <= 0.0F) {
+		if (it->second.getTimeRemaining() <= 0.0F) {
 			spawnShip(it->first);
 			it = spawnTimers.erase(it);
 		}

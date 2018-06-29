@@ -5,17 +5,19 @@
 #include "Collider.h"
 #include "Team.h"
 #include "Weapon.h"
+#include "FlickerCountdownTimer.h"
+#include <map>
+#include "Scoreboard.h"
 
 struct User;
+class Game;
 
 class Ship : public PhysicsTransformable, public Collider<sf::RectangleShape>, public Damageable {
 public:
-
-
 	Ship() {}
-	Ship(GOManager* goManager_, sf::Uint32 pTransId_, User* user_, Team::Id teamId_ = Team::NO_TEAM);
+	Ship(Game* game_, sf::Uint32 pTransId_, User* user_, Team::Id teamId_ = Team::NO_TEAM);
 
-	GOManager* goManager;
+	Game* game = nullptr;
 
 	void assignTeam(Team::Id teamId_);
 
@@ -25,7 +27,7 @@ public:
 
 	Team::Id teamId;
 
-	void takeDmg(int dmg, DamageType dmgType = DMG_UNIDENTIFIED) override;
+	void takeDmg(int dmg, DamageType dmgType = DMG_UNIDENTIFIED, sf::Uint8 dmgDealer = 0) override;
 
 	void restoreHealth(int heal) override;
 
@@ -43,37 +45,50 @@ public:
 	std::unique_ptr<Weapon> weapon;
 
 	sf::Clock timeSinceDeath;
+	sf::Clock timeAlive;
+
+	bool throttle = false;
 
 	bool localPlayer = false;
 
-	bool throttle = false;
+	// This ship instance is running in a server (not in client machine)
+	bool inServer = false;
 
 	float turnSpeed = 180.0F;
 	float turnSmoothingFrames = 4.0F;
 
 	int bodyHitDamage = 40;
 
-	sf::Clock bodyHitImmunityTimer;
-	float bodyHitImmunityDuration = 0.4F;
+	FlickerCountdownTimer bodyHitImmunityTimer = FlickerCountdownTimer(0.4F, 0.1F);
+
+	float getFuel() { return fuel; }
+
+	// Who have dealt damage to this ship in the last x seconds
+	std::vector<DmgContributor> dmgContributors;
+	float assistTimeLimit = 6.0F;
+
+	void setBodyTexture(float rotation);
 
 private:
 
+	float fuel = 100.0F;
+
 	sf::Text usernameLabel;
 
-	sf::RectangleShape shipBody;
+	std::shared_ptr<sf::Texture> bodyTexture;
+	sf::Sprite body;
 
-	sf::RectangleShape exhaust;
+	std::shared_ptr<sf::Texture> exhaustFlameTexture;
+	sf::Sprite exhaustFlame;
+	sf::Clock flickerTimer;
+	float flickerInterval = 0.05F;
 
 	sf::RectangleShape healthBar;
 	sf::RectangleShape healthBarBG;
 	float hbMaxLength = 14.0F;
 	float hbBorderSize = 0.5F;
 
-	sf::Clock dmgTimer;
-	float dmgDuration = 0.04F;
+	CountdownTimer visualDmgTimer = CountdownTimer(0.04F);
 
-	int flickerIntervalMS = 100;
-
-	sf::Clock respawnAnimTimer;
-	float respawnAnimDuration = 0.6F;
+	FlickerCountdownTimer respawnAnimTimer = FlickerCountdownTimer(0.6F, 0.1F);
 };

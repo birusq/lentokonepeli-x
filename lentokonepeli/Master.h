@@ -3,14 +3,16 @@
 #include "RakNet/WindowsIncludes.h"
 #include "Raknet\RakPeerInterface.h"
 #include "Settings.h"
-#include "FpsCounter.h"
-#include "Closeable.h"
 #include "Game.h"
 #include "SFML\Graphics.hpp"
 #include "MainMenu.h"
 #include "GUI.h"
 #include "Console.h"
 #include "SoundPlayer.h"
+#include "FileLoader.h"
+
+class FpsCounter;
+class Closeable;
 
 enum class WindowState {
 	MainMenu,
@@ -20,7 +22,9 @@ enum class WindowState {
 
 class Master {
 public:
-	Master();
+	Master() {};
+
+	void init();
 
 	int loop();
 
@@ -30,6 +34,7 @@ public:
 
 	GUI gui;
 	SoundPlayer soundPlayer;
+	FileLoader fileLoader;
 
 	sf::RenderWindow window;
 

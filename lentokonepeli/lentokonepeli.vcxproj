@@ -140,14 +140,17 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientGame.cpp" />
+    <ClCompile Include="CountdownTimer.cpp" />
     <ClCompile Include="DefaultBullet.cpp" />
     <ClCompile Include="DefaultGun.cpp" />
+    <ClCompile Include="FileLoader.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="FpsCounter.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GOManager.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="GUIPanelList.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Master.cpp" />
@@ -262,6 +265,7 @@
     <ClCompile Include="Raknet\VitaIncludes.cpp" />
     <ClCompile Include="Raknet\WSAStartupSingleton.cpp" />
     <ClCompile Include="Raknet\_FindFirst.cpp" />
+    <ClCompile Include="Scoreboard.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerGame.cpp" />
     <ClCompile Include="Setting.cpp" />
@@ -281,6 +285,8 @@
     <ClInclude Include="Collider.h" />
     <ClInclude Include="DefaultBullet.h" />
     <ClInclude Include="DefaultGun.h" />
+    <ClInclude Include="FileLoader.h" />
+    <ClInclude Include="FlickerCountdownTimer.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="FpsCounter.h" />
@@ -289,6 +295,9 @@
     <ClInclude Include="GOManager.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Damageable.h" />
+    <ClInclude Include="GUIPanelList.h" />
+    <ClInclude Include="GUIScoreboard.h" />
+    <ClInclude Include="Scoreboard.h" />
     <ClInclude Include="SoundPlayer.h" />
     <ClInclude Include="Team.h" />
     <ClInclude Include="TestLevel.h" />
@@ -456,6 +465,7 @@
     <ClInclude Include="Ship.h" />
     <ClInclude Include="SimpleIni.h" />
     <ClInclude Include="PhysicsTransformable.h" />
+    <ClInclude Include="CountdownTimer.h" />
     <ClInclude Include="User.h" />
     <ClInclude Include="Weapon.h" />
   </ItemGroup>

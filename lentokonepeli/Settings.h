@@ -17,6 +17,8 @@ public:
 	IntSetting antialiasingLevel;
 	int style;
 
+	IntSetting guiScalePercent;
+
 	BoolSetting vsync;
 	BoolSetting showFps;
 	BoolSetting showPing;
@@ -27,11 +29,16 @@ public:
 	KeySetting turnLeftKey;
 	KeySetting turnRightKey;
 	KeySetting shootKey;
-	KeySetting inGameMenu;
+	KeySetting inGameMenuKey;
+	KeySetting abilityForwardKey;
+	KeySetting abilityLeftKey;
+	KeySetting abilityRightKey;
+	KeySetting abilityBackwardKey;
+	KeySetting scoreBoardKey;
 
 	StringSetting username;
 
-	IntSetting masterVolume;
+	IntSetting masterVolumePercent;
 
 	std::vector<std::string> animals{
 		"aardvark",

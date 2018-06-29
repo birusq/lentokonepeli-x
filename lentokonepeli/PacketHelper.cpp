@@ -96,3 +96,8 @@ void DamageMessage::serialize(BitStream & bitStream, bool write) {
 	bitStream.Serialize(write, damage);
 	bitStream.Serialize(write, damageType);
 }
+
+void ShipInitMessage::serialize(BitStream & bitStream, bool write) {
+	bitStream.Serialize(write, clientId);
+	bitStream.Serialize(write, health);
+}

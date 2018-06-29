@@ -30,6 +30,8 @@ namespace ph {
 		ID_SPAWN_AFTER_TIME,
 		ID_SPAWN_NOT_ALLOWED,
 		ID_DAMAGE_DEALT,
+		ID_SHIP_INIT,
+		ID_KILL_DETAILS
 	};
 
 	std::string msgIDToString(MessageIndetifier id);
@@ -56,6 +58,7 @@ struct ShipState {
 	bool throttle = false;
 	bool dead = true;
 	bool shoot = false;
+	bool moveAbility = false;
 	sf::Uint16 bulletId;
 };
 
@@ -75,5 +78,18 @@ struct DamageMessage {
 	sf::Uint8 targetId;
 	sf::Int16 damage;
 	Damageable::DamageType damageType;
+};
+
+/* 
+Sent to new player after they have connected
+Contains starting data of a single already connected ship
+*/
+struct ShipInitMessage {
+
+	void serialize(BitStream& bitStream, bool write);
+
+	sf::Uint8 clientId;
+	int health = 0;
+	// maybe more stuff later like fuel
 };
 

@@ -26,6 +26,13 @@ public:
 
 	void onSpawnScheduled(sf::Uint8 clientId, float timeLeft);
 
+	// Init ships for players that connected before you
+	void onShipInit(ShipInitMessage& shipInitMsg);
+
+	void onShipDeath(Ship* ship) override;
+
+	void onReceiveKillDetails(KillDetails& killDetails);
+
 protected:
 	void onBulletCollision(Bullet& bullet, Ship& targetShip) override;
 	void onShipCollision(Ship& s1, Ship& s2) override;
@@ -35,11 +42,11 @@ private:
 
 	std::string hostIp;
 
-	void render(sf::RenderWindow&, GOManager&);
+	void render(sf::RenderWindow& window, float dt);
 
 	Input processInput();
 
-	int applyInput(Input input, Ship& ship, float dt);
+	InputResponse applyInput(Input input, Ship& ship, float dt);
 
 	void fixedUpdate(float dt);
 

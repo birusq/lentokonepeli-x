@@ -5,7 +5,7 @@
 namespace console {
 	void log(std::string s) {
 		if (currentOut != nullptr && s != "")
-			(*currentOut)->addLine(s, tgui::Color(224, 202, 35));
+			(*currentOut)->addLine(s, tgui::Color::White);
 
 		std::fstream file;
 		file.open("log.txt", std::ios::app);

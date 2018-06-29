@@ -13,12 +13,28 @@ struct Input {
 	bool turnLeft = false;
 	bool turnRight = false;
 	bool shooting = false;
-	bool any() { return (moveForward || turnLeft || turnRight || shooting); }
+	bool abilityForward = false;
+	bool abilityLeft = false;
+	bool abilityBackward = false;
+	bool abilityRight = false;
+
+	bool any() { return (moveForward || turnLeft || turnRight || shooting || abilityForward || abilityLeft || abilityBackward || abilityRight); }
+};
+
+struct InputResponse {
+	int bulletId = -1;
+	bool isUsingAbility = false;
 };
 
 class Game : public FpsCounter, public Closeable {
 public:
+	Game() { goManager.init(this); }
+
 	virtual void loop() = 0;
+
+	virtual void onShipDeath(Ship* ship) = 0;
+
+	GOManager goManager;
 
 protected:
 	virtual void spawnShip(sf::Uint8 clientId) = 0;
@@ -36,13 +52,13 @@ protected:
 	virtual void onBulletCollision(Bullet& bullet, Ship& targetShip) = 0;
 	virtual void onShipCollision(Ship& s1, Ship& s2) = 0;
 
-	GOManager goManager;
-	
 	void quit();
 
 	TestLevel level;
 
-	std::unordered_map<sf::Uint8, float> spawnTimers;
+	std::unordered_map<sf::Uint8, CountdownTimer> spawnTimers;
+
+	Scoreboard scoreBoard;
 	
 	// checks timers and spawns ships if timer allows
 	virtual void handleSpawnTimers(float dt);

@@ -37,6 +37,8 @@ public:
 
 	void sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpawn, SystemAddress toAddress = UNASSIGNED_SYSTEM_ADDRESS, bool broadcast = true);
 
+	void broadcastKillDetails(KillDetails& killDetails);
+
 private:
 	ServerGame* game;
 
@@ -45,6 +47,8 @@ private:
 	void sendUserUpdate(User& user, SystemAddress toAddress, bool broadcast);
 
 	void broadcastUserDisconnect(User& user);
+
+	void sendShipInit(User& user, SystemAddress toAddress);
 
 	void handleUserUpdate(Packet* packet);
 	void handleUserDisconnect();

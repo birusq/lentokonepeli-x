@@ -19,7 +19,7 @@ public:
 
 	void draw(sf::RenderTarget& target);
 
-	float respawnTime = 4.0F;
+	float respawnTime = 2.0F;
 
 private:
 

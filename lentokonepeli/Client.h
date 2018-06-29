@@ -60,6 +60,8 @@ private:
 	void processShipUpdate(Packet* packet);
 	void processDamage(Packet* packet);
 	void processSpawnAfterTime(Packet* packet);
+	void processShipInit(Packet* packet);
+	void processKillDetails(Packet* packet);
 
 	RakNetGUID hostguid;
 };

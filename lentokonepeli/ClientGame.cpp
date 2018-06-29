@@ -16,6 +16,11 @@ ClientGame::ClientGame(std::string hostIp_) : hostIp{ hostIp_ } {
 	else {
 		client.start(hostIp_, master->settings.username.getValue().c_str());
 	}
+
+	
+	sf::View view = master->window.getView();
+	view.setCenter(level.center);
+	master->window.setView(view);
 }
 
 void ClientGame::onOtherUserConnect(User* const user) {
@@ -64,6 +69,7 @@ void ClientGame::onConnectionComplete() {
 void ClientGame::spawnShip(sf::Uint8 clientId) {
 	Ship& ship = goManager.ships.at(clientId);
 
+
 	ship.respawn();
 
 	// Reset all transforms
@@ -71,19 +77,38 @@ void ClientGame::spawnShip(sf::Uint8 clientId) {
 	ppTrans.setPosition(level.spawnPoints[client.users.at(clientId).teamId]);
 	ppTrans.setRotation(0);
 	ppTrans.setToRest();
+	
+	if(ship.owner->clientId == client.myId) {
+		ppTrans.gravity = false; // Prevents dropping after spawn before user has pressed gas
+		master->gui.updateSpawnTimeLabel(false, -1.0F);
+	}
+
 	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
 }
 
 void ClientGame::onSpawnScheduled(sf::Uint8 clientId, float timeLeft) {
 	if (timeLeft > 0.0F) {
-		spawnTimers[clientId] = timeLeft;
+		spawnTimers[clientId].start(timeLeft);
 	}
 	else {
 		spawnShip(clientId);
 	}
 }
 
-void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
+void ClientGame::onShipInit(ShipInitMessage& shipInitMsg) {
+	Ship& ship = goManager.ships.at(shipInitMsg.clientId);
+	ship.respawn();
+	ship.takeDmg(ship.health - shipInitMsg.health, Damageable::DMG_SNEAKY);
+}
+
+void ClientGame::onShipDeath(Ship * ship) {
+	if(ship->owner->clientId == client.myId) {
+		master->gui.updateSpawnTimeLabel(true, -1.0F);
+		goManager.currentPTransformsState[ship->pTransId].gravity = false;
+	}
+}
+
+void ClientGame::render(sf::RenderWindow& window, float dt) {
 	window.clear(sf::Color(50, 50, 50));
 
 	level.draw(window);
@@ -97,7 +122,7 @@ void ClientGame::render(sf::RenderWindow& window, GOManager& goManager) {
 	}
 
 	master->gui.lastPing = client.lastPing;
-	master->gui.draw();
+	master->gui.draw(dt);
 
 	window.display();
 }
@@ -117,7 +142,7 @@ void ClientGame::loop() {
 				master->quit();
 			}
 			else if (event.type == sf::Event::KeyPressed) {
-				if (event.key.code == master->settings.inGameMenu) {
+				if (event.key.code == master->settings.inGameMenuKey) {
 					master->gui.toggleEscMenu();
 				}
 			}
@@ -135,7 +160,6 @@ void ClientGame::loop() {
 		while (accumulator >= dt)
 		{
 			fixedUpdate(dt);
-
 			t += dt;
 			accumulator -= dt;
 		}
@@ -144,7 +168,7 @@ void ClientGame::loop() {
 
 		update(frameTime, alpha);
 
-		render(master->window, goManager);
+		render(master->window, frameTime);
 	}
 }
 
@@ -159,10 +183,10 @@ void ClientGame::fixedUpdate(float dt) {
 
 		// Input
 		Input input;
-		int bulletId = -1;
+		InputResponse inputRes;
 		if (master->window.hasFocus()) {
 			input = processInput();
-			bulletId = applyInput(input, goManager.ships.at(client.myId), dt);
+			inputRes = applyInput(input, goManager.ships.at(client.myId), dt);
 		}
 
 		// Update my game with server states
@@ -190,9 +214,9 @@ void ClientGame::fixedUpdate(float dt) {
 		//Send my state to server
 		ShipState ss = goManager.getShipState(client.myId);
 		ss.throttle = input.moveForward;
-		if (bulletId != -1) {
+		if (inputRes.bulletId != -1) {
 			ss.shoot = true;
-			ss.bulletId = sf::Uint16(bulletId);
+			ss.bulletId = sf::Uint16(inputRes.bulletId);
 		}
 		client.sendShipUpdate(ss);
 	}
@@ -235,39 +259,49 @@ void ClientGame::update(float frameTime, float alpha) {
 
 Input ClientGame::processInput() {
 	Input input;
-	if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey)) {
+	if (sf::Keyboard::isKeyPressed(master->settings.moveForwardKey))
 		input.moveForward = true;
-	}
-	if (sf::Keyboard::isKeyPressed(master->settings.turnLeftKey)) {
+	if (sf::Keyboard::isKeyPressed(master->settings.turnLeftKey))
 		input.turnLeft = true;
-	}
-	if (sf::Keyboard::isKeyPressed(master->settings.turnRightKey)) {
+	if (sf::Keyboard::isKeyPressed(master->settings.turnRightKey))
 		input.turnRight = true;
-	}
-	if (sf::Keyboard::isKeyPressed(master->settings.shootKey)) {
+	if (sf::Keyboard::isKeyPressed(master->settings.shootKey))
 		input.shooting = true;
-	}
+	if (sf::Keyboard::isKeyPressed(master->settings.abilityForwardKey))
+		input.abilityForward = true;
+	if (sf::Keyboard::isKeyPressed(master->settings.abilityLeftKey))
+		input.abilityLeft = true;
+	if (sf::Keyboard::isKeyPressed(master->settings.abilityBackwardKey))
+		input.abilityBackward = true;
+	if (sf::Keyboard::isKeyPressed(master->settings.abilityRightKey))
+		input.abilityRight = true;
 	return input;
 }
 
-int ClientGame::applyInput(Input input, Ship& ship, float dt) {
-	
+InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
+	InputResponse res; // bulletId automatically -1
+
 	if (ship.isDead() && input.any()) {
 		if (spawnRequestTimer.getElapsedTime().asSeconds() > spawnRequestBlockDuration) {
 			client.requestSpawn();
 			spawnRequestTimer.restart();
 		}
-		return -1;
+		return res;
 	}
 	
 	PhysicsTransformable& currTrans = goManager.currentPTransformsState[ship.pTransId];
+
+	sf::Vector2f tempForceOnSelf;
+
 	if (input.moveForward) {
-		currTrans.forceOnSelf = currTrans.getRotationVector() * 30.0F;
+		tempForceOnSelf += currTrans.getRotationVector() * 30.0F;
 		improveHandling(ship);
+#ifndef _DEBUG
+		currTrans.gravity = true; // User has most likely left spawn, can apply gravity
+#endif // !_DEBUG
 		ship.throttle = true;
 	}
 	else {
-		currTrans.forceOnSelf *= 0.0F;
 		ship.throttle = false;
 	}
 
@@ -300,34 +334,76 @@ int ClientGame::applyInput(Input input, Ship& ship, float dt) {
 		}
 	}
 
-	if (input.shooting) {
-		return ship.weapon->shoot(); // shoots only if firerate allows
+	if (input.abilityLeft) {
+		tempForceOnSelf += sf::Vector2f(-10, 0) * dt;
+		console::dlog("abilityLeft");
 	}
-	return -1;
+	if (input.abilityRight) {
+		tempForceOnSelf += sf::Vector2f(10, 0) * dt;
+		console::dlog("abilityRight");
+	}
+
+	if (input.shooting) {
+		res.bulletId =  ship.weapon->shoot(); // shoots only if firerate allows
+	}
+	currTrans.forceOnSelf = tempForceOnSelf;
+	return res;
+}
+
+void ClientGame::onReceiveKillDetails(KillDetails & killDetails) {
+	std::string killerString = "";
+	sf::Color killerColor = sf::Color::White;
+	for(std::size_t i = 0; i < killDetails.contributors.size(); i++) {
+		if(client.users.count(killDetails.contributors[i].clientId) == 1) {
+			if(i == 0) {
+				killerString += client.users[killDetails.contributors[i].clientId].username;
+				killerColor = client.teams[client.users[killDetails.contributors[i].clientId].teamId].getColor();
+				if(killDetails.contributors[i].clientId == client.myId) {
+					master->gui.showPointFeedMessage("Elimination +100");
+				}
+			}
+			else {
+				if(i == 1)
+					killerString += " + " + client.users[killDetails.contributors[i].clientId].username;
+				else if(i == 2) {
+					killerString += " + ...";
+					break;
+				}
+				if(killDetails.contributors[i].clientId == client.myId) {
+					master->gui.showPointFeedMessage("Assist +" + std::to_string(killDetails.contributors[i].dmg));
+				}
+			}
+		}
+	}
+	std::string killedString = "";
+	sf::Color killedColor = sf::Color::White;
+	if(client.users.count(killDetails.clientKilled) == 1) {
+		killedString = client.users[killDetails.clientKilled].username;
+		killedColor = client.teams[client.users[killDetails.clientKilled].teamId].getColor();
+	}
+	if(goManager.ships.count(killDetails.clientKilled) == 1) {
+		goManager.ships[killDetails.clientKilled].takeDmg(goManager.ships[killDetails.clientKilled].health, Damageable::DMG_SNEAKY);
+	}
+
+	master->gui.showKillFeedMessage(killerString, " killed ", killedString, killerColor, sf::Color::White, killedColor);
+	scoreBoard.addKillDetails(killDetails);
 }
 
 // used for things the bullets and ships can't access themselves
 void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
-	if (targetShip.isDead() && targetShip.owner->clientId == client.myId) {
-		master->gui.updateSpawnTimeLabel(true, -1.0F);
-	}
 }
 void ClientGame::onShipCollision(Ship& ship1, Ship& ship2) {
-	if ((ship1.isDead() && ship1.owner->clientId == client.myId) || (ship2.isDead() && ship2.owner->clientId == client.myId)) {
-		master->gui.updateSpawnTimeLabel(true, -1.0F);
-	}
 }
 
 void ClientGame::handleSpawnTimers(float dt) {
 	for (auto it = spawnTimers.begin(); it != spawnTimers.end();) {
-		it->second -= dt;
 		if (it->first == client.myId)
-			master->gui.updateSpawnTimeLabel(true, it->second);
+			master->gui.updateSpawnTimeLabel(true, it->second.getTimeRemaining());
 
-		if (it->second <= 0.0F) {
+		if (it->second.getTimeRemaining() <= 0.0F) {
 			spawnShip(it->first);
 			if (it->first == client.myId)
-				master->gui.updateSpawnTimeLabel(false, it->second);
+				master->gui.updateSpawnTimeLabel(false, it->second.getTimeRemaining());
 			it = spawnTimers.erase(it);
 		}
 		else {

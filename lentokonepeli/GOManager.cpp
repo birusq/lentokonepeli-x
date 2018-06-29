@@ -8,7 +8,7 @@
 #include "Bullet.h"
 
 void GOManager::createShip(User* user, Team::Id teamId) {
-	ships[user->clientId] = Ship(this, getUnusedPTransId(), user, teamId);
+	ships[user->clientId] = Ship(game, getUnusedPTransId(), user, teamId);
 	addToPhysics(&ships[user->clientId]);
 }
 

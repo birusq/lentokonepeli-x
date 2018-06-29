@@ -3,13 +3,11 @@
 #include <unordered_map>
 #include <deque>
 
-class Master;
-
 class SoundPlayer {
 public:
 	SoundPlayer() {}
 
-	void init(Master* master);
+	void init();
 
 	void playThrottle(const sf::Vector2f& position, int id);
 	void stopThrottle(int id);

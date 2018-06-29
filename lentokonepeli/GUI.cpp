@@ -7,11 +7,13 @@
 #include "Globals.h"
 #include <sstream>
 #include <iomanip>
+#include <memory>
+#include <algorithm>
 
-void GUI::init(Master* master_) {
-	master = master_;
+void GUI::init() {
 
 	gui.setFont(g::font);
+
 
 	if (master->settings.showFps) {
 		fpsLabel = tgui::Label::create();
@@ -29,13 +31,15 @@ void GUI::init(Master* master_) {
 	clock.restart();
 }
 
-void GUI::setTarget(sf::RenderTarget& target) {
-	gui.setTarget(target);
+void GUI::setTarget(sf::RenderTarget& window) {
+	gui.setTarget(window);
+	if(master->settings.guiScalePercent <= 0) {
+		initGUIScaleSetting(window);
+	}
 }
 
-void GUI::draw() {
-	float frameTime = clock.restart().asSeconds();
-	time += frameTime;
+void GUI::draw(float dt) {
+	time += dt;
 
 	if (time >= 0.5F) {
 		if (master->settings.showFps) {
@@ -47,6 +51,13 @@ void GUI::draw() {
 		time -= 0.5F;
 	}
 
+	if(killFeed != nullptr) {
+		killFeed->updateTimers(dt);
+	}
+	if(pointFeed != nullptr) {
+		pointFeed->updateTimers(dt);
+	}
+
 	gui.draw();
 }
 
@@ -54,19 +65,38 @@ void GUI::handleEvent(sf::Event event) {
 	gui.handleEvent(event);
 }
 
+void GUI::multiplySize(tgui::Container::Ptr container, float multiplier) {
+	std::vector<tgui::Widget::Ptr> widgets = mainMenuPanel->getWidgets();
+	for(tgui::Widget::Ptr widget : widgets) {
+		widget->setSize(widget->getSize() * multiplier);
+		console::dlog(widget->getWidgetType());
+		if(auto label = std::dynamic_pointer_cast<tgui::Label>(widget)) {
+			label->setTextSize((unsigned int)roundf(label->getTextSize() * multiplier));
+		}
+		else if(auto button = std::dynamic_pointer_cast<tgui::Button>(widget)) {
+			button->setTextSize((unsigned int)roundf(button->getTextSize() * multiplier));
+		}
+		else if(auto editBox = std::dynamic_pointer_cast<tgui::EditBox>(widget)) {
+			editBox->setTextSize((unsigned int)roundf(editBox->getTextSize() * multiplier));
+		}
+	}
+}
+
 void GUI::initMainMenu() {
+
 	mainMenuPanel = tgui::Panel::create({"100%", "100%"});
 	mainMenuPanel->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
 	gui.add(mainMenuPanel);
 	mainMenuPanel->hide();
 
-	auto logo = tgui::Label::create("Lentokonepeli X");
+	auto logo = tgui::Label::create("Lentokonepeli-X");
 	mainMenuPanel->add(logo);
 	logo->getRenderer()->setTextColor(tgui::Color::White);
 	logo->setTextSize(25);
-	logo->setPosition("(&.width - width)/2", "20%");
+	logo->setPosition("(&.width - width)/2", "16%");
 	
 	auto usernameLabel = tgui::Label::create("choose username");
+	usernameLabel->getRenderer()->setTextColor(tgui::Color::White);
 	mainMenuPanel->add(usernameLabel);
 	usernameLabel->setPosition("(&.width - width)/2", tgui::bindBottom(logo) + 40);
 
@@ -80,8 +110,9 @@ void GUI::initMainMenu() {
 		usernameEditBox->setText(master->settings.username.getValue());
 	}
 
-	auto joinIpLabel = tgui::Label::create("choose ip to join");
+	auto joinIpLabel = tgui::Label::copy(usernameLabel);
 	mainMenuPanel->add(joinIpLabel);
+	joinIpLabel->setText("choose ip to join");
 	joinIpLabel->setPosition("(&.width - width)/2", tgui::bindBottom(usernameEditBox) + 40);
 
 	joinIpEditBox = tgui::EditBox::copy(usernameEditBox);
@@ -102,6 +133,13 @@ void GUI::initMainMenu() {
 	auto guitButton = createButton(mainMenuPanel, "Quit", 18);
 	guitButton->setPosition("(&.width - width)/2", tgui::bindBottom(hostButton) + 40);
 	guitButton->connect("pressed", [&]() { master->quit(); });
+
+	auto versionLabel = tgui::Label::copy(usernameLabel); 
+	mainMenuPanel->add(versionLabel);
+	versionLabel->setText("v" + g::version);
+	versionLabel->setPosition("(&.width - width)/2", "(&.height - height) - 10");
+
+	multiplySize(mainMenuPanel, scale);
 }
 
 void GUI::showMainMenu() {
@@ -113,6 +151,16 @@ void GUI::showMainMenu() {
 	}
 	initMainMenu();
 	mainMenuPanel->show();
+}
+
+void GUI::initGUIScaleSetting(sf::RenderTarget& window) {
+	if(window.getSize().x < 720) {
+		master->settings.guiScalePercent.setValue(100);
+	}
+	else {
+		master->settings.guiScalePercent.setValue((int)(std::min(window.getSize().x / 1280.0F, window.getSize().y / 720.0F) * 100));
+		scale = (float)master->settings.guiScalePercent / 100.0F;
+	}
 }
 
 void GUI::initServer() {
@@ -174,6 +222,20 @@ void GUI::initClient() {
 	chatBox->setLineLimit(100);
 
 	console::currentOut = &chatBox;
+
+	killFeedPanel = tgui::Panel::create({ 600, 200 });
+	cPanel->add(killFeedPanel);
+	killFeedPanel->setPosition("&.width - width - 10", 10);
+	killFeedPanel->getRenderer()->setBackgroundColor(sf::Color::Transparent);
+
+	killFeed = std::make_unique<GUIPanelList>(killFeedPanel, 5, 3, std::numeric_limits<float>::infinity(), Align::RIGHT);
+
+	pointFeedPanel = tgui::Panel::create({ "100%", 100 });
+	cPanel->add(pointFeedPanel);
+	pointFeedPanel->setPosition("&.width/2 - width/2", "&.height - 150");
+	pointFeedPanel->getRenderer()->setBackgroundColor(sf::Color::Transparent);
+
+	pointFeed = std::make_unique<GUIPanelList>(pointFeedPanel, 5, 3, 3.0F, Align::CENTER);
 
 	chooseTeamPanel = tgui::Panel::create({ "60%", "40%" });
 	chooseTeamPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
@@ -241,6 +303,18 @@ void GUI::showEscMenu() {
 
 void GUI::hideEscMenu() {
 	escMenuPanel->hide();
+}
+
+void GUI::showKillFeedMessage(std::string s1, std::string s2, std::string s3, sf::Color s1color, sf::Color s2color, sf::Color s3color) {
+	int index = killFeed->addItem();
+	killFeed->editSubLabel(index, 0, s1, s1color);
+	killFeed->editSubLabel(index, 1, s2, s2color);
+	killFeed->editSubLabel(index, 2, s3, s3color);
+}
+
+void GUI::showPointFeedMessage(std::string msg) {
+	int index = pointFeed->addItem();
+	pointFeed->editSubLabel(index, 0, msg);
 }
 
 void GUI::updateSpawnTimeLabel(bool setVisible, float timer) {
@@ -323,8 +397,8 @@ void GUI::showClient() {
 }
 
 void GUI::hostButtonPressed() {
-	master->launchHost();
 	showServer();
+	master->launchHost();
 	host = true;
 }
 
@@ -342,8 +416,8 @@ void GUI::clientButtonPressed() {
 		master->settings.username.setValue("*");
 	}
 
-	master->launchClient(joinIp);
 	showClient();
+	master->launchClient(joinIp);
 	host = false;
 }
 

@@ -3,8 +3,8 @@
 #include "Console.h"
 #include <Thor/Vectors.hpp>
 
-void SoundPlayer::init(Master* master) {
-	sf::Listener::setGlobalVolume((float)master->settings.masterVolume);
+void SoundPlayer::init() {
+	sf::Listener::setGlobalVolume((float)master->settings.masterVolumePercent);
 	buffers["throttle"].loadFromFile(path + "throttle.wav");
 	buffers["shoot"].loadFromFile(path + "shoot.wav");
 	buffers["hurt"].loadFromFile(path + "hurt.wav");

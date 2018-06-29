@@ -1,4 +1,4 @@
-#include "ServerGame.h"
+﻿#include "ServerGame.h"
 #include "Master.h"
 #include <iostream>
 #include "Server.h"
@@ -8,7 +8,7 @@
 
 ServerGame::ServerGame() {
 	server.init(this);
-	server.start(10);
+	server.start(30);
 }
 
 void ServerGame::loop() {
@@ -35,7 +35,7 @@ void ServerGame::loop() {
 
 		renderCounter++;
 		if (renderCounter == 2) {
-			render(master->window);
+			render(master->window, dt * 2.0F);
 			renderCounter = 0;
 		}
 
@@ -44,7 +44,7 @@ void ServerGame::loop() {
 }
 
 void ServerGame::onUserConnect(User* const user) {
-	goManager.createShip(user);
+	goManager.createShip(user, user->teamId);
 }
 
 void ServerGame::onUserDisconnect(sf::Uint8 clientId) {
@@ -61,10 +61,28 @@ void ServerGame::onSpawnRequest(sf::Uint8 clientId) {
 			float spawnTime = level.respawnTime - goManager.ships[clientId].timeSinceDeath.getElapsedTime().asSeconds();
 			server.sendShipSpawn(clientId, true, spawnTime);
 			if (spawnTime > 0.0F) {
-				spawnTimers[clientId] = spawnTime;
+				spawnTimers[clientId].start(spawnTime);
+			}
+			else {
+				spawnShip(clientId);
 			}
 		}
 	}
+}
+
+void ServerGame::fillShipInit(User& user, ShipInitMessage& shipInitMsg) {
+	Ship& ship = goManager.ships.at(user.clientId);
+	shipInitMsg.clientId = user.clientId;
+	shipInitMsg.health = ship.health;
+}
+
+void ServerGame::onShipDeath(Ship* ship) {
+	KillDetails killDetails;
+	killDetails.clientKilled = ship->owner->clientId;
+	killDetails.contributors = ship->dmgContributors;
+	scoreBoard.addKillDetails(killDetails);
+
+	server.broadcastKillDetails(killDetails);
 }
 
 void ServerGame::spawnShip(sf::Uint8 clientId) {
@@ -79,10 +97,10 @@ void ServerGame::spawnShip(sf::Uint8 clientId) {
 	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
 }
 
-void ServerGame::render(sf::RenderWindow& window) {
+void ServerGame::render(sf::RenderWindow& window, float dt) {
 	window.clear(sf::Color(62, 65, 71));
 
-	master->gui.draw();
+	master->gui.draw(dt);
 
 	window.display();
 }
@@ -119,8 +137,6 @@ void ServerGame::fixedUpdate(float dt) {
 
 	updateServerStates(serverStates);
 
-	// TODO: and if dead then send time until respawn to client
-
 	server.broadcastShipStates(serverStates);
 }
 
@@ -156,19 +172,19 @@ void ServerGame::updateServerStates(ServerShipStates& sss) {
 void ServerGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
 	console::stream << server.users.at(bullet.clientId).username.C_String() << " hit " << targetShip.owner->username.C_String() << " with a bullet";
 	console::dlogStream();
-	targetShip.takeDmg(bullet.damage, Damageable::DMG_BULLET);
+	targetShip.takeDmg(bullet.damage, Damageable::DMG_BULLET, bullet.clientId);
 	server.sendBulletHitShip(&bullet, &targetShip);
 }
 
 void ServerGame::onShipCollision(Ship& ship1, Ship& ship2) {
 	console::dlog(std::string(ship1.owner->username.C_String()) + " collided with " + std::string(ship2.owner->username.C_String()));
-	bool s1Immune = ship1.bodyHitImmunityTimer.getElapsedTime().asSeconds() < ship1.bodyHitImmunityDuration;
-	bool s2Immune = ship2.bodyHitImmunityTimer.getElapsedTime().asSeconds() < ship2.bodyHitImmunityDuration;
+	bool s1Immune = ship1.bodyHitImmunityTimer.isDone() == false;
+	bool s2Immune = ship2.bodyHitImmunityTimer.isDone() == false;
 	if (s1Immune == false) {
-		ship1.takeDmg(ship2.bodyHitDamage, Damageable::DMG_SHIP_COLLISION);
+		ship1.takeDmg(ship2.bodyHitDamage, Damageable::DMG_SHIP_COLLISION, ship2.owner->clientId);
 	}
 	if (s2Immune == false) {
-		ship2.takeDmg(ship1.bodyHitDamage, Damageable::DMG_SHIP_COLLISION);
+		ship2.takeDmg(ship1.bodyHitDamage, Damageable::DMG_SHIP_COLLISION, ship1.owner->clientId);
 	}
 	server.sendShipsCollided(&ship1, s1Immune, &ship2, s2Immune);
 }

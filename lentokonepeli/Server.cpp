@@ -119,7 +119,7 @@ void Server::handleUserUpdate(Packet* packet) {
 		for (auto& pair : users) {
 			if (pair.second.clientId != user.clientId) {
 				sendUserUpdate(pair.second, packet->systemAddress, false);
-				sendShipSpawn(pair.second.clientId, true, -1.0F, packet->systemAddress, false);
+				sendShipInit(pair.second, packet->systemAddress);
 			}
 		}
 	}
@@ -158,6 +158,17 @@ void Server::broadcastUserDisconnect(User& user) {
 	bitStream.Write((MessageID)ID_USER_DISCONNECT);
 	User::serialize(bitStream, user, true);
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 1, UNASSIGNED_SYSTEM_ADDRESS, true);
+}
+
+void Server::sendShipInit(User& user, SystemAddress toAddress) {
+	BitStream bitStream;
+	bitStream.Write((MessageID)ID_SHIP_INIT);
+	
+	ShipInitMessage shipInitMsg;
+	game->fillShipInit(user, shipInitMsg);
+
+	shipInitMsg.serialize(bitStream, true);
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 1, toAddress, false);
 }
 
 void Server::handleJoinTeamReq(Packet* packet) {
@@ -281,4 +292,12 @@ void Server::sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpa
 		console::stream << "Broadcasting spawn " << users[clientId].username.C_String() << " in " << timeUntilSpawn << " seconds";
 		console::dlogStream();
 	}
+}
+
+void Server::broadcastKillDetails(KillDetails& killDetails) {
+	BitStream bitStream;
+	bitStream.Write((MessageID)ID_KILL_DETAILS);
+	killDetails.serialize(bitStream, true);
+
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 }

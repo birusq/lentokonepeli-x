@@ -30,14 +30,14 @@ void MainMenu::loop() {
 		float frameTime = clock.restart().asSeconds();
 		updateFrameTimes(frameTime);
 
-		render(window);
+		render(window, frameTime);
 	}
 }
 
-void MainMenu::render(sf::RenderWindow& w) {
+void MainMenu::render(sf::RenderWindow& w, float dt) {
 	w.clear(sf::Color(palette::strongGrey));
 
-	gui->draw();
+	gui->draw(dt);
 
 	w.display();
 }

@@ -10,7 +10,7 @@ class MainMenu : public FpsCounter, public Closeable {
 public:
 	MainMenu();
 	void loop();
-	void render(sf::RenderWindow& w);
+	void render(sf::RenderWindow& w, float dt);
 private:
 	GUI* gui;
 	void quit();

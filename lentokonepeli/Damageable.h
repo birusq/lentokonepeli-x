@@ -5,7 +5,8 @@ public:
 	enum DamageType : sf::Uint8 {
 		DMG_UNIDENTIFIED,
 		DMG_BULLET,
-		DMG_SHIP_COLLISION
+		DMG_SHIP_COLLISION,
+		DMG_SNEAKY //show no visuals and play no audio
 	};
 
 	Damageable(int startingHealth) : maxHealth{ startingHealth }, health{ startingHealth } {}
@@ -18,7 +19,7 @@ public:
 
 	const bool isDead() const { return (health <= 0); }
 
-	virtual void takeDmg(int dmg, DamageType dmgType = DMG_UNIDENTIFIED) = 0;
+	virtual void takeDmg(int dmg, DamageType dmgType = DMG_UNIDENTIFIED, sf::Uint8 damageDealer = 0) = 0;
 
 	virtual void restoreHealth(int heal) = 0;
 

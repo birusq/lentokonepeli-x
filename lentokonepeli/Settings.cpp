@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <Thor\Input.hpp>
+#include "Console.h"
 
 //Init
 Settings::Settings() {
@@ -15,33 +16,37 @@ Settings::Settings() {
 		ini.LoadFile("config.ini");
 	}
 
-	width = IntSetting(&ini, "settings", "width", 800);
+	width = IntSetting(&ini, "graphics", "width", 800);
 
 	style = sf::Style::Titlebar | sf::Style::Close;
-	height = IntSetting(&ini, "settings", "height", 600);
-	fsWidth = IntSetting(&ini, "settings", "fsWidth", 1920);
-	fsHeight = IntSetting(&ini, "settings", "fsHeight", 1080);
+	height = IntSetting(&ini, "graphics", "height", 600);
+	fsWidth = IntSetting(&ini, "graphics", "fsWidth", -1);
+	fsHeight = IntSetting(&ini, "graphics", "fsHeight", -1);
+	if(fsWidth == -1 || fsHeight == -1) {
+		fsWidth.setValue(sf::VideoMode::getDesktopMode().width);
+		fsHeight.setValue(sf::VideoMode::getDesktopMode().height);
+	}
 
-	fullscreen = BoolSetting(&ini, "settings", "fullscreen", false);
+	fullscreen = BoolSetting(&ini, "graphics", "fullscreen", false);
 	if (fullscreen.getValue()) {
 		style = sf::Style::Fullscreen;
 	}
 
-	borderless = BoolSetting(&ini, "settings", "borderless", false);
+	borderless = BoolSetting(&ini, "graphics", "borderless", true);
 	
 	if (fullscreen.getValue() && borderless.getValue()) {
 		style = sf::Style::None;
 	}
 
-	framerateLimit = IntSetting(&ini, "settings", "framerateLimit", 300);
-	vsync = BoolSetting(&ini, "settings", "vsync", false);
-
-	showFps = BoolSetting(&ini, "settings", "showFps", true);
-	showPing = BoolSetting(&ini, "settings", "showPing", true);
-
-	masterVolume = IntSetting(&ini, "settings", "masterVolume", 20);
-
+	framerateLimit = IntSetting(&ini, "graphics", "framerateLimit", 300);
+	vsync = BoolSetting(&ini, "graphics", "vsync", false);
 	antialiasingLevel = IntSetting(&ini, "graphics", "antialiasingLevel", 4);
+
+	guiScalePercent = IntSetting(&ini, "gui", "guiScalePercent", -1);
+	showFps = BoolSetting(&ini, "gui", "showFps", true);
+	showPing = BoolSetting(&ini, "gui", "showPing", true);
+
+	masterVolumePercent = IntSetting(&ini, "audio", "masterVolumePercent", 20);
 
 	username = StringSetting(&ini, "user", "username", "*", 20);
 
@@ -49,5 +54,14 @@ Settings::Settings() {
 	turnLeftKey = KeySetting(&ini, "keybinds", "turnLeft", sf::Keyboard::Left);
 	turnRightKey = KeySetting(&ini, "keybinds", "turnRight", sf::Keyboard::Right);
 	shootKey = KeySetting(&ini, "keybinds", "shoot", sf::Keyboard::Space);
-	inGameMenu = KeySetting(&ini, "keybinds", "inGameMenu", sf::Keyboard::Escape);
+
+	abilityForwardKey = KeySetting(&ini, "keybinds", "abilityForward", sf::Keyboard::W);
+	abilityLeftKey = KeySetting(&ini, "keybinds", "abilityLeft", sf::Keyboard::A);
+	abilityBackwardKey = KeySetting(&ini, "keybinds", "abilityBackward", sf::Keyboard::S);
+	abilityRightKey = KeySetting(&ini, "keybinds", "abilityRight", sf::Keyboard::D);
+
+	inGameMenuKey = KeySetting(&ini, "keybinds", "inGameMenu", sf::Keyboard::Escape);
+	scoreBoardKey = KeySetting(&ini, "keybinds", "scoreBoard", sf::Keyboard::Tab);
+
+	console::dlog("asdfasdfjaslkdjlaösdfökladshfjk");
 }

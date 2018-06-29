@@ -4,18 +4,13 @@
 #include "ServerGame.h"
 #include "Globals.h"
 
-#define VERSION_NUMBER 1;
-
-Master::Master() {
-
+void Master::init() {
 	console::clearLogFile();
 	g::init();
 
-	gui.init(this);
+	gui.init();
 
-	soundPlayer.init(this);
-
-	launchMainMenu();
+	soundPlayer.init();
 }
 
 void Master::createWindow(WindowState state) {
@@ -35,11 +30,11 @@ void Master::createWindow(WindowState state) {
 	sf::Vector2i oldPos = window.getPosition();
 
 	if (state == WindowState::GameClient)
-		window.create(sf::VideoMode(width, height), "lentsikat - Client", settings.style, cs);
+		window.create(sf::VideoMode(width, height), "Lentokonepeli-X - Client", settings.style, cs);
 	else if (state == WindowState::GameServer)
-		window.create(sf::VideoMode(width, height), "lentsikat - Server", sf::Style::Titlebar | sf::Style::Close, cs);
+		window.create(sf::VideoMode(width, height), "Lentokonepeli-X - Server", sf::Style::Titlebar | sf::Style::Close, cs);
 	else if (state == WindowState::MainMenu)
-		window.create(sf::VideoMode(width, height), "lentsikat", settings.style, cs);
+		window.create(sf::VideoMode(width, height), "Lentokonepeli-X", settings.style, cs);
 
 	if (windowWasOpen == true && settings.fullscreen != true)
 		window.setPosition(oldPos);
@@ -96,8 +91,6 @@ void Master::launchMainMenu() {
 }
 
 void Master::launchClient(std::string hostIp_) {
-	console::dlog("client");
-
 	if (currentCloseable)
 		currentCloseable->quit();
 	hostIp = hostIp_;

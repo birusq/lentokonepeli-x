@@ -13,6 +13,8 @@ public:
 
 	sf::Transform localTransform;
 
+	bool shipFullyAlive = false;
+
 	virtual void draw(sf::RenderTarget& target) = 0;
 	//Used when you own this weapon (returns bulletId, -1 if could't shoot)
 	virtual int shoot() = 0;

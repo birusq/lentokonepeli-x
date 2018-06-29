@@ -5,7 +5,7 @@ class DefaultBullet : public Bullet {
 public:
 	DefaultBullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_, sf::Uint16 bulletId_);
 
-	float radius = 1.0F;
+	float radius = 0.8F;
 	sf::CircleShape model;
 
 	void updateHitbox() override;

@@ -13,6 +13,8 @@ class Bullet;
 
 class GOManager {
 public:
+	void init(Game* game_) { game = game_; }
+
 	std::unordered_map<sf::Uint32, PhysicsTransformable> previousPTransformsState;
 	std::unordered_map<sf::Uint32, PhysicsTransformable> currentPTransformsState;
 	std::unordered_map<sf::Uint32, PhysicsTransformable*> pTransPointers;
@@ -40,6 +42,7 @@ public:
 	// Delete unused objects here to not invalidate iterators
 	void deleteGarbage();
 private:
+	Game* game;
 	std::vector<std::pair<sf::Uint8, sf::Uint16>> bulletGarbage;
 	std::vector<sf::Uint8> shipGarbage;
 	

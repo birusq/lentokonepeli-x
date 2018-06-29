@@ -13,6 +13,8 @@ namespace palette {
 namespace g {
 
 	extern sf::Font font;
+	extern const std::string version;
+
 	void init();
 
 	enum ObjectType : sf::Uint8 {
