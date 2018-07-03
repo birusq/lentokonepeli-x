@@ -5,6 +5,7 @@
 #include "User.h"
 #include "Weapon.h"
 #include "Master.h"
+#include "Game.h"
 
 ClientGame::ClientGame(std::string hostIp_) : hostIp{ hostIp_ } {
 
@@ -17,23 +18,25 @@ ClientGame::ClientGame(std::string hostIp_) : hostIp{ hostIp_ } {
 		client.start(hostIp_, master->settings.username.getValue().c_str());
 	}
 
-	
 	sf::View view = master->window.getView();
 	view.setCenter(level.center);
 	master->window.setView(view);
+
+	scores.init(&client);
 }
 
-void ClientGame::onOtherUserConnect(User* const user) {
-	goManager.createShip(user, user->teamId);
+void ClientGame::onOtherUserConnect(User& user) {
+	goManager.createShip(user, user.teamId);
 }
 
-void ClientGame::onOtherUserDisconnect(sf::Uint8 clientId) {
-	goManager.removeShip(clientId);
+void ClientGame::beforeOtherUserDisconnect(User& user) {
+	scores.deleteUser(user);
+	goManager.removeShip(user.clientId);
 }
 
 void ClientGame::onTeamJoin(sf::Uint8 clientId, Team::Id newTeam) {
 	std::string message;
-	if (clientId == client.myId) {
+	if (clientId == client.getMyId()) {
 		message += "You have";
 		master->gui.teamJoinAccepted();
 	}
@@ -53,6 +56,8 @@ void ClientGame::onTeamJoin(sf::Uint8 clientId, Team::Id newTeam) {
 		console::log(message);
 
 	goManager.ships.at(clientId).assignTeam(newTeam);
+
+	scores.addUser(client.users.at(clientId));
 }
 
 void ClientGame::onDamage(DamageMessage& dmg) {
@@ -62,13 +67,12 @@ void ClientGame::onDamage(DamageMessage& dmg) {
 }
 
 void ClientGame::onConnectionComplete() {
-	goManager.createShip(client.myUser());
-	goManager.ships.at(client.myId).localPlayer = true;
+	goManager.createShip(*client.getMyUser());
+	goManager.ships.at(client.getMyId()).localPlayer = true;
 }
 
 void ClientGame::spawnShip(sf::Uint8 clientId) {
 	Ship& ship = goManager.ships.at(clientId);
-
 
 	ship.respawn();
 
@@ -78,7 +82,7 @@ void ClientGame::spawnShip(sf::Uint8 clientId) {
 	ppTrans.setRotation(0);
 	ppTrans.setToRest();
 	
-	if(ship.owner->clientId == client.myId) {
+	if(ship.owner->clientId == client.getMyId()) {
 		ppTrans.gravity = false; // Prevents dropping after spawn before user has pressed gas
 		master->gui.updateSpawnTimeLabel(false, -1.0F);
 	}
@@ -102,7 +106,7 @@ void ClientGame::onShipInit(ShipInitMessage& shipInitMsg) {
 }
 
 void ClientGame::onShipDeath(Ship * ship) {
-	if(ship->owner->clientId == client.myId) {
+	if(client.isMyId(ship->owner->clientId)) {
 		master->gui.updateSpawnTimeLabel(true, -1.0F);
 		goManager.currentPTransformsState[ship->pTransId].gravity = false;
 	}
@@ -114,12 +118,6 @@ void ClientGame::render(sf::RenderWindow& window, float dt) {
 	level.draw(window);
 
 	goManager.drawAll(window);
-
-	if (client.connectionDone && goManager.ships.count(client.myId) == 1) {
-		sf::View view = window.getView();
-		view.setCenter(goManager.ships[client.myId].getPosition());
-		window.setView(view);
-	}
 
 	master->gui.lastPing = client.lastPing;
 	master->gui.draw(dt);
@@ -141,10 +139,8 @@ void ClientGame::loop() {
 			if (event.type == sf::Event::Closed) {
 				master->quit();
 			}
-			else if (event.type == sf::Event::KeyPressed) {
-				if (event.key.code == master->settings.inGameMenuKey) {
-					master->gui.toggleEscMenu();
-				}
+			else if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased) {
+				handleKeyEvents(event);
 			}
 			master->gui.handleEvent(event);
 		}
@@ -186,7 +182,7 @@ void ClientGame::fixedUpdate(float dt) {
 		InputResponse inputRes;
 		if (master->window.hasFocus()) {
 			input = processInput();
-			inputRes = applyInput(input, goManager.ships.at(client.myId), dt);
+			inputRes = applyInput(input, goManager.ships.at(client.getMyId()), dt);
 		}
 
 		// Update my game with server states
@@ -212,7 +208,7 @@ void ClientGame::fixedUpdate(float dt) {
 		goManager.deleteGarbage();
 
 		//Send my state to server
-		ShipState ss = goManager.getShipState(client.myId);
+		ShipState ss = goManager.getShipState(client.getMyId());
 		ss.throttle = input.moveForward;
 		if (inputRes.bulletId != -1) {
 			ss.shoot = true;
@@ -232,7 +228,7 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 
 			Ship& ship = goManager.ships.at(clientId);
 
-			if (clientId != client.myId && ship.isDead() == false) {
+			if (clientId != client.getMyId() && ship.isDead() == false) {
 				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
 
 				if (shipState.shoot) {
@@ -255,6 +251,26 @@ void ClientGame::update(float frameTime, float alpha) {
 	}
 
 	goManager.applyTransforms(state);
+
+	// Camera control
+	if(client.connectionDone && goManager.ships.count(client.getMyId()) == 1) {
+		sf::View view = master->window.getView();
+		
+		// Set target to ahead of plane nose to improve visibility
+		sf::Vector2f target = goManager.ships[client.getMyId()].getPosition() + goManager.ships[client.getMyId()].getRotationVector() * 20.0F;
+		
+		// Clamp to level borders
+		target = sf::Vector2f(
+			std::clamp(target.x, view.getSize().x / 2.0F, level.width - view.getSize().x / 2.0F),
+			std::clamp(target.y, view.getSize().y / 2.0F, level.height - view.getSize().y / 2.0F));
+
+		sf::Vector2f pos = view.getCenter() * (1.0F - frameTime * 2.5F) + target * frameTime * 2.5F;
+		
+		view.setCenter(pos);
+		master->window.setView(view);
+	}
+
+
 }
 
 Input ClientGame::processInput() {
@@ -358,7 +374,7 @@ void ClientGame::onReceiveKillDetails(KillDetails & killDetails) {
 			if(i == 0) {
 				killerString += client.users[killDetails.contributors[i].clientId].username;
 				killerColor = client.teams[client.users[killDetails.contributors[i].clientId].teamId].getColor();
-				if(killDetails.contributors[i].clientId == client.myId) {
+				if(killDetails.contributors[i].clientId == client.getMyId()) {
 					master->gui.showPointFeedMessage("Elimination +100");
 				}
 			}
@@ -369,7 +385,7 @@ void ClientGame::onReceiveKillDetails(KillDetails & killDetails) {
 					killerString += " + ...";
 					break;
 				}
-				if(killDetails.contributors[i].clientId == client.myId) {
+				if(killDetails.contributors[i].clientId == client.getMyId()) {
 					master->gui.showPointFeedMessage("Assist +" + std::to_string(killDetails.contributors[i].dmg));
 				}
 			}
@@ -377,7 +393,7 @@ void ClientGame::onReceiveKillDetails(KillDetails & killDetails) {
 	}
 	std::string killedString = "";
 	sf::Color killedColor = sf::Color::White;
-	if(client.users.count(killDetails.clientKilled) == 1) {
+	if(client.isConnected(killDetails.clientKilled)) {
 		killedString = client.users[killDetails.clientKilled].username;
 		killedColor = client.teams[client.users[killDetails.clientKilled].teamId].getColor();
 	}
@@ -386,7 +402,7 @@ void ClientGame::onReceiveKillDetails(KillDetails & killDetails) {
 	}
 
 	master->gui.showKillFeedMessage(killerString, " killed ", killedString, killerColor, sf::Color::White, killedColor);
-	scoreBoard.addKillDetails(killDetails);
+	scores.addKillDetails(killDetails);
 }
 
 // used for things the bullets and ships can't access themselves
@@ -395,19 +411,51 @@ void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
 void ClientGame::onShipCollision(Ship& ship1, Ship& ship2) {
 }
 
+void ClientGame::onQuit() {
+}
+
 void ClientGame::handleSpawnTimers(float dt) {
 	for (auto it = spawnTimers.begin(); it != spawnTimers.end();) {
-		if (it->first == client.myId)
+		if (it->first == client.getMyId())
 			master->gui.updateSpawnTimeLabel(true, it->second.getTimeRemaining());
 
 		if (it->second.getTimeRemaining() <= 0.0F) {
 			spawnShip(it->first);
-			if (it->first == client.myId)
+			if (it->first == client.getMyId())
 				master->gui.updateSpawnTimeLabel(false, it->second.getTimeRemaining());
 			it = spawnTimers.erase(it);
 		}
 		else {
 			it++;
+		}
+	}
+}
+
+void ClientGame::handleKeyEvents(sf::Event& event) {
+	if(event.type == sf::Event::KeyPressed) {
+		if(event.key.code == master->settings.inGameMenuKey) {
+			master->gui.toggleEscMenu();
+		}
+		if(event.key.code == master->settings.scoreBoardKey) {
+			master->gui.showScoreboard();
+		}
+		if(event.key.code == master->settings.toggleGUIKey) {
+			master->gui.hidden = !master->gui.hidden;
+		}
+#ifdef _DEBUG
+		if(event.key.code == sf::Keyboard::O) {
+			master->settings.guiScalePercent.setValue(master->settings.guiScalePercent - 10);
+			master->gui.updateScale();
+		}
+		if(event.key.code == sf::Keyboard::P) {
+			master->settings.guiScalePercent.setValue(master->settings.guiScalePercent + 10);
+			master->gui.updateScale();
+		}
+#endif
+	}
+	if(event.type == sf::Event::KeyReleased) {
+		if(event.key.code == master->settings.scoreBoardKey) {
+			master->gui.hideScoreboard();
 		}
 	}
 }

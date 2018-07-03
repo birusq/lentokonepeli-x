@@ -6,10 +6,12 @@
 #include "Ship.h"
 #include "User.h"
 #include "Bullet.h"
+#include "Game.h"
 
-void GOManager::createShip(User* user, Team::Id teamId) {
-	ships[user->clientId] = Ship(game, getUnusedPTransId(), user, teamId);
-	addToPhysics(&ships[user->clientId]);
+void GOManager::createShip(User& user, Team::Id teamId) {
+	ships[user.clientId] = Ship(game, getUnusedPTransId(), &user, teamId);
+	ships[user.clientId].setPosition(game->level.center);
+	addToPhysics(&ships[user.clientId]);
 }
 
 void GOManager::removeShip(sf::Uint8 clientId) {

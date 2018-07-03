@@ -31,7 +31,8 @@ namespace ph {
 		ID_SPAWN_NOT_ALLOWED,
 		ID_DAMAGE_DEALT,
 		ID_SHIP_INIT,
-		ID_KILL_DETAILS
+		ID_KILL_DETAILS,
+		ID_SCORES_UPDATE
 	};
 
 	std::string msgIDToString(MessageIndetifier id);

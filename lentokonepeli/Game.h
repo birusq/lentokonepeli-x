@@ -36,6 +36,10 @@ public:
 
 	GOManager goManager;
 
+	TestLevel level;
+
+	Scores scores;
+
 protected:
 	virtual void spawnShip(sf::Uint8 clientId) = 0;
 
@@ -54,11 +58,9 @@ protected:
 
 	void quit();
 
-	TestLevel level;
+	virtual void onQuit() = 0;
 
 	std::unordered_map<sf::Uint8, CountdownTimer> spawnTimers;
-
-	Scoreboard scoreBoard;
 	
 	// checks timers and spawns ships if timer allows
 	virtual void handleSpawnTimers(float dt);

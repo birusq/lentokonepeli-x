@@ -46,6 +46,8 @@ void Master::createWindow(WindowState state) {
 	if (state != WindowState::GameServer)
 		window.setVerticalSyncEnabled(settings.vsync);
 
+	window.setIcon(128, 128, fileLoader.getImage("lentokonepeli-x_icon.png")->getPixelsPtr());
+
 	sf::View view;
 	view.setSize(((float)width / (float)height) * 150.0F, 150.0F);
 	view.setCenter(view.getSize()/2.0F);

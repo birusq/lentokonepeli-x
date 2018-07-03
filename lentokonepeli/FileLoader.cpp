@@ -18,3 +18,21 @@ std::shared_ptr<sf::Texture> FileLoader::getTexture(std::string imagePath) {
 		}
 	}
 }
+
+std::shared_ptr<sf::Image> FileLoader::getImage(std::string imagePath) {
+	if(images.count(imagePath) == 1) {
+		return images[imagePath];
+	}
+	else {
+		images[imagePath] = std::make_shared<sf::Image>();
+		if((*images[imagePath]).loadFromFile("res/images/" + imagePath)) {
+			return images[imagePath];
+		}
+		else {
+			console::stream << "Could not find resource from path " << imagePath;
+			console::dlogStream();
+			images.erase(imagePath);
+			return nullptr;
+		}
+	}
+}

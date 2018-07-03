@@ -14,7 +14,6 @@ void GUI::init() {
 
 	gui.setFont(g::font);
 
-
 	if (master->settings.showFps) {
 		fpsLabel = tgui::Label::create();
 		fpsLabel->getRenderer()->setTextColor(tgui::Color::White);
@@ -33,12 +32,15 @@ void GUI::init() {
 
 void GUI::setTarget(sf::RenderTarget& window) {
 	gui.setTarget(window);
-	if(master->settings.guiScalePercent <= 0) {
+	if(master->settings.guiScalePercent < 80) {
 		initGUIScaleSetting(window);
 	}
 }
 
 void GUI::draw(float dt) {
+	if(hidden)
+		return;
+
 	time += dt;
 
 	if (time >= 0.5F) {
@@ -65,13 +67,37 @@ void GUI::handleEvent(sf::Event event) {
 	gui.handleEvent(event);
 }
 
+void GUI::updateScale() {
+	if(master->settings.guiScalePercent.getValue() < 80) {
+		master->settings.guiScalePercent.setValue(80);
+	}
+	float newScale = (float)master->settings.guiScalePercent.getValue() / 100.0F;
+	if(mainMenuPanel) {
+		float mp = newScale / menuScale;
+		multiplySize(mainMenuPanel, mp);
+		menuScale = newScale;
+	}
+	if(cPanel) {
+		float mp = newScale / clientScale;
+		multiplySize(cPanel, mp);
+		multiplySize(escMenuPanel, mp);
+		escMenuPanel->setSize({ "100%", "100%" });
+		multiplySize(chooseTeamPanel, mp);
+		pointFeed->setScale(newScale);
+		killFeed->setScale(newScale);
+		scoreBoard->setScale(newScale);
+		clientScale = newScale;
+	}
+}
+
 void GUI::multiplySize(tgui::Container::Ptr container, float multiplier) {
-	std::vector<tgui::Widget::Ptr> widgets = mainMenuPanel->getWidgets();
+	std::vector<tgui::Widget::Ptr> widgets = container->getWidgets();
 	for(tgui::Widget::Ptr widget : widgets) {
+		auto oldSize = widget->getSize().x;
 		widget->setSize(widget->getSize() * multiplier);
-		console::dlog(widget->getWidgetType());
 		if(auto label = std::dynamic_pointer_cast<tgui::Label>(widget)) {
 			label->setTextSize((unsigned int)roundf(label->getTextSize() * multiplier));
+			label->setAutoSize(true);
 		}
 		else if(auto button = std::dynamic_pointer_cast<tgui::Button>(widget)) {
 			button->setTextSize((unsigned int)roundf(button->getTextSize() * multiplier));
@@ -79,6 +105,21 @@ void GUI::multiplySize(tgui::Container::Ptr container, float multiplier) {
 		else if(auto editBox = std::dynamic_pointer_cast<tgui::EditBox>(widget)) {
 			editBox->setTextSize((unsigned int)roundf(editBox->getTextSize() * multiplier));
 		}
+		else if (auto chatBox = std::dynamic_pointer_cast<tgui::ChatBox>(widget)) {
+			chatBox->setTextSize((unsigned int)roundf(chatBox->getTextSize() * multiplier));
+			reloadChatBox(chatBox);
+		}
+	}
+}
+
+void GUI::reloadChatBox(tgui::ChatBox::Ptr chatBox) {
+	std::vector<std::pair<sf::String, tgui::Color>> lineTexts;
+	for(std::size_t i = 0; i < chatBox->getLineAmount(); i++) {
+		lineTexts.push_back(std::make_pair(chatBox->getLine(i), chatBox->getLineColor(i)));
+	}
+	chatBox->removeAllLines();
+	for(std::size_t i = 0; i < lineTexts.size(); i++) {
+		chatBox->addLine(lineTexts[i].first, lineTexts[i].second);
 	}
 }
 
@@ -137,12 +178,14 @@ void GUI::initMainMenu() {
 	auto versionLabel = tgui::Label::copy(usernameLabel); 
 	mainMenuPanel->add(versionLabel);
 	versionLabel->setText("v" + g::version);
+	versionLabel->setAutoSize(true);
 	versionLabel->setPosition("(&.width - width)/2", "(&.height - height) - 10");
 
-	multiplySize(mainMenuPanel, scale);
+	updateScale();
 }
 
 void GUI::showMainMenu() {
+	hidden = false;
 	if (sPanel) {
 		gui.remove(sPanel);
 	}
@@ -159,7 +202,6 @@ void GUI::initGUIScaleSetting(sf::RenderTarget& window) {
 	}
 	else {
 		master->settings.guiScalePercent.setValue((int)(std::min(window.getSize().x / 1280.0F, window.getSize().y / 720.0F) * 100));
-		scale = (float)master->settings.guiScalePercent / 100.0F;
 	}
 }
 
@@ -198,6 +240,7 @@ void GUI::initServer() {
 }
 
 void GUI::showServer() {
+	hidden = false;
 	if (cPanel) {
 		gui.remove(cPanel);
 	}
@@ -213,15 +256,12 @@ void GUI::initClient() {
 	cPanel->getRenderer()->setBackgroundColor(tgui::Color(0, 0, 0, 0));
 	gui.add(cPanel);
 
-	chatBox = tgui::ChatBox::create();
-	cPanel->add(chatBox);
-	chatBox->getRenderer()->setBackgroundColor(tgui::Color(0, 0, 0, 80));
-	chatBox->getRenderer()->setBorderColor(tgui::Color(0, 0, 0, 0));
-	chatBox->setSize(340, 200);
-	chatBox->setPosition(0, "parent.bottom - height - 100");
-	chatBox->setLineLimit(100);
-
-	console::currentOut = &chatBox;
+	spawnTimeLabel = tgui::Label::create("Press any key to spawn");
+	cPanel->add(spawnTimeLabel);
+	spawnTimeLabel->getRenderer()->setTextColor(tgui::Color::Red);
+	spawnTimeLabel->setTextSize(26);
+	spawnTimeLabel->setPosition("&.width/2 - width/2", "80%");
+	spawnTimeLabel->hide();
 
 	killFeedPanel = tgui::Panel::create({ 600, 200 });
 	cPanel->add(killFeedPanel);
@@ -237,10 +277,38 @@ void GUI::initClient() {
 
 	pointFeed = std::make_unique<GUIPanelList>(pointFeedPanel, 5, 3, 3.0F, Align::CENTER);
 
-	chooseTeamPanel = tgui::Panel::create({ "60%", "40%" });
-	chooseTeamPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
-	chooseTeamPanel->getRenderer()->setBackgroundColor(tgui::Color(palette::strongGrey));
+	auto scrollbar = tgui::ScrollbarRenderer();
+	scrollbar.setTrackColor(tgui::Color(0, 0, 0, 20));
+	scrollbar.setArrowBackgroundColor(tgui::Color(0, 0, 0, 20));
+	scrollbar.setArrowBackgroundColorHover(tgui::Color(255, 255, 255, 20));
+	scrollbar.setThumbColor(tgui::Color(0, 0, 0, 50));
+	scrollbar.setThumbColorHover(tgui::Color(255, 255, 255, 50));
+
+	chatBox = tgui::ChatBox::create();
+	cPanel->add(chatBox);
+	chatBox->getRenderer()->setBackgroundColor(tgui::Color(0, 0, 0, 60));
+	chatBox->getRenderer()->setBorderColor(tgui::Color(0, 0, 0, 0));
+	chatBox->getRenderer()->setScrollbar(scrollbar.getData());
+	chatBox->setSize(380, 220);
+	chatBox->setPosition(0, "parent.bottom - height");
+	chatBox->setLineLimit(100);
+
+	console::currentOut = &chatBox;
+
+	scoreboardPanel = tgui::Panel::create({ 800, 600 });
+	cPanel->add(scoreboardPanel);
+	scoreboardPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
+	auto greySeethrough = palette::strongGrey;
+	greySeethrough.a = 210;
+	scoreboardPanel->getRenderer()->setBackgroundColor(greySeethrough);
+	scoreboardPanel->hide();
+
+	scoreBoard = std::make_unique<GUIScoreboard>(scoreboardPanel);
+
+	chooseTeamPanel = tgui::Panel::create({ 600, 400 });
 	cPanel->add(chooseTeamPanel);
+	chooseTeamPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
+	chooseTeamPanel->getRenderer()->setBackgroundColor(greySeethrough);
 
 	auto chooseTeamLabel = tgui::Label::create("Choose team");
 	chooseTeamPanel->add(chooseTeamLabel);
@@ -248,39 +316,35 @@ void GUI::initClient() {
 	chooseTeamLabel->setTextSize(20);
 	chooseTeamLabel->setPosition("(&.width - width)/2", "20%");
 
-	auto redTeamButton = createButton(chooseTeamPanel, "Red", 24, palette::red, false);
-	redTeamButton->setSize("40%", "40%");
+	auto redTeamButton = createButton(chooseTeamPanel, "Red", 34, palette::red, false);
+	redTeamButton->setSize(250, 150);
 	redTeamButton->setPosition("&.width/4 - width/2", "40%");
 	redTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::RED_TEAM); });
 
-	auto blueTeamButton = createButton(chooseTeamPanel, "Blue", 24, palette::blue, false);
-	blueTeamButton->setSize("40%", "40%");
+	auto blueTeamButton = createButton(chooseTeamPanel, "Blue", 34, palette::blue, false);
+	blueTeamButton->setSize(250, 150);
 	blueTeamButton->setPosition("&.width*3/4 - width/2", "40%");
 	blueTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::BLUE_TEAM); });
 	
 	escMenuPanel = tgui::Panel::create();
-	escMenuPanel->hide();
-	escMenuPanel->getRenderer()->setBackgroundColor(palette::strongGrey);
 	cPanel->add(escMenuPanel);
+	escMenuPanel->hide();
+	escMenuPanel->getRenderer()->setBackgroundColor(greySeethrough);
+	escMenuPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
 
 	auto resume = createButton(escMenuPanel, "Resume", 20, sf::Color::White, true);
-	resume->setPosition("&.width/2 - width/2", "40%");
+	resume->setPosition("&.width/2 - width/2", "20%");
 	resume->connect("pressed", [&]() { hideEscMenu(); });
 
 	auto quitToMainMenu = createButton(escMenuPanel, "Exit to main menu", 20, sf::Color::White, true);
-	quitToMainMenu->setPosition("&.width/2 - width/2", "50%");
+	quitToMainMenu->setPosition("&.width/2 - width/2", bindBottom(resume) + bindHeight(resume));
 	quitToMainMenu->connect("pressed", [&]() { master->launchMainMenu(); });
 
 	auto quitToDesktop = createButton(escMenuPanel, "Quit to desktop", 20, sf::Color::White, true);
-	quitToDesktop->setPosition("&.width/2 - width/2", "60%");
+	quitToDesktop->setPosition("&.width/2 - width/2", bindBottom(quitToMainMenu) + bindHeight(quitToMainMenu));
 	quitToDesktop->connect("pressed", [&]() { master->quit(); });
-
-	spawnTimeLabel = tgui::Label::create("Press any key to spawn");
-	cPanel->add(spawnTimeLabel);
-	spawnTimeLabel->getRenderer()->setTextColor(tgui::Color::Red);
-	spawnTimeLabel->setTextSize(26);
-	spawnTimeLabel->setPosition("&.width/2 - width/2", "80%");
-	spawnTimeLabel->hide();
+	
+	updateScale();
 }
 
 void GUI::teamJoinAccepted() {
@@ -298,11 +362,34 @@ void GUI::toggleEscMenu() {
 }
 
 void GUI::showEscMenu() {
-	escMenuPanel->show();
+	if(escMenuPanel) {
+		escMenuPanel->show();
+	}
 }
 
 void GUI::hideEscMenu() {
-	escMenuPanel->hide();
+	if(escMenuPanel) {
+		escMenuPanel->hide();
+	}
+}
+
+void GUI::toggleScoreboard() {
+	if(scoreboardPanel->isVisible()) {
+		hideScoreboard();
+	}
+	else {
+		showScoreboard();
+	}
+}
+
+void GUI::showScoreboard() {
+	if (scoreboardPanel)
+		scoreboardPanel->show();
+}
+
+void GUI::hideScoreboard() {
+	if(scoreboardPanel)
+		scoreboardPanel->hide();
 }
 
 void GUI::showKillFeedMessage(std::string s1, std::string s2, std::string s3, sf::Color s1color, sf::Color s2color, sf::Color s3color) {
@@ -404,6 +491,13 @@ void GUI::hostButtonPressed() {
 
 void GUI::clientButtonPressed() {
 	std::string joinIp = joinIpEditBox->getText();
+#ifndef _DEBUG 
+	if(joinIp.size() == 0) {
+		joinIpEditBox->setDefaultText("Type ip here");
+		joinIpEditBox->setAlignment(tgui::EditBox::Alignment::Center);
+		return;
+	}
+#endif
 	RakNet::SystemAddress address;
 
 	sf::String str = usernameEditBox->getText();

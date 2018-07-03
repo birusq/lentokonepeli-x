@@ -4,6 +4,7 @@
 #include "PhysicsTransformable.h"
 #include "Console.h"
 #include "Master.h"
+#include "ServerGame.h"
 
 void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	if (currPTrans.constantVelocity == false) {
@@ -84,7 +85,6 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 						if (pair.second->collidesWith(goManager.ships.at(t1Client))) {
 							onBulletCollision(*pair.second, goManager.ships[t1Client]);
 						}
-						
 					}
 
 					// Player on player collisions
@@ -123,6 +123,7 @@ void Game::handleSpawnTimers(float dt) {
 }
 
 void Game::quit() {
+	onQuit();
 	running = false;
 }
 

@@ -9,13 +9,14 @@
 #include <deque>
 #include "PacketHelper.h"
 #include "User.h"
+#include "NetworkAgent.h"
 
 using namespace RakNet;
 
 class Master;
 class ClientGame;
 
-class Client {
+class Client : public NetworkAgent {
 public:
 	Client() {}
 	~Client();
@@ -24,18 +25,17 @@ public:
 
 	void start(std::string hostIp, RakString username);
 
-	void update();
+	void update() override;
+
+	void close() override;
 
 	void sendShipUpdate(ShipState& shipState);
 
-	User* const myUser() { return &users.at(myId); }
-	
-	std::unordered_map<sf::Uint8, User> users;
-	std::unordered_map<Team::Id, Team> teams;
+	User* const getMyUser() { return &users.at(myId); }
+
 	std::deque<ServerShipStates> serverStateJitterBuffer;
 	const unsigned int jitterBufferMaxSize = 3;
 
-	RakPeerInterface* peer = nullptr;
 	int lastPing = -1;
 
 	void requestTeamJoin(Team::Id toTeam);
@@ -43,12 +43,15 @@ public:
 	// Server responds to this with seconds until can respawn, negative if already can
 	void requestSpawn();
 
-	void close();
+	bool isMyId(sf::Uint8 clientId) override { return clientId == myId; }
 
-	sf::Uint8 myId;
+	sf::Uint8 getMyId() { return myId; }
+
 	bool connectionDone;
 
 private:
+
+	sf::Uint8 myId;
 
 	RakString myUsername;
 
@@ -62,6 +65,7 @@ private:
 	void processSpawnAfterTime(Packet* packet);
 	void processShipInit(Packet* packet);
 	void processKillDetails(Packet* packet);
+	void processScoresUpdate(Packet* packet);
 
 	RakNetGUID hostguid;
 };

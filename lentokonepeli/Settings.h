@@ -35,6 +35,7 @@ public:
 	KeySetting abilityRightKey;
 	KeySetting abilityBackwardKey;
 	KeySetting scoreBoardKey;
+	KeySetting toggleGUIKey;
 
 	StringSetting username;
 

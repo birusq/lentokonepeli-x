@@ -6,18 +6,18 @@
 #include "Master.h"
 
 TestLevel::TestLevel() {
-	std::shared_ptr<sf::Texture> tex = master->fileLoader.getTexture("bg.png");
-	tex->setSmooth(true);
-	bg.setTexture(*tex);
+	if(std::shared_ptr<sf::Texture> tex = master->fileLoader.getTexture("bg.png")) {
+		bg.setTexture(*tex);
+		tex->setSmooth(true);
+	}
 
-	bg.setScale(sf::Vector2f(0.4F, 0.3F));
+	bg.setScale(sf::Vector2f(0.5F, 0.5F));
 	bg.setPosition(sf::Vector2f(0,0));
 
 	sf::FloatRect bgRect = bg.getGlobalBounds();
-	
-	ground.setFillColor(sf::Color(1, 137, 10));
-	ground.setSize(sf::Vector2f(bgRect.width, 30));
-	ground.setPosition(0, bgRect.height);
+
+	height = bgRect.height;
+	width = bgRect.width;
 
 	center = sf::Vector2f(bgRect.width/2.0F, bgRect.height/2.0F);
 
@@ -41,11 +41,18 @@ TestLevel::TestLevel() {
 	spawnPointColliders[Team::BLUE_TEAM] = spawnBoxCollider;
 	spawnPointColliders[Team::BLUE_TEAM].hitbox.setPosition(spawnPoints[Team::BLUE_TEAM]);
 	spawnPointColliders[Team::BLUE_TEAM].hitbox.setOutlineColor(palette::blue);
+	
+	sf::RectangleShape perimiterWallSide(sf::Vector2f(10, height));
+	sf::ConvexShape perimiterWallSideConvex(4);
+	for(int i = 0; i < 4; i++) {
+		perimiterWallSideConvex.setPoint(i, perimiterWallSide.getPoint(i));
+	}
+
+	//TODO: perimeter walls
 }
 
 void TestLevel::draw(sf::RenderTarget& target) {
 	target.draw(bg);
-	target.draw(ground);
 	for (auto& pair : spawnPointColliders) {
 		pair.second.draw(target);
 	}

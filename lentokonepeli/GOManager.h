@@ -28,7 +28,7 @@ public:
 
 	void drawAll(sf::RenderWindow& window);
 
-	void createShip(User* user, Team::Id teamId = Team::NO_TEAM);
+	void createShip(User& user, Team::Id teamId = Team::NO_TEAM);
 	void removeShip(sf::Uint8 clientId);
 
 	sf::Uint16 getNewBulletId(sf::Uint8 forClientId);

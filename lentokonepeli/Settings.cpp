@@ -62,6 +62,7 @@ Settings::Settings() {
 
 	inGameMenuKey = KeySetting(&ini, "keybinds", "inGameMenu", sf::Keyboard::Escape);
 	scoreBoardKey = KeySetting(&ini, "keybinds", "scoreBoard", sf::Keyboard::Tab);
+	toggleGUIKey = KeySetting(&ini, "keybinds", "toggleGUI", sf::Keyboard::G);
 
 	console::dlog("asdfasdfjaslkdjlaösdfökladshfjk");
 }

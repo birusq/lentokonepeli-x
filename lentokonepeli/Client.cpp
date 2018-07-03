@@ -5,6 +5,7 @@
 #include "Master.h"
 #include "ClientGame.h"
 #include "User.h"
+#include "Scores.h"
 
 using namespace ph;
 
@@ -87,7 +88,6 @@ void Client::update() {
 			console::log("Connection accepted");
 			hostguid = packet->guid;
 
-			//Send my username to server (server fills rest of user members)
 			BitStream bitStream;
 			bitStream.Write((MessageID)ID_USER_UPDATE);
 			bitStream.Write(myUsername);
@@ -129,11 +129,14 @@ void Client::update() {
 		else if(packetId == ID_KILL_DETAILS) {
 			processKillDetails(packet);
 		}
+		else if(packetId == ID_SCORES_UPDATE) {
+			processScoresUpdate(packet);
+		}
 		else {
 			if (packetId <= 134)
 				console::log("Packet type not handled: " + (std::string)PacketLogger::BaseIDTOString(packetId));
 			else
-				console::log("Packet type not handled: " + (std::string)msgIDToString((MessageIndetifier)packetId));
+				console::log("Packet type not handled: " + (int)(MessageIndetifier)packetId);
 		}
 
 		peer->DeallocatePacket(packet);
@@ -164,7 +167,7 @@ void Client::processUser(Packet* packet) {
 	}
 	else if (newUser) {
 		// create ship for new user
-		game->onOtherUserConnect(&users[user.clientId]);
+		game->onOtherUserConnect(users[user.clientId]);
 	}
 
 	users[user.clientId] = user;
@@ -182,7 +185,7 @@ void Client::handleOtherUserDisconnect(Packet* packet) {
 
 	console::log((std::string)user.username.C_String() + " disconnected");
 
-	game->onOtherUserDisconnect(user.clientId);
+	game->beforeOtherUserDisconnect(user);
 
 	teams[user.teamId].removeClient(user.clientId);
 
@@ -276,8 +279,17 @@ void Client::processKillDetails(Packet * packet) {
 	game->onReceiveKillDetails(killDetails);
 }
 
+void Client::processScoresUpdate(Packet * packet) {
+	BitStream bitStream(packet->data, packet->length, false);
+	bitStream.IgnoreBytes(1);
+
+	game->scores.serialize(bitStream, false);
+
+	console::stream << "Scores update received";
+	console::dlogStream();
+}
+
 void Client::sendShipUpdate(ShipState& shipState) {
-	
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_SHIP_UPDATE);
 	shipState.serialize(bitStream, true);

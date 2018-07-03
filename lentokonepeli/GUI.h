@@ -3,6 +3,7 @@
 #include <TGUI\TGUI.hpp>
 #include <SFML\Graphics.hpp>
 #include "GUIPanelList.h"
+#include "GUIScoreboard.h"
 
 class Server;
 class Client;
@@ -55,13 +56,20 @@ private:
 
 	tgui::Color tint(tgui::Color baseColor, tgui::Color tintColor, float factor);
 
+	void initGUIScaleSetting(sf::RenderTarget& window);
+
+	void multiplySize(tgui::Container::Ptr container, float multiplier);
+
+	void reloadChatBox(tgui::ChatBox::Ptr chatBox);
+
+	float menuScale = 1.0F;
+	float clientScale = 1.0F;
+
 public:
 	void init();
-	void setTarget(sf::RenderTarget& window);
 	void draw(float dt);
+	void setTarget(sf::RenderTarget& window);
 	void handleEvent(sf::Event event);
-	
-	void multiplySize(tgui::Container::Ptr container, float multiplier);
 
 	void teamJoinAccepted();
 
@@ -69,19 +77,28 @@ public:
 	void showEscMenu();
 	void hideEscMenu();
 
+	void toggleScoreboard();
+	void showScoreboard();
+	void hideScoreboard();
+
 	void showKillFeedMessage(std::string s1, std::string s2, std::string s3, sf::Color s1color, sf::Color s2color, sf::Color s3color);
 	void showPointFeedMessage(std::string msg);
+
+	std::unique_ptr<GUIScoreboard> scoreBoard;
 
 	// Set float to -1 to show key prompt
 	void updateSpawnTimeLabel(bool setVisible, float timer);
 
 	void showMainMenu();
 
+	void updateScale();
+
 	Server* server;
 	Client* client;
 
 	int lastPing = -1;
 
-	void initGUIScaleSetting(sf::RenderTarget& window);
-	float scale = 1.0F;
+	bool hidden = false;
+
+	void test();
 };

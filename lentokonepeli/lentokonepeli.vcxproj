@@ -30,6 +30,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -69,7 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental />
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -81,11 +84,14 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;D_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>E:\Documents\SFML\TGUI-0.8-dev\lib;E:\Documents\SFML\thor-v2.0-msvc2015\lib;E:\Documents\SFML\SFML-2.4.2\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-audio-d.lib;sfml-graphics-d.lib;sfml-system-d.lib;sfml-window-d.lib;thor-d.lib;tgui-d.lib;sfml-main.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
+      <AdditionalOptions>/NODEFAULTLIB:msvcrt.lib %(AdditionalOptions)</AdditionalOptions>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -151,6 +157,7 @@
     <ClCompile Include="GOManager.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="GUIPanelList.cpp" />
+    <ClCompile Include="GUIScoreboard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Master.cpp" />
@@ -265,7 +272,7 @@
     <ClCompile Include="Raknet\VitaIncludes.cpp" />
     <ClCompile Include="Raknet\WSAStartupSingleton.cpp" />
     <ClCompile Include="Raknet\_FindFirst.cpp" />
-    <ClCompile Include="Scoreboard.cpp" />
+    <ClCompile Include="Scores.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerGame.cpp" />
     <ClCompile Include="Setting.cpp" />
@@ -297,7 +304,9 @@
     <ClInclude Include="Damageable.h" />
     <ClInclude Include="GUIPanelList.h" />
     <ClInclude Include="GUIScoreboard.h" />
-    <ClInclude Include="Scoreboard.h" />
+    <ClInclude Include="NetworkAgent.h" />
+    <ClInclude Include="resource1.h" />
+    <ClInclude Include="Scores.h" />
     <ClInclude Include="SoundPlayer.h" />
     <ClInclude Include="Team.h" />
     <ClInclude Include="TestLevel.h" />
@@ -468,6 +477,12 @@
     <ClInclude Include="CountdownTimer.h" />
     <ClInclude Include="User.h" />
     <ClInclude Include="Weapon.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\PhotoShop\lentokonepeli\lentokonepeli_x_icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,6 +8,7 @@
 #include "Bullet.h"
 #include "Master.h"
 #include "Raknet/GetTime.h"
+#include "Scores.h"
 
 using namespace ph;
 
@@ -43,7 +44,7 @@ void Server::changeTeam(Team::Id newTeam, sf::Uint8 clientId) {
 	teams[newTeam].members.push_back(clientId);
 	users.at(clientId).teamId = newTeam;
 
-	game->onClientJoinTeam(clientId, newTeam);
+	game->onClientJoinTeam(clientId, oldTeam, newTeam);
 
 	sendTeamUpdate(oldTeam, newTeam, clientId, UNASSIGNED_SYSTEM_ADDRESS, true);
 }
@@ -113,13 +114,14 @@ void Server::handleUserUpdate(Packet* packet) {
 	users[user.clientId] = user;
 
 	if (newUser) {
-		game->onUserConnect(&users[user.clientId]);
+		game->onUserConnect(users[user.clientId]);
 
 		// send data of all users to new connected user
 		for (auto& pair : users) {
 			if (pair.second.clientId != user.clientId) {
 				sendUserUpdate(pair.second, packet->systemAddress, false);
 				sendShipInit(pair.second, packet->systemAddress);
+				sendScoresUpdate(packet->systemAddress, false);
 			}
 		}
 	}
@@ -144,9 +146,9 @@ void Server::handleUserDisconnect() {
 			console::log("User disconnected: " + (std::string)it->second.username.C_String());
 			shipStateJitterBuffers.erase(it->second.clientId);
 
-			teams[it->second.teamId].removeClient(it->second.clientId);
+			game->beforeUserDisconnect(it->second);
 
-			game->onUserDisconnect(it->second.clientId);
+			teams[it->second.teamId].removeClient(it->second.clientId);
 			it = users.erase(it);
 		}
 		else it++;
@@ -199,6 +201,17 @@ void Server::sendTeamUpdate(sf::Uint8 oldTeam, sf::Uint8 newTeam, sf::Uint8 clie
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 4, toAddress, broadcast);
 
 	console::dlog("Team update sent");
+}
+
+void Server::sendScoresUpdate(SystemAddress toAddress, bool broadcast) {
+	BitStream bitStream;
+	bitStream.Write((MessageID)ID_SCORES_UPDATE);
+
+	game->scores.serialize(bitStream, true);
+
+	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 4, toAddress, broadcast);
+
+	console::dlog("Score update sent");
 }
 
 void Server::handleShipUpdate(Packet* packet) {

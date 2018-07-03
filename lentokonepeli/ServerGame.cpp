@@ -9,6 +9,8 @@
 ServerGame::ServerGame() {
 	server.init(this);
 	server.start(30);
+
+	scores.init(&server);
 }
 
 void ServerGame::loop() {
@@ -43,16 +45,18 @@ void ServerGame::loop() {
 	}
 }
 
-void ServerGame::onUserConnect(User* const user) {
-	goManager.createShip(user, user->teamId);
+void ServerGame::onUserConnect(User& user) {
+	goManager.createShip(user, user.teamId);
+	//Don't add user to scores yet because they have no team yet
 }
 
-void ServerGame::onUserDisconnect(sf::Uint8 clientId) {
-	goManager.removeShip(clientId);
+void ServerGame::beforeUserDisconnect(User& user) {
+	scores.deleteUser(user);
+	goManager.removeShip(user.clientId);
 }
 
-void ServerGame::onClientJoinTeam(sf::Uint8 clientId, Team::Id newTeam) {
-	// Nothing yet
+void ServerGame::onClientJoinTeam(sf::Uint8 clientId, Team::Id oldTeam, Team::Id newTeam) {
+	scores.addUser(server.users[clientId]);
 }
 
 void ServerGame::onSpawnRequest(sf::Uint8 clientId) {
@@ -80,7 +84,7 @@ void ServerGame::onShipDeath(Ship* ship) {
 	KillDetails killDetails;
 	killDetails.clientKilled = ship->owner->clientId;
 	killDetails.contributors = ship->dmgContributors;
-	scoreBoard.addKillDetails(killDetails);
+	scores.addKillDetails(killDetails);
 
 	server.broadcastKillDetails(killDetails);
 }
@@ -187,4 +191,8 @@ void ServerGame::onShipCollision(Ship& ship1, Ship& ship2) {
 		ship2.takeDmg(ship1.bodyHitDamage, Damageable::DMG_SHIP_COLLISION, ship1.owner->clientId);
 	}
 	server.sendShipsCollided(&ship1, s1Immune, &ship2, s2Immune);
+}
+
+void ServerGame::onQuit() {
+	server.close();
 }

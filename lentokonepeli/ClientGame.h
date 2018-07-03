@@ -16,9 +16,9 @@ public:
 	// Fired when user data (clientId etc.) is received from server
 	void onConnectionComplete();
 
-	void onOtherUserConnect(User* const user);
+	void onOtherUserConnect(User& user);
 
-	void onOtherUserDisconnect(sf::Uint8 clientId);
+	void beforeOtherUserDisconnect(User& user);
 
 	void onTeamJoin(sf::Uint8 clientId, Team::Id newTeam);
 
@@ -30,12 +30,12 @@ public:
 	void onShipInit(ShipInitMessage& shipInitMsg);
 
 	void onShipDeath(Ship* ship) override;
-
 	void onReceiveKillDetails(KillDetails& killDetails);
 
 protected:
 	void onBulletCollision(Bullet& bullet, Ship& targetShip) override;
 	void onShipCollision(Ship& s1, Ship& s2) override;
+	void onQuit() override;
 private:
 
 	void applyServerStates(ServerShipStates& sss);
@@ -59,4 +59,6 @@ private:
 	float spawnRequestBlockDuration = 1.0F;
 
 	void handleSpawnTimers(float dt) override;
+
+	void handleKeyEvents(sf::Event& event);
 };

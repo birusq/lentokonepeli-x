@@ -7,7 +7,7 @@
 #include "Weapon.h"
 #include "FlickerCountdownTimer.h"
 #include <map>
-#include "Scoreboard.h"
+#include "Scores.h"
 
 struct User;
 class Game;

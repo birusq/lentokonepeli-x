@@ -19,13 +19,13 @@ Ship::Ship(Game* game_, sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : 
 	gravity = true;
 	drag = 0.01F;
 
+	float width = 1.7F;
+	float height = 10.0f;
+
+	hitbox.setSize(sf::Vector2f(width, height));
+	hitbox.setOrigin(width / 2.0f, height / 2.0F);
+
 	if(!inServer) {
-		float width = 1.6F;
-		float height = 10.0f;
-
-		hitbox.setSize(sf::Vector2f(width, height));
-		hitbox.setOrigin(width / 2.0f, height / 2.0F);
-
 		usernameLabel.setFont(g::font);
 		usernameLabel.setString(owner->username.C_String());
 		usernameLabel.setCharacterSize(40);
@@ -113,11 +113,14 @@ void Ship::draw(sf::RenderTarget& target) {
 
 		usernameLabel.setPosition(getPosition().x, getPosition().y - 12.0F);
 
-		target.draw(healthBarBG);
-		target.draw(healthBar);
-		target.draw(usernameLabel);
+		if(master->gui.hidden == false) {
+			target.draw(healthBarBG);
+			target.draw(healthBar);
+			target.draw(usernameLabel);
+		}
 	}
 	else {
+		timeAlive.restart();
 		master->soundPlayer.stopThrottle(owner->clientId);
 	}
 }
@@ -151,31 +154,31 @@ void Ship::setBodyTexture(float rotation) {
 		body.setScale(0.1F, 0.1F);
 	}
 	else if(rotation >= 22.5F && rotation < 67.5F) {
-		body.setTextureRect(sf::IntRect(120, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(122, 0, 120, 100));
 		body.setScale(0.1F, 0.1F);
 	}
 	else if(rotation >= 67.5F && rotation < 112.5F) {
-		body.setTextureRect(sf::IntRect(240, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(244, 0, 120, 100));
 		body.setScale(0.1F, 0.1F);
 	}
 	else if(rotation >= 112.5F && rotation < 157.5F) {
-		body.setTextureRect(sf::IntRect(360, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(366, 0, 120, 100));
 		body.setScale(0.1F, 0.1F);
 	}
 	else if(rotation >= 157.5F && rotation < 202.5F) {
-		body.setTextureRect(sf::IntRect(480, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(488, 0, 120, 100));
 		body.setScale(0.1F, 0.1F);
 	}
 	else if(rotation >= 202.5F && rotation < 247.5F) {
-		body.setTextureRect(sf::IntRect(360, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(366, 0, 120, 100));
 		body.setScale(-0.1F, 0.1F);
 	}
 	else if(rotation >= 247.5F && rotation < 292.5F) {
-		body.setTextureRect(sf::IntRect(240, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(244, 0, 120, 100));
 		body.setScale(-0.1F, 0.1F);
 	}
 	else if(rotation >= 292.5F && rotation < 337.5F) {
-		body.setTextureRect(sf::IntRect(120, 0, 120, 100));
+		body.setTextureRect(sf::IntRect(122, 0, 120, 100));
 		body.setScale(-0.1F, 0.1F);
 	}
 }
@@ -190,9 +193,13 @@ void Ship::respawn() {
 	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
 	respawnAnimTimer.start();
 	timeAlive.restart();
+	dmgContributors.clear();
 }
 
 void Ship::takeDmg(int dmg, DamageType dmgType, sf::Uint8 dmgDealer) {
+	if(timeAlive.getElapsedTime().asSeconds() < 0.2F) {
+		return;
+	}
 
 	//maybe react differently to different damage types
 	if (dmgType == Damageable::DMG_SHIP_COLLISION) {
@@ -218,7 +225,7 @@ void Ship::takeDmg(int dmg, DamageType dmgType, sf::Uint8 dmgDealer) {
 				}
 			}
 			dmgContributors.insert(dmgContributors.begin(), contributor);
-			dmgContributors[dmgContributors.size() - 1].timer.start(assistTimeLimit);
+			dmgContributors[0].timer.start(assistTimeLimit + 100);
 		}
 	}
 
@@ -252,11 +259,12 @@ void Ship::onDeath() {
 				it = dmgContributors.erase(it);
 			}
 			else {
-				console::stream << (int)it->clientId << " contributed in killing " << (int)owner->clientId << " with " << it->dmg << " dmg";
-				console::dlogStream();
+				//console::stream << (int)it->clientId << " contributed in killing " << (int)owner->clientId << " with " << it->dmg << " dmg";
+				//console::dlogStream();
 				it++;
 			}
 		}
-		game->onShipDeath(this);
 	}
+
+	game->onShipDeath(this);
 }

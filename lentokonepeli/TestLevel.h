@@ -10,7 +10,7 @@ class TestLevel {
 public:
 	TestLevel();
 
-	std::vector<Collider<sf::ConvexShape>*> getGroundColliders() {};
+	std::vector<std::shared_ptr<Collider<sf::ConvexShape>>> getGroundColliders() {};
 
 	std::unordered_map<Team::Id, sf::Vector2f> spawnPoints;
 	std::unordered_map<Team::Id, Collider<sf::RectangleShape>> spawnPointColliders;
@@ -21,10 +21,13 @@ public:
 
 	float respawnTime = 2.0F;
 
+	float height;
+	float width;
+
 private:
+
+
 
 	sf::Texture bgTex;
 	sf::Sprite bg;
-
-	sf::RectangleShape ground;
 };

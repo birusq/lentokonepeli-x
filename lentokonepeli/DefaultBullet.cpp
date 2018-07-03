@@ -35,7 +35,6 @@ void DefaultBullet::launch(sf::Vector2f pos, float direction) {
 }
 
 void DefaultBullet::draw(sf::RenderTarget & target) {
-	console::dlogStream();
 	if (lifeTimeCounter.getElapsedTime().asSeconds() > lifeTime) {
 		goManager->removeBullet(clientId, bulletId);
 	}
