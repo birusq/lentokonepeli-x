@@ -9,6 +9,7 @@
 #include "Master.h"
 #include "Raknet/GetTime.h"
 #include "Scores.h"
+#include <climits>
 
 using namespace ph;
 
@@ -20,13 +21,21 @@ void Server::init(ServerGame* game_) {
 	peer->SetUnreliableTimeout(10000);
 }
 
-void Server::start(sf::Uint8 maxClients) {
-	StartupResult res = peer->Startup(maxClients, &SocketDescriptor(SERVER_PORT, 0), 1);
+void Server::start(sf::Uint8 maxClients, unsigned short port) {
+	StartupResult res = peer->Startup(maxClients, &SocketDescriptor(port, 0), 1);
+	if(res == StartupResult::SOCKET_PORT_ALREADY_IN_USE) {
+		unsigned short newPort = std::clamp((unsigned short)(port + 1), (unsigned short)10000, UINT16_MAX);
+		console::stream << "Couldn't start server, port " << port << " is already in use, trying port " << newPort;
+		console::logStream();
+		start(maxClients, newPort);
+		return;
+	}
 	if (res != StartupResult::RAKNET_ALREADY_STARTED && res != StartupResult::RAKNET_STARTED) {
 		console::log("Raknet could not be started, error code: " + res);
 	}
 	else {
-		console::log("Server started, max clients: " + std::to_string(maxClients));
+		console::stream << "Server started on port " << port << ", max clients: " << (int)maxClients;
+		console::logStream();
 	}
 
 	peer->SetMaximumIncomingConnections(maxClients);
@@ -252,35 +261,12 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 	//console::dlog("Number of ships in update: " + std::to_string(newStates.states.size()));
 }
 
-void Server::sendBulletHitShip(Bullet* bullet, Ship* targetShip) {
-	DamageMessage dmg(bullet->clientId, bullet->damage, targetShip->owner->clientId, Damageable::DamageType::DMG_BULLET);
-
+void Server::sendDamage(DamageMessage& dmg) {
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_DAMAGE_DEALT);
 	dmg.serialize(bitStream, true);
 
 	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
-}
-
-void Server::sendShipsCollided(Ship* s1, bool s1Immune, Ship* s2, bool s2Immune) {
-	if (s1Immune == false) {
-		DamageMessage dmg(s1->owner->clientId, s1->bodyHitDamage, s2->owner->clientId, Damageable::DamageType::DMG_SHIP_COLLISION);
-
-		BitStream bitStream;
-		bitStream.Write((MessageID)ID_DAMAGE_DEALT);
-		dmg.serialize(bitStream, true);
-
-		peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
-	}
-	if (s2Immune == false) {
-		DamageMessage dmg2(s2->owner->clientId, s2->bodyHitDamage, s1->owner->clientId, Damageable::DamageType::DMG_SHIP_COLLISION);
-
-		BitStream bitStream2;
-		bitStream2.Write((MessageID)ID_DAMAGE_DEALT);
-		dmg2.serialize(bitStream2, true);
-
-		peer->Send(&bitStream2, MEDIUM_PRIORITY, RELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
-	}
 }
 
 void Server::sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpawn, SystemAddress toAddress, bool broadcast) {

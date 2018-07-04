@@ -24,7 +24,7 @@ int DefaultGun::shoot() {
 }
 
 int DefaultGun::shoot(sf::Uint16 bulletId, bool myShip) {
-	if (shipFullyAlive && (clock.getElapsedTime() > sf::seconds(fireInterval) || (myShip == false && clock.getElapsedTime() > sf::seconds(fireInterval * 0.7F)))) { // make timing less harsh for others because of latency
+	if (shipFullyAlive && (clock.getElapsedTime() > sf::seconds(fireInterval) || (myShip == false && clock.getElapsedTime() > sf::seconds(fireInterval * 0.4F)))) { // make timing less harsh for others because of latency
 		clock.restart();
 		Bullet* bullet = new DefaultBullet(goManager, goManager->getUnusedPTransId(), ownerId, bulletId);
 		bullet->launch(getPosition(), getRotation());

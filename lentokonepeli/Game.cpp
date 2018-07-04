@@ -6,6 +6,10 @@
 #include "Master.h"
 #include "ServerGame.h"
 
+Game::Game() {
+	goManager.init(this);
+}
+
 void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 	if (currPTrans.constantVelocity == false) {
 		sf::Vector2f force;
@@ -43,20 +47,6 @@ void Game::improveHandling(Ship& ship) {
 }
 
 void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
-	// Update all hitbox positions
-	for (auto& pair : goManager.ships) {
-		pair.second.updateHitbox();
-	}
-	for (auto& pair : goManager.bullets) {
-		for (auto& innerPair : pair.second) {
-			innerPair.second->updateHitbox();
-		}
-	}
-
-	// Check collision (check all variations of teams)
-
-	
-
 	auto it1 = teams.begin();
 	auto it2 = std::next(it1, 1);
 	for (it1; it1 != teams.end(); it1++) {
@@ -67,7 +57,9 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 		for (it2; it2 != teams.end(); it2++) {
 
 			for (sf::Uint8& t1Client : it1->second.members) {
+
 				for (sf::Uint8& t2Client : it2->second.members) {
+
 
 					// Bullet collisions
 					for (auto& pair : goManager.bullets[t1Client]) {
@@ -89,7 +81,7 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 
 					// Player on player collisions
 					if (goManager.ships.at(t1Client).collidesWith(goManager.ships.at(t2Client))) {
-						onShipCollision(goManager.ships[t1Client], goManager.ships[t2Client]);
+						onShipToShipCollision(goManager.ships[t1Client], goManager.ships[t2Client]);
 					}
 				}
 			}
@@ -104,8 +96,19 @@ void Game::collisionDetectAll(std::unordered_map<Team::Id, Team>& teams) {
 	for (auto& team : teams) {
 		for (sf::Uint8& clientId : team.second.members) {
 			for (auto& pair : goManager.bullets[clientId]) {
-				// todo
+				//TODO: Level collisions, probably just die when touching
 			}
+		}
+	}
+}
+
+void Game::updateAllHitboxPositions() {
+	for(auto& pair : goManager.ships) {
+		pair.second.updateHitbox();
+	}
+	for(auto& pair : goManager.bullets) {
+		for(auto& innerPair : pair.second) {
+			innerPair.second->updateHitbox();
 		}
 	}
 }
@@ -120,6 +123,16 @@ void Game::handleSpawnTimers(float dt) {
 			it++;
 		}
 	}
+}
+
+void Game::resetShipTransform(Ship & ship) {
+	// Reset all transforms
+	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
+	ppTrans.setPosition(level.spawnPoints[ship.owner->teamId]);
+	ppTrans.setRotation(0);
+	ppTrans.setToRest();
+
+	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
 }
 
 void Game::quit() {

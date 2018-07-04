@@ -17,17 +17,18 @@ public:
 
 	sf::Vector2f center;
 
-	void draw(sf::RenderTarget& target);
+	void draw(sf::RenderTarget& target, bool minimapPass);
 
 	float respawnTime = 2.0F;
 
 	float height;
 	float width;
 
+	float borderWidth;
+
 private:
-
-
 
 	sf::Texture bgTex;
 	sf::Sprite bg;
+	sf::RectangleShape mmBG;
 };

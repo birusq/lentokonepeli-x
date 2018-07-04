@@ -53,13 +53,14 @@ Settings::Settings() {
 	moveForwardKey = KeySetting(&ini, "keybinds", "moveForward", sf::Keyboard::Up);
 	turnLeftKey = KeySetting(&ini, "keybinds", "turnLeft", sf::Keyboard::Left);
 	turnRightKey = KeySetting(&ini, "keybinds", "turnRight", sf::Keyboard::Right);
+	precisionTurnKey = KeySetting(&ini, "keybinds", "precisionTurn", sf::Keyboard::LShift);
 	shootKey = KeySetting(&ini, "keybinds", "shoot", sf::Keyboard::Space);
-
+/*
 	abilityForwardKey = KeySetting(&ini, "keybinds", "abilityForward", sf::Keyboard::W);
 	abilityLeftKey = KeySetting(&ini, "keybinds", "abilityLeft", sf::Keyboard::A);
 	abilityBackwardKey = KeySetting(&ini, "keybinds", "abilityBackward", sf::Keyboard::S);
 	abilityRightKey = KeySetting(&ini, "keybinds", "abilityRight", sf::Keyboard::D);
-
+*/
 	inGameMenuKey = KeySetting(&ini, "keybinds", "inGameMenu", sf::Keyboard::Escape);
 	scoreBoardKey = KeySetting(&ini, "keybinds", "scoreBoard", sf::Keyboard::Tab);
 	toggleGUIKey = KeySetting(&ini, "keybinds", "toggleGUI", sf::Keyboard::G);

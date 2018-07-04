@@ -5,12 +5,15 @@
 #include "Ship.h"
 #include "Weapon.h"
 #include "Damageable.h"
+#include <climits>
 
 ServerGame::ServerGame() {
 	server.init(this);
 	server.start(30);
 
 	scores.init(&server);
+
+	isserver = true;
 }
 
 void ServerGame::loop() {
@@ -87,18 +90,29 @@ void ServerGame::onShipDeath(Ship* ship) {
 	scores.addKillDetails(killDetails);
 
 	server.broadcastKillDetails(killDetails);
+
+	resetShipTransform(*ship);
 }
 
 void ServerGame::spawnShip(sf::Uint8 clientId) {
 	Ship& ship = goManager.ships.at(clientId);
-
+	resetShipTransform(ship);
 	ship.respawn();
+}
 
-	// Reset all transforms
-	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
-	ppTrans.setPosition(level.spawnPoints[server.users.at(clientId).teamId]);
-	ppTrans.setRotation(0);
-	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
+void ServerGame::shipsOutsideBoundsCheck() {
+	//Check level bounds
+	for(auto& pair : goManager.ships) {
+		if(pair.second.hitboxDisabled)
+			return;
+
+		sf::Vector2f pos = pair.second.hitbox.getPosition();
+
+		if(pos.x < level.borderWidth || pos.x > level.width - level.borderWidth ||
+			pos.y < level.borderWidth || pos.y > level.height - level.borderWidth) {
+			onShipToGroundCollision(pair.second);
+		}
+	}
 }
 
 void ServerGame::render(sf::RenderWindow& window, float dt) {
@@ -135,7 +149,9 @@ void ServerGame::fixedUpdate(float dt) {
 
 	goManager.applyTransforms(goManager.currentPTransformsState);
 
+	updateAllHitboxPositions();
 	collisionDetectAll(server.teams);
+	shipsOutsideBoundsCheck();
 
 	goManager.deleteGarbage();
 
@@ -152,7 +168,7 @@ void ServerGame::applyClientShipStates(ServerShipStates& sss, float dt) {
 			ShipState& shipState = sss.states[clientId];
 			Ship& ship = goManager.ships.at(clientId);
 
-			if (ship.isDead() == false) {
+			if (shipState.dead == false) {
 				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
 				ship.setWeaponTrans(shipState.position, shipState.rotation);
 				if (shipState.shoot) {
@@ -177,20 +193,31 @@ void ServerGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
 	console::stream << server.users.at(bullet.clientId).username.C_String() << " hit " << targetShip.owner->username.C_String() << " with a bullet";
 	console::dlogStream();
 	targetShip.takeDmg(bullet.damage, Damageable::DMG_BULLET, bullet.clientId);
-	server.sendBulletHitShip(&bullet, &targetShip);
+	
+	DamageMessage dmg(bullet.clientId, bullet.damage, targetShip.owner->clientId, Damageable::DamageType::DMG_BULLET);
+	server.sendDamage(dmg);
 }
 
-void ServerGame::onShipCollision(Ship& ship1, Ship& ship2) {
+void ServerGame::onShipToShipCollision(Ship& ship1, Ship& ship2) {
 	console::dlog(std::string(ship1.owner->username.C_String()) + " collided with " + std::string(ship2.owner->username.C_String()));
-	bool s1Immune = ship1.bodyHitImmunityTimer.isDone() == false;
-	bool s2Immune = ship2.bodyHitImmunityTimer.isDone() == false;
-	if (s1Immune == false) {
+	if (ship1.bodyHitImmunityTimer.isDone() == true) {
 		ship1.takeDmg(ship2.bodyHitDamage, Damageable::DMG_SHIP_COLLISION, ship2.owner->clientId);
+		DamageMessage dmg(ship2.owner->clientId, ship2.bodyHitDamage, ship1.owner->clientId, Damageable::DamageType::DMG_SHIP_COLLISION);
+		server.sendDamage(dmg);
 	}
-	if (s2Immune == false) {
+	if (ship2.bodyHitImmunityTimer.isDone() == true) {
 		ship2.takeDmg(ship1.bodyHitDamage, Damageable::DMG_SHIP_COLLISION, ship1.owner->clientId);
+		DamageMessage dmg(ship1.owner->clientId, ship1.bodyHitDamage, ship2.owner->clientId, Damageable::DamageType::DMG_SHIP_COLLISION);
+		server.sendDamage(dmg);
 	}
-	server.sendShipsCollided(&ship1, s1Immune, &ship2, s2Immune);
+}
+
+void ServerGame::onShipToGroundCollision(Ship& ship) {
+	console::stream << server.users.at(ship.owner->clientId).username.C_String() << " hit ground";
+	console::dlogStream();
+	DamageMessage dmg(ship.owner->clientId, UINT16_MAX, ship.owner->clientId, Damageable::DamageType::DMG_GROUND_COLLISION);
+	ship.takeDmg((int)dmg.damage, dmg.damageType);
+	server.sendDamage(dmg);
 }
 
 void ServerGame::onQuit() {

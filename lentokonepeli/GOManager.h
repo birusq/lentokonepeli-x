@@ -26,7 +26,7 @@ public:
 
 	void applyTransforms(std::unordered_map<sf::Uint32, PhysicsTransformable>& state);
 
-	void drawAll(sf::RenderWindow& window);
+	void drawAll(sf::RenderWindow& window, bool minimapPass = false);
 
 	void createShip(User& user, Team::Id teamId = Team::NO_TEAM);
 	void removeShip(sf::Uint8 clientId);

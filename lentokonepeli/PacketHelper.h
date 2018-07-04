@@ -12,7 +12,7 @@
 #include "Ship.h"
 #include "PhysicsTransformable.h"
 
-#define SERVER_PORT 65000
+#define SERVER_DEFAULT_PORT 62000
 
 using namespace RakNet;
 
@@ -70,14 +70,14 @@ struct ServerShipStates {
 
 struct DamageMessage {
 	DamageMessage() {}
-	DamageMessage(sf::Uint8 dealerId_, sf::Int16 damage_, sf::Uint8 targetId_, Damageable::DamageType damageType_) 
+	DamageMessage(sf::Uint8 dealerId_, sf::Uint16 damage_, sf::Uint8 targetId_, Damageable::DamageType damageType_) 
 		: dealerId{ dealerId_ }, targetId{ targetId_ }, damage{ damage_ }, damageType{ damageType_ } {}
 
 	void serialize(BitStream& bitStream, bool write);
-	
+
 	sf::Uint8 dealerId;
 	sf::Uint8 targetId;
-	sf::Int16 damage;
+	sf::Uint16 damage;
 	Damageable::DamageType damageType;
 };
 

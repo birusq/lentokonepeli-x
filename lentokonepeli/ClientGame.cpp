@@ -7,15 +7,15 @@
 #include "Master.h"
 #include "Game.h"
 
-ClientGame::ClientGame(std::string hostIp_) : hostIp{ hostIp_ } {
+ClientGame::ClientGame(RakNet::SystemAddress hostAddress_) : hostAddress{ hostAddress_ } {
 
 	client.init(this);
 
 	if (master->settings.username.getValue() == "*") {
-		client.start(hostIp_, master->settings.tempUsername.c_str());
+		client.start(hostAddress, master->settings.tempUsername.c_str());
 	}
 	else {
-		client.start(hostIp_, master->settings.username.getValue().c_str());
+		client.start(hostAddress, master->settings.username.getValue().c_str());
 	}
 
 	sf::View view = master->window.getView();
@@ -23,6 +23,12 @@ ClientGame::ClientGame(std::string hostIp_) : hostIp{ hostIp_ } {
 	master->window.setView(view);
 
 	scores.init(&client);
+
+	guiScale = (float)master->settings.guiScalePercent / 100.0F;
+
+	float minimapSizeRatio = min(340.0F * guiScale / level.width, 340.0F * guiScale / level.height);
+	sf::Vector2f minimapPixelSize = sf::Vector2f(level.width * minimapSizeRatio, level.height * minimapSizeRatio);
+	minimapSizeScreenFactor = sf::Vector2f(minimapPixelSize.x / (float)master->window.getSize().x, minimapPixelSize.y / (float)master->window.getSize().y);
 }
 
 void ClientGame::onOtherUserConnect(User& user) {
@@ -61,8 +67,17 @@ void ClientGame::onTeamJoin(sf::Uint8 clientId, Team::Id newTeam) {
 }
 
 void ClientGame::onDamage(DamageMessage& dmg) {
-	if (goManager.ships.count(dmg.dealerId) == 1 && goManager.ships.count(dmg.targetId) == 1) {
-		goManager.ships[dmg.targetId].takeDmg(dmg.damage, dmg.damageType);
+	if(goManager.ships.count(dmg.targetId) == 1 && goManager.ships[dmg.targetId].isDead() == false) {
+		if(dmg.damageType == Damageable::DMG_SNEAKY || dmg.damageType == Damageable::DMG_UNIDENTIFIED) {
+			goManager.ships[dmg.targetId].takeDmg(dmg.damage, dmg.damageType);
+		}
+		else if(goManager.ships.count(dmg.dealerId) == 1) {
+			goManager.ships[dmg.targetId].takeDmg(dmg.damage, dmg.damageType, dmg.dealerId);
+
+			if(dmg.damageType == Damageable::DMG_BULLET && client.isMyId(dmg.dealerId)) {
+				master->soundPlayer.playSound(goManager.ships[dmg.dealerId].getPosition(), "hitConfirm");
+			}
+		}
 	}
 }
 
@@ -74,20 +89,12 @@ void ClientGame::onConnectionComplete() {
 void ClientGame::spawnShip(sf::Uint8 clientId) {
 	Ship& ship = goManager.ships.at(clientId);
 
-	ship.respawn();
-
-	// Reset all transforms
-	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
-	ppTrans.setPosition(level.spawnPoints[client.users.at(clientId).teamId]);
-	ppTrans.setRotation(0);
-	ppTrans.setToRest();
-	
-	if(ship.owner->clientId == client.getMyId()) {
-		ppTrans.gravity = false; // Prevents dropping after spawn before user has pressed gas
+	if(client.isMyId(ship.owner->clientId)) {
+		goManager.previousPTransformsState.at(ship.pTransId).gravity = false; // Prevents dropping after spawn before user has pressed gas
 		master->gui.updateSpawnTimeLabel(false, -1.0F);
 	}
-
-	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
+	resetShipTransform(ship);
+	ship.respawn();
 }
 
 void ClientGame::onSpawnScheduled(sf::Uint8 clientId, float timeLeft) {
@@ -108,21 +115,40 @@ void ClientGame::onShipInit(ShipInitMessage& shipInitMsg) {
 void ClientGame::onShipDeath(Ship * ship) {
 	if(client.isMyId(ship->owner->clientId)) {
 		master->gui.updateSpawnTimeLabel(true, -1.0F);
-		goManager.currentPTransformsState[ship->pTransId].gravity = false;
 	}
+
+	resetShipTransform(*ship);
 }
 
 void ClientGame::render(sf::RenderWindow& window, float dt) {
 	window.clear(sf::Color(50, 50, 50));
 
-	level.draw(window);
+	level.draw(window, false);
 
-	goManager.drawAll(window);
+	goManager.drawAll(window, false);
+
+	drawMinimap(window);
 
 	master->gui.lastPing = client.lastPing;
 	master->gui.draw(dt);
 
 	window.display();
+}
+
+void ClientGame::drawMinimap(sf::RenderWindow & window) {
+	sf::View oldView = window.getView();
+
+	sf::View minimapView = sf::View();
+	minimapView.setSize(level.width, level.height);
+	minimapView.setViewport(sf::FloatRect(1.0F - minimapSizeScreenFactor.x, 1.0F - minimapSizeScreenFactor.y, minimapSizeScreenFactor.x, minimapSizeScreenFactor.y));
+	minimapView.setCenter(level.center);
+
+	window.setView(minimapView);
+
+	level.draw(window, true);
+	goManager.drawAll(window, true);
+
+	window.setView(oldView);
 }
 
 void ClientGame::loop() {
@@ -203,6 +229,7 @@ void ClientGame::fixedUpdate(float dt) {
 			integrate(pair.second, dt);
 		}
 
+		updateAllHitboxPositions();
 		collisionDetectAll(client.teams);
 		
 		goManager.deleteGarbage();
@@ -253,16 +280,16 @@ void ClientGame::update(float frameTime, float alpha) {
 	goManager.applyTransforms(state);
 
 	// Camera control
-	if(client.connectionDone && goManager.ships.count(client.getMyId()) == 1) {
+	if(client.connectionDone && goManager.ships.count(client.getMyId()) == 1 && goManager.ships.at(client.getMyId()).isDead() == false) {
 		sf::View view = master->window.getView();
 		
 		// Set target to ahead of plane nose to improve visibility
 		sf::Vector2f target = goManager.ships[client.getMyId()].getPosition() + goManager.ships[client.getMyId()].getRotationVector() * 20.0F;
 		
-		// Clamp to level borders
-		target = sf::Vector2f(
+		// Clamp to level borders, disabled for now because this way the ship won't go behind minimap
+		/*target = sf::Vector2f(
 			std::clamp(target.x, view.getSize().x / 2.0F, level.width - view.getSize().x / 2.0F),
-			std::clamp(target.y, view.getSize().y / 2.0F, level.height - view.getSize().y / 2.0F));
+			std::clamp(target.y, view.getSize().y / 2.0F, level.height - view.getSize().y / 2.0F));*/
 
 		sf::Vector2f pos = view.getCenter() * (1.0F - frameTime * 2.5F) + target * frameTime * 2.5F;
 		
@@ -283,6 +310,9 @@ Input ClientGame::processInput() {
 		input.turnRight = true;
 	if (sf::Keyboard::isKeyPressed(master->settings.shootKey))
 		input.shooting = true;
+	if (sf::Keyboard::isKeyPressed(master->settings.precisionTurnKey))
+		input.precisionTurn = true;
+/*
 	if (sf::Keyboard::isKeyPressed(master->settings.abilityForwardKey))
 		input.abilityForward = true;
 	if (sf::Keyboard::isKeyPressed(master->settings.abilityLeftKey))
@@ -291,6 +321,7 @@ Input ClientGame::processInput() {
 		input.abilityBackward = true;
 	if (sf::Keyboard::isKeyPressed(master->settings.abilityRightKey))
 		input.abilityRight = true;
+*/
 	return input;
 }
 
@@ -321,32 +352,31 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 		ship.throttle = false;
 	}
 
-	if (input.turnLeft && input.turnRight) {
+
+	float turnSpeedModif = 1.0F;
+	if(input.precisionTurn)
+		turnSpeedModif = 0.5F;
+
+
+	if ((input.turnLeft && input.turnRight) || (!input.turnLeft && !input.turnRight)) {
+		// Smoothly return rotation speed back to zero
 		if (currTrans.angularVelocity >= 1.0F) {
-			currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames;
+			currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames * turnSpeedModif;
 		}
 		else if (currTrans.angularVelocity <= -1.0F){
-			currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames;
+			currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames * turnSpeedModif;
 		}
 	}
 	else if (input.turnLeft) {
-		currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames;
-		if (currTrans.angularVelocity < -ship.turnSpeed) {
-			currTrans.angularVelocity = -ship.turnSpeed;
+		currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames * turnSpeedModif;
+		if (currTrans.angularVelocity < -ship.turnSpeed * turnSpeedModif) {
+			currTrans.angularVelocity = -ship.turnSpeed * turnSpeedModif;
 		}
 	}
 	else if (input.turnRight) {
-		currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames;
-		if (currTrans.angularVelocity > ship.turnSpeed) {
-			currTrans.angularVelocity = ship.turnSpeed;
-		}
-	}
-	else {
-		if (currTrans.angularVelocity >= 1.0F) {
-			currTrans.angularVelocity -= ship.turnSpeed / ship.turnSmoothingFrames;
-		}
-		else if (currTrans.angularVelocity <= -1.0F) {
-			currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames;
+		currTrans.angularVelocity += ship.turnSpeed / ship.turnSmoothingFrames * turnSpeedModif;
+		if (currTrans.angularVelocity > ship.turnSpeed * turnSpeedModif) {
+			currTrans.angularVelocity = ship.turnSpeed * turnSpeedModif;
 		}
 	}
 
@@ -391,28 +421,35 @@ void ClientGame::onReceiveKillDetails(KillDetails & killDetails) {
 			}
 		}
 	}
+
 	std::string killedString = "";
 	sf::Color killedColor = sf::Color::White;
 	if(client.isConnected(killDetails.clientKilled)) {
 		killedString = client.users[killDetails.clientKilled].username;
 		killedColor = client.teams[client.users[killDetails.clientKilled].teamId].getColor();
 	}
-	if(goManager.ships.count(killDetails.clientKilled) == 1) {
-		goManager.ships[killDetails.clientKilled].takeDmg(goManager.ships[killDetails.clientKilled].health, Damageable::DMG_SNEAKY);
+
+	std::string verb = " killed ";
+
+	if(killDetails.contributors.size() == 0) {
+		killerString = client.users[killDetails.clientKilled].username;
+		killerColor = client.teams[client.users[killDetails.clientKilled].teamId].getColor();
+		verb = " committed suicide";
+		killedString = "";
 	}
 
-	master->gui.showKillFeedMessage(killerString, " killed ", killedString, killerColor, sf::Color::White, killedColor);
+	master->gui.showKillFeedMessage(killerString, verb , killedString, killerColor, sf::Color::White, killedColor);
 	scores.addKillDetails(killDetails);
 }
 
 // used for things the bullets and ships can't access themselves
-void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {
-}
-void ClientGame::onShipCollision(Ship& ship1, Ship& ship2) {
-}
+void ClientGame::onBulletCollision(Bullet& bullet, Ship& targetShip) {}
 
-void ClientGame::onQuit() {
-}
+void ClientGame::onShipToShipCollision(Ship& ship1, Ship& ship2) {}
+
+void ClientGame::onShipToGroundCollision(Ship& ship) {}
+
+void ClientGame::onQuit() {}
 
 void ClientGame::handleSpawnTimers(float dt) {
 	for (auto it = spawnTimers.begin(); it != spawnTimers.end();) {
@@ -442,20 +479,29 @@ void ClientGame::handleKeyEvents(sf::Event& event) {
 		if(event.key.code == master->settings.toggleGUIKey) {
 			master->gui.hidden = !master->gui.hidden;
 		}
-#ifdef _DEBUG
 		if(event.key.code == sf::Keyboard::O) {
 			master->settings.guiScalePercent.setValue(master->settings.guiScalePercent - 10);
 			master->gui.updateScale();
+			upateSFMLGUIScale();
 		}
 		if(event.key.code == sf::Keyboard::P) {
 			master->settings.guiScalePercent.setValue(master->settings.guiScalePercent + 10);
 			master->gui.updateScale();
+			upateSFMLGUIScale();
 		}
-#endif
 	}
 	if(event.type == sf::Event::KeyReleased) {
 		if(event.key.code == master->settings.scoreBoardKey) {
 			master->gui.hideScoreboard();
 		}
 	}
+}
+
+void ClientGame::upateSFMLGUIScale() {
+	float newGUIScale = (float)master->settings.guiScalePercent / 100.0F;
+	float multiplier = newGUIScale / guiScale;
+
+	minimapSizeScreenFactor *= multiplier;
+
+	guiScale = newGUIScale;
 }

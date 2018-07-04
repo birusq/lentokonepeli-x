@@ -68,7 +68,7 @@ int Master::loop() {
 			delete mainMenu;
 		}
 		else if (currentWindowState == WindowState::GameClient) {
-			ClientGame* clientGame = new ClientGame(hostIp);
+			ClientGame* clientGame = new ClientGame(hostAddress);
 			fpsCounter = clientGame;
 			currentCloseable = clientGame;
    			clientGame->loop();
@@ -92,10 +92,10 @@ void Master::launchMainMenu() {
 	createWindow(currentWindowState);
 }
 
-void Master::launchClient(std::string hostIp_) {
+void Master::launchClient(RakNet::SystemAddress hostAddress_) {
 	if (currentCloseable)
 		currentCloseable->quit();
-	hostIp = hostIp_;
+	hostAddress = hostAddress_;
 	currentWindowState = WindowState::GameClient;
 	createWindow(currentWindowState);
 }

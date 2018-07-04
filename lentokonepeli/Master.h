@@ -40,16 +40,16 @@ public:
 
 	void launchMainMenu();
 	void launchHost();
-	void launchClient(std::string hostIp_);
+	void launchClient(RakNet::SystemAddress hostAddress_);
 	
+	RakNet::SystemAddress hostAddress;
+
 	FpsCounter* fpsCounter;
 	Closeable* currentCloseable;
 
 private:
 	WindowState currentWindowState = WindowState::MainMenu;
 	void createWindow(WindowState state);
-
-	std::string hostIp;
 
 	bool run = true;
 };

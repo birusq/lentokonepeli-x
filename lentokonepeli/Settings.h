@@ -30,12 +30,15 @@ public:
 	KeySetting turnRightKey;
 	KeySetting shootKey;
 	KeySetting inGameMenuKey;
+/*
 	KeySetting abilityForwardKey;
 	KeySetting abilityLeftKey;
 	KeySetting abilityRightKey;
 	KeySetting abilityBackwardKey;
+	*/
 	KeySetting scoreBoardKey;
 	KeySetting toggleGUIKey;
+	KeySetting precisionTurnKey;
 
 	StringSetting username;
 

@@ -99,6 +99,4 @@ public:
 	int lastPing = -1;
 
 	bool hidden = false;
-
-	void test();
 };

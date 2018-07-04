@@ -17,8 +17,9 @@ struct Input {
 	bool abilityLeft = false;
 	bool abilityBackward = false;
 	bool abilityRight = false;
+	bool precisionTurn = false;
 
-	bool any() { return (moveForward || turnLeft || turnRight || shooting || abilityForward || abilityLeft || abilityBackward || abilityRight); }
+	bool any() { return (moveForward || turnLeft || turnRight || shooting || abilityForward || abilityLeft || abilityBackward || abilityRight || precisionTurn); }
 };
 
 struct InputResponse {
@@ -28,7 +29,7 @@ struct InputResponse {
 
 class Game : public FpsCounter, public Closeable {
 public:
-	Game() { goManager.init(this); }
+	Game();
 
 	virtual void loop() = 0;
 
@@ -39,6 +40,8 @@ public:
 	TestLevel level;
 
 	Scores scores;
+
+	bool isServer() { return isserver; }
 
 protected:
 	virtual void spawnShip(sf::Uint8 clientId) = 0;
@@ -53,8 +56,11 @@ protected:
 
 	void collisionDetectAll(std::unordered_map<Team::Id, Team>& teams);
 
+	void updateAllHitboxPositions();
+
 	virtual void onBulletCollision(Bullet& bullet, Ship& targetShip) = 0;
-	virtual void onShipCollision(Ship& s1, Ship& s2) = 0;
+	virtual void onShipToShipCollision(Ship& s1, Ship& s2) = 0;
+	virtual void onShipToGroundCollision(Ship& ship) = 0;
 
 	void quit();
 
@@ -64,5 +70,10 @@ protected:
 	
 	// checks timers and spawns ships if timer allows
 	virtual void handleSpawnTimers(float dt);
+
+	// Moves ship back to spawn point and removes velocity and acceleration
+	void resetShipTransform(Ship& ship);
+
+	bool isserver = false;
 };
 

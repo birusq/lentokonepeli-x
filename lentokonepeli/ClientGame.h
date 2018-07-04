@@ -7,7 +7,7 @@
 
 class ClientGame : public Game {
 public:
-	ClientGame(std::string hostIp_);
+	ClientGame(RakNet::SystemAddress hostAddress_);
 
 	void loop();
 
@@ -34,15 +34,16 @@ public:
 
 protected:
 	void onBulletCollision(Bullet& bullet, Ship& targetShip) override;
-	void onShipCollision(Ship& s1, Ship& s2) override;
+	void onShipToShipCollision(Ship& s1, Ship& s2) override;
+	void onShipToGroundCollision(Ship& ship) override;
 	void onQuit() override;
 private:
 
 	void applyServerStates(ServerShipStates& sss);
 
-	std::string hostIp;
-
 	void render(sf::RenderWindow& window, float dt);
+
+	void drawMinimap(sf::RenderWindow& window);
 
 	Input processInput();
 
@@ -61,4 +62,13 @@ private:
 	void handleSpawnTimers(float dt) override;
 
 	void handleKeyEvents(sf::Event& event);
+
+	RakNet::SystemAddress hostAddress;
+
+	// Let gui scale affect also gui drawn with sfml
+	void upateSFMLGUIScale();
+
+	sf::Vector2f minimapSizeScreenFactor;
+
+	float guiScale = 1.0F;
 };

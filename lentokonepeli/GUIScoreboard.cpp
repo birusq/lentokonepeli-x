@@ -22,6 +22,7 @@ GUIScoreboard::GUIScoreboard(tgui::Panel::Ptr parentPanel_): parentPanel{ parent
 			auto label = tgui::Label::create("RED TEAM");
 			parentPanel->add(label);
 			label->getRenderer()->setTextColor(palette::red);
+			//label->getRenderer()->setBackgroundColor(tgui::Color(0,0,0,100));
 			label->setPosition("&.width/4 - width/2", "&.height * 0.05 - height/2");
 			label->setTextSize(20);
 			listPanelParents[teamId]->setPosition(0, "9%");
@@ -29,7 +30,8 @@ GUIScoreboard::GUIScoreboard(tgui::Panel::Ptr parentPanel_): parentPanel{ parent
 		else if(i == 2) {
 			auto label = tgui::Label::create("BLUE TEAM");
 			parentPanel->add(label);
-			label->getRenderer()->setTextColor(palette::blue);
+			label->getRenderer()->setTextColor(palette::blue);							
+			//label->getRenderer()->setBackgroundColor(tgui::Color(0, 0, 0, 100));
 			label->setPosition("&.width/4 * 3 - width/2", "&.height * 0.05 - height/2");
 			label->setTextSize(20);
 			listPanelParents[teamId]->setPosition("50.1%", "9%");

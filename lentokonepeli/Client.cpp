@@ -20,7 +20,7 @@ void Client::init(ClientGame* game_) {
 		console::log("Raknet could not be started, error code: " + (int)res);
 	}
 	else {
-		console::log("Client started");
+		console::log("Client initalized");
 	}
 
 	for (int i = 0; i < Team::TEAMS_SIZE; i++) {
@@ -39,22 +39,16 @@ Client::~Client() {
 	RakPeerInterface::DestroyInstance(peer);
 }
 
-void Client::start(std::string hostIp, RakString username) {
+void Client::start(SystemAddress hostAddress, RakString username) {
 	myUsername = username;
 
-	std::string connectToIp = hostIp;
-#ifdef _DEBUG
-	if (hostIp == "") {
-		connectToIp = peer->GetLocalIP(0);
-	}
-#endif
-	if (hostIp == "local" || hostIp == "localhost") {
-		connectToIp = peer->GetLocalIP(0);
-	}
-
-	ConnectionAttemptResult res = peer->Connect(connectToIp.c_str(), SERVER_PORT, 0, 0);
+	ConnectionAttemptResult res = peer->Connect(hostAddress.ToString(false), hostAddress.GetPort(), 0, 0);
 	if (res != ConnectionAttemptResult::CONNECTION_ATTEMPT_STARTED) {
 		console::dlog("Couldn't create connection, error: " + std::to_string((int)res));
+	}
+	else {
+		console::stream << "Trying to join address " << hostAddress.ToString(false) << " on port " << hostAddress.GetPort();
+		console::logStream();
 	}
 	peer->SetOccasionalPing(true);
 }
@@ -82,7 +76,7 @@ void Client::update() {
 		MessageID packetId = getPacketIdentifier(packet);
 
 		if (packetId == ID_CONNECTION_ATTEMPT_FAILED) {
-			console::log("Connection failed, possible causes:\nincorrect ip address,\nserver isn't running,\nserver hasn't opened ports 65000 - 65535");
+			console::log("Connection failed, possible causes:\nincorrect ip address,\nincorrect port number\nserver isn't running,\nserver hasn't opened the port " + std::to_string(master->hostAddress.GetPort()));
 		}
 		else if (packetId == ID_CONNECTION_REQUEST_ACCEPTED) {
 			console::log("Connection accepted");

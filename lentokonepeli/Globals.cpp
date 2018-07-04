@@ -2,10 +2,11 @@
 #include "Globals.h"
 
 namespace palette {
-	sf::Color red = sf::Color(255, 58, 58);
-	sf::Color blue = sf::Color(30, 101, 255);
+	sf::Color red = sf::Color(255, 56, 56);
+	sf::Color blue = sf::Color(55, 82, 255);
 	sf::Color strongGrey = sf::Color(62, 65, 71);
-}
+	sf::Color yellow = sf::Color(252, 205, 37);
+}	
 
 namespace g {
 
@@ -14,6 +15,6 @@ namespace g {
 	const std::string version = "0.6-alpha";
 	
 	void init() {
-		font.loadFromFile("res/verdana.ttf");
+		font.loadFromFile("res/verdana.ttf");		
 	}
 }

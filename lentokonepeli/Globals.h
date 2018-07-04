@@ -8,6 +8,7 @@ namespace palette {
 	extern sf::Color red;
 	extern sf::Color blue;
 	extern sf::Color strongGrey;
+	extern sf::Color yellow;
 }
 
 namespace g {

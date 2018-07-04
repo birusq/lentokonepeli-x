@@ -37,6 +37,11 @@ namespace console {
 		stream.str("");
 	}
 
+	void logStream() {
+		log(stream.str());
+		stream.str("");
+	}
+
 	std::ostringstream stream;
 
 	tgui::ChatBox::Ptr* currentOut;

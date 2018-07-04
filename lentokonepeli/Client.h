@@ -23,7 +23,7 @@ public:
 
 	void init(ClientGame* game_);
 
-	void start(std::string hostIp, RakString username);
+	void start(SystemAddress hostIp, RakString username);
 
 	void update() override;
 

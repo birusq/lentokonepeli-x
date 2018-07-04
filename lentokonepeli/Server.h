@@ -19,14 +19,13 @@ public:
 
 	void init(ServerGame* game_);
 
-	void start(sf::Uint8 maxClients);
+	void start(sf::Uint8 maxClients, unsigned short port = SERVER_DEFAULT_PORT);
 	
 	std::unordered_map<sf::Uint8, std::deque<ShipState>> shipStateJitterBuffers;
 
 	void broadcastShipStates(ServerShipStates& newStates);
 
-	void sendBulletHitShip(Bullet* bullet, Ship* targetShip);
-	void sendShipsCollided(Ship* s1, bool s1Immune, Ship* s2, bool s2Immune);
+	void sendDamage(DamageMessage& dmg);
 
 	void sendShipSpawn(sf::Uint8 clientId, bool canSpawn, float timeUntilSpawn, SystemAddress toAddress = UNASSIGNED_SYSTEM_ADDRESS, bool broadcast = true);
 

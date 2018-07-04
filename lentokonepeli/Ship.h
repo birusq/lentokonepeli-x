@@ -6,7 +6,6 @@
 #include "Team.h"
 #include "Weapon.h"
 #include "FlickerCountdownTimer.h"
-#include <map>
 #include "Scores.h"
 
 struct User;
@@ -33,7 +32,7 @@ public:
 
 	void onDeath() override;
 
-	void draw(sf::RenderTarget& target);
+	void draw(sf::RenderTarget& target, bool minimapPass);
 
 	// heals to full and enables hitbox
 	void respawn();
@@ -54,7 +53,7 @@ public:
 	// This ship instance is running in a server (not in client machine)
 	bool inServer = false;
 
-	float turnSpeed = 180.0F;
+	float turnSpeed = 220.0F;
 	float turnSmoothingFrames = 4.0F;
 
 	int bodyHitDamage = 40;
@@ -68,6 +67,8 @@ public:
 	float assistTimeLimit = 6.0F;
 
 	void setBodyTexture(float rotation);
+
+	void multiplyGUIScale(float multiplier);
 
 private:
 
@@ -87,6 +88,8 @@ private:
 	sf::RectangleShape healthBarBG;
 	float hbMaxLength = 14.0F;
 	float hbBorderSize = 0.5F;
+
+	sf::RectangleShape minimapBlob;
 
 	CountdownTimer visualDmgTimer = CountdownTimer(0.04F);
 

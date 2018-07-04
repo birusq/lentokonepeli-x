@@ -11,9 +11,7 @@
 Ship::Ship(Game* game_, sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : owner{ owner_ }, game{ game_ }, teamId{ teamId_ } {
 	weapon = std::make_unique<DefaultGun>(&(game->goManager), owner->clientId);
 
-	if(dynamic_cast<ServerGame*>(game) != nullptr) {
-		inServer = true;
-	}
+	inServer = game->isServer();
 
 	pTransId = pTransId_;
 	gravity = true;
@@ -37,6 +35,9 @@ Ship::Ship(Game* game_, sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : 
 
 		healthBarBG = sf::RectangleShape(sf::Vector2f(healthBar.getSize().x + hbBorderSize * 2.0F, healthBar.getSize().y + hbBorderSize * 2.0F));
 		healthBarBG.setFillColor(palette::strongGrey);
+
+		minimapBlob = sf::RectangleShape(sf::Vector2f(6, 20));
+		minimapBlob.setOrigin(minimapBlob.getSize() / 2.0F);
 	}
 	assignTeam(teamId);
 }
@@ -45,11 +46,17 @@ void Ship::assignTeam(Team::Id teamId_) {
 	teamId = teamId_;
 
 	if(!inServer) {
-		if(teamId == Team::RED_TEAM) {
+		if(localPlayer) {
+			healthBar.setFillColor(palette::yellow);
+			minimapBlob.setFillColor(palette::yellow);
+		}
+		else if(teamId == Team::RED_TEAM) {
 			healthBar.setFillColor(palette::red);
+			minimapBlob.setFillColor(palette::red);
 		}
 		else if(teamId == Team::BLUE_TEAM) {
 			healthBar.setFillColor(palette::blue);
+			minimapBlob.setFillColor(palette::blue);
 		}
 		std::shared_ptr<sf::Texture> tex = master->fileLoader.getTexture("ship_atlas.png");
 		if(tex != nullptr) {
@@ -70,70 +77,79 @@ void Ship::assignTeam(Team::Id teamId_) {
 	}
 }
 
-void Ship::draw(sf::RenderTarget& target) {
-	if (localPlayer) {
-		master->soundPlayer.updateListenerPos(getPosition());
+void Ship::draw(sf::RenderTarget& target, bool minimapPass) {
+	if(minimapPass) {
+		if(isDead() == false) {
+			minimapBlob.setPosition(getPosition());
+			minimapBlob.setRotation(getRotation());
+			target.draw(minimapBlob);
+		}
 	}
-	
-	if (isDead() == false) {
-		bool flicker = false;
-		if (static_cast<int>(ceilf(flickerTimer.getElapsedTime().asSeconds() / flickerInterval)) % 2 == 1) {
-			flicker = true;
+	else {
+
+		if(localPlayer) {
+			master->soundPlayer.updateListenerPos(getPosition());
 		}
 
-		weapon->setPosition(getRotationVector() * 5.0F + getPosition());
-		weapon->setRotation(getRotation());
+		if(isDead() == false) {
+			bool flicker = false;
+			if(static_cast<int>(ceilf(flickerTimer.getElapsedTime().asSeconds() / flickerInterval)) % 2 == 1) {
+				flicker = true;
+			}
 
-		//weapon->draw(target);
+			weapon->setPosition(getRotationVector() * 5.0F + getPosition());
+			weapon->setRotation(getRotation());
 
-		body.setPosition(getPosition());
-		body.setRotation(getRotation());
+			//weapon->draw(target);
 
-		if (respawnAnimTimer.flickerOff() && bodyHitImmunityTimer.flickerOff() && visualDmgTimer.isDone()) {
-			setBodyTexture(getRotation());
-			target.draw(body);
-		}
+			body.setPosition(getPosition());
+			body.setRotation(getRotation());
 
-		if (throttle) {
-			master->soundPlayer.playThrottle(getPosition(), owner->clientId);
-			exhaustFlame.setPosition(getPosition());
-			exhaustFlame.setRotation(getRotation() - 90.0F);
-			if(flicker)
-				exhaustFlame.setTextureRect(sf::IntRect(0,0,32,32));
-			else
-				exhaustFlame.setTextureRect(sf::IntRect(32, 0, 32, 32));
-			target.draw(exhaustFlame);
+			if(respawnAnimTimer.flickerOff() && bodyHitImmunityTimer.flickerOff() && visualDmgTimer.isDone()) {
+				setBodyTexture(getRotation());
+				target.draw(body);
+			}
+
+			if(throttle) {
+				master->soundPlayer.playThrottle(getPosition(), owner->clientId);
+				exhaustFlame.setPosition(getPosition());
+				exhaustFlame.setRotation(getRotation() - 90.0F);
+				if(flicker)
+					exhaustFlame.setTextureRect(sf::IntRect(0, 0, 32, 32));
+				else
+					exhaustFlame.setTextureRect(sf::IntRect(32, 0, 32, 32));
+				target.draw(exhaustFlame);
+			}
+			else {
+				master->soundPlayer.stopThrottle(owner->clientId);
+			}
+
+			healthBar.setPosition(getPosition().x - hbMaxLength / 2.0F, getPosition().y - 10.0F);
+			healthBarBG.setPosition(healthBar.getPosition().x - hbBorderSize, healthBar.getPosition().y - hbBorderSize);
+
+			usernameLabel.setPosition(getPosition().x, getPosition().y - 12.0F);
+
+			if(master->gui.hidden == false) {
+				target.draw(healthBarBG);
+				target.draw(healthBar);
+				target.draw(usernameLabel);
+			}
 		}
 		else {
 			master->soundPlayer.stopThrottle(owner->clientId);
 		}
-
-		healthBar.setPosition(getPosition().x - hbMaxLength / 2.0F, getPosition().y - 10.0F);
-		healthBarBG.setPosition(healthBar.getPosition().x - hbBorderSize, healthBar.getPosition().y - hbBorderSize);
-
-		usernameLabel.setPosition(getPosition().x, getPosition().y - 12.0F);
-
-		if(master->gui.hidden == false) {
-			target.draw(healthBarBG);
-			target.draw(healthBar);
-			target.draw(usernameLabel);
-		}
-	}
-	else {
-		timeAlive.restart();
-		master->soundPlayer.stopThrottle(owner->clientId);
 	}
 }
 
 void Ship::updateHitbox() {
 	if(isDead()) {
+		timeAlive.restart();
 		weapon->shipFullyAlive = false;
 		return;
 	}
 
 	hitbox.setRotation(getRotation());
 	hitbox.setPosition(getPosition());
-
 
 	// Weapon can shoot when fully alive
 	// Call this here so it gets called both from client and server
@@ -183,6 +199,10 @@ void Ship::setBodyTexture(float rotation) {
 	}
 }
 
+void Ship::multiplyGUIScale(float multiplier) {
+	//TODO: make health bars and names work with gui scaling
+}
+
 void Ship::onCollision() {
 	
 }
@@ -192,7 +212,6 @@ void Ship::respawn() {
 	hitboxDisabled = false;
 	healthBar.setSize(sf::Vector2f(health / maxHealth * hbMaxLength, healthBar.getSize().y));
 	respawnAnimTimer.start();
-	timeAlive.restart();
 	dmgContributors.clear();
 }
 
@@ -225,7 +244,7 @@ void Ship::takeDmg(int dmg, DamageType dmgType, sf::Uint8 dmgDealer) {
 				}
 			}
 			dmgContributors.insert(dmgContributors.begin(), contributor);
-			dmgContributors[0].timer.start(assistTimeLimit + 100);
+			dmgContributors[0].timer.start(assistTimeLimit);
 		}
 	}
 

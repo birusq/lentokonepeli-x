@@ -11,20 +11,22 @@ void SoundPlayer::init() {
 }
 
 void SoundPlayer::playThrottle(const sf::Vector2f& pos, int id) {
-	if (throttleSounds.count(id) == 0) {
-		throttleSounds[id].setBuffer(buffers["throttle"]);
-		throttleSounds[id].setLoop(true);
-		throttleSounds[id].setVolume(10);
-		throttleSounds[id].setAttenuation(0.7F);
-		throttleSounds[id].setMinDistance(10.0F);
-	}
-	sf::Sound& sound = throttleSounds.at(id);
+	if(master->window.hasFocus()) {
+		if(throttleSounds.count(id) == 0) {
+			throttleSounds[id].setBuffer(buffers["throttle"]);
+			throttleSounds[id].setLoop(true);
+			throttleSounds[id].setVolume(10);
+			throttleSounds[id].setAttenuation(0.7F);
+			throttleSounds[id].setMinDistance(10.0F);
+		}
+		sf::Sound& sound = throttleSounds.at(id);
 
-	sound.setPosition(pos.x, 0, pos.y);
-	applySpacializationCutoff(sound);
+		sound.setPosition(pos.x, 0, pos.y);
+		applySpacializationCutoff(sound);
 
-	if (sound.getStatus() != sf::SoundSource::Status::Playing) {
-		sound.play();
+		if(sound.getStatus() != sf::SoundSource::Status::Playing) {
+			sound.play();
+		}
 	}
 }
 	
@@ -37,15 +39,22 @@ void SoundPlayer::stopThrottle(int id) {
 }
 
 void SoundPlayer::playSound(const sf::Vector2f& pos, std::string name) {
-	deleteOldSounds();
-	sounds.push_back(sf::Sound(buffers.at(name)));
-	sf::Sound& sound = sounds.front();
-	sound.setPosition(pos.x, 0, pos.y);
-	applySpacializationCutoff(sound);
-	sound.setAttenuation(0.7F);
-	sound.setMinDistance(20.0F);
-	sound.setVolume(100);
-	sound.play();
+	if(master->window.hasFocus()) {
+		if(buffers.count(name) == 1) {
+			deleteOldSounds();
+			sounds.push_back(sf::Sound(buffers.at(name)));
+			sf::Sound& sound = sounds.front();
+			sound.setPosition(pos.x, 0, pos.y);
+			applySpacializationCutoff(sound);
+			sound.setAttenuation(0.7F);
+			sound.setMinDistance(20.0F);
+			sound.setVolume(100);
+			sound.play();
+		}
+		else {
+			throw std::invalid_argument("Sound named \"" + name + "\" does not exist");
+		}
+	}
 }
 
 void SoundPlayer::deleteOldSounds() {

@@ -136,7 +136,7 @@ void GUI::initMainMenu() {
 	logo->setTextSize(25);
 	logo->setPosition("(&.width - width)/2", "16%");
 	
-	auto usernameLabel = tgui::Label::create("choose username");
+	auto usernameLabel = tgui::Label::create("Choose username");
 	usernameLabel->getRenderer()->setTextColor(tgui::Color::White);
 	mainMenuPanel->add(usernameLabel);
 	usernameLabel->setPosition("(&.width - width)/2", tgui::bindBottom(logo) + 40);
@@ -153,11 +153,12 @@ void GUI::initMainMenu() {
 
 	auto joinIpLabel = tgui::Label::copy(usernameLabel);
 	mainMenuPanel->add(joinIpLabel);
-	joinIpLabel->setText("choose ip to join");
+	joinIpLabel->setText("Choose ip to join");
 	joinIpLabel->setPosition("(&.width - width)/2", tgui::bindBottom(usernameEditBox) + 40);
 
 	joinIpEditBox = tgui::EditBox::copy(usernameEditBox);
 	mainMenuPanel->add(joinIpEditBox);
+	joinIpEditBox->setDefaultText("eg. 127.0.0.1#62000");
 	joinIpEditBox->setMaximumCharacters(0);
 	joinIpEditBox->setText("");
 	joinIpEditBox->setPosition("(&.width - width)/2", tgui::bindBottom(joinIpLabel));
@@ -490,29 +491,44 @@ void GUI::hostButtonPressed() {
 }
 
 void GUI::clientButtonPressed() {
-	std::string joinIp = joinIpEditBox->getText();
-#ifndef _DEBUG 
-	if(joinIp.size() == 0) {
-		joinIpEditBox->setDefaultText("Type ip here");
-		joinIpEditBox->setAlignment(tgui::EditBox::Alignment::Center);
+	std::string joinAddress = joinIpEditBox->getText();
+#ifdef _DEBUG
+	if(joinAddress.size() == 0) {
+		joinAddress = "127.0.0.1#62000";
+	}
+#else
+	if(joinAddress.size() == 0) {
+		joinIpEditBox->getRenderer()->setBorderColor(tgui::Color::Red);
 		return;
 	}
 #endif
+
+	std::size_t pos = joinAddress.find("localhost");
+	if(pos != std::string::npos) {
+		joinAddress.replace(pos, 9, "127.0.0.1");
+	}
+
+
 	RakNet::SystemAddress address;
+	if(address.FromString(joinAddress.c_str(), '#')) {
 
-	sf::String str = usernameEditBox->getText();
-	str.replace(" ", "_");
+		sf::String str = usernameEditBox->getText();
+		str.replace(" ", "_");
 
-	if (str.getSize() > 0) {
-		master->settings.username.setValue(str);
+		if(str.getSize() > 0) {
+			master->settings.username.setValue(str);
+		}
+		else {
+			master->settings.username.setValue("*");
+		}
+
+		showClient();
+		master->launchClient(address);
+		host = false;
 	}
 	else {
-		master->settings.username.setValue("*");
+		joinIpEditBox->getRenderer()->setBorderColor(tgui::Color::Red);
 	}
-
-	showClient();
-	master->launchClient(joinIp);
-	host = false;
 }
 
 void GUI::onCLIInput() {

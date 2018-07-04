@@ -6,6 +6,7 @@ public:
 		DMG_UNIDENTIFIED,
 		DMG_BULLET,
 		DMG_SHIP_COLLISION,
+		DMG_GROUND_COLLISION,
 		DMG_SNEAKY //show no visuals and play no audio
 	};
 
