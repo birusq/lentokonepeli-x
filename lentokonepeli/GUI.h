@@ -39,8 +39,6 @@ private:
 	tgui::Panel::Ptr cPanel;
 	tgui::ChatBox::Ptr chatBox;
 	tgui::EditBox::Ptr chatBoxInput;
-	tgui::Panel::Ptr chooseTeamPanel;
-	tgui::Panel::Ptr escMenuPanel;
 	tgui::Label::Ptr spawnTimeLabel;
 	tgui::Panel::Ptr scoreboardPanel;
 
@@ -65,6 +63,8 @@ private:
 	float menuScale = 1.0F;
 	float clientScale = 1.0F;
 
+	std::unordered_map<std::string, tgui::Panel::Ptr> panels;
+
 public:
 	void init();
 	void draw(float dt);
@@ -73,13 +73,13 @@ public:
 
 	void teamJoinAccepted();
 
-	void toggleEscMenu();
-	void showEscMenu();
-	void hideEscMenu();
-
 	void toggleScoreboard();
 	void showScoreboard();
 	void hideScoreboard();
+
+	void togglePanel(std::string panelName);
+	void showPanel(std::string panelName);
+	void hidePanel(std::string panelName);
 
 	void showKillFeedMessage(std::string s1, std::string s2, std::string s3, sf::Color s1color, sf::Color s2color, sf::Color s3color);
 	void showPointFeedMessage(std::string msg);

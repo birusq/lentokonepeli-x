@@ -14,7 +14,7 @@ public:
 	GOManager* goManager;
 
 	sf::Uint16 damage = 10;
-	float speed = 110.0F;
+	float speed = 140.0F;
 	float lifeTime = 3.0F;
 	sf::Clock lifeTimeCounter;
 

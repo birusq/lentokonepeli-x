@@ -12,9 +12,10 @@ namespace g {
 
 	sf::Font font;
 
-	const std::string version = "0.6-alpha";
+	// Don't use "v" prefix here
+	const std::string version = "0.8-alpha";
 	
 	void init() {
-		font.loadFromFile("res/verdana.ttf");		
+		font.loadFromFile("res/verdana.ttf");
 	}
 }

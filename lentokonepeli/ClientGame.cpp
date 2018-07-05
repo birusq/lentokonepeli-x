@@ -73,10 +73,6 @@ void ClientGame::onDamage(DamageMessage& dmg) {
 		}
 		else if(goManager.ships.count(dmg.dealerId) == 1) {
 			goManager.ships[dmg.targetId].takeDmg(dmg.damage, dmg.damageType, dmg.dealerId);
-
-			if(dmg.damageType == Damageable::DMG_BULLET && client.isMyId(dmg.dealerId)) {
-				master->soundPlayer.playSound(goManager.ships[dmg.dealerId].getPosition(), "hitConfirm");
-			}
 		}
 	}
 }
@@ -84,13 +80,14 @@ void ClientGame::onDamage(DamageMessage& dmg) {
 void ClientGame::onConnectionComplete() {
 	goManager.createShip(*client.getMyUser());
 	goManager.ships.at(client.getMyId()).localPlayer = true;
+	master->gui.showPanel("chooseTeam");
 }
 
 void ClientGame::spawnShip(sf::Uint8 clientId) {
 	Ship& ship = goManager.ships.at(clientId);
 
 	if(client.isMyId(ship.owner->clientId)) {
-		goManager.previousPTransformsState.at(ship.pTransId).gravity = false; // Prevents dropping after spawn before user has pressed gas
+		goManager.currentPTransformsState.at(ship.pTransId).gravity = false; // Prevents dropping after spawn before user has pressed gas
 		master->gui.updateSpawnTimeLabel(false, -1.0F);
 	}
 	resetShipTransform(ship);
@@ -213,19 +210,14 @@ void ClientGame::fixedUpdate(float dt) {
 
 		// Update my game with server states
 		if (client.serverStateJitterBuffer.size() > 0) {
-			applyServerStates(client.serverStateJitterBuffer.front());
-			client.serverStateJitterBuffer.pop_front();
+			if(client.serverStateJitterBuffer.back().second != nullptr) {
+				applyServerStates(*client.serverStateJitterBuffer.back().second);
+				client.serverStateJitterBuffer.pop_back();
+			}
 		}
 
 		// Integration
 		for (auto& pair : goManager.currentPTransformsState) {
-			// Is ship is dead, dont integrate
-			if (Ship* s = dynamic_cast<Ship*>(goManager.pTransPointers.at(pair.second.pTransId))) {
-				if (s->isDead()) {
-					continue;
-				}
-			}
-
 			integrate(pair.second, dt);
 		}
 
@@ -236,6 +228,7 @@ void ClientGame::fixedUpdate(float dt) {
 
 		//Send my state to server
 		ShipState ss = goManager.getShipState(client.getMyId());
+
 		ss.throttle = input.moveForward;
 		if (inputRes.bulletId != -1) {
 			ss.shoot = true;
@@ -328,7 +321,7 @@ Input ClientGame::processInput() {
 InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	InputResponse res; // bulletId automatically -1
 
-	if (ship.isDead() && input.any()) {
+	if (ship.isDead() && input.shooting) {
 		if (spawnRequestTimer.getElapsedTime().asSeconds() > spawnRequestBlockDuration) {
 			client.requestSpawn();
 			spawnRequestTimer.restart();
@@ -341,7 +334,7 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	sf::Vector2f tempForceOnSelf;
 
 	if (input.moveForward) {
-		tempForceOnSelf += currTrans.getRotationVector() * 30.0F;
+		tempForceOnSelf += currTrans.getRotationVector() * ship.throttleForce;
 		improveHandling(ship);
 #ifndef _DEBUG
 		currTrans.gravity = true; // User has most likely left spawn, can apply gravity
@@ -379,7 +372,7 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 			currTrans.angularVelocity = ship.turnSpeed * turnSpeedModif;
 		}
 	}
-
+	/*
 	if (input.abilityLeft) {
 		tempForceOnSelf += sf::Vector2f(-10, 0) * dt;
 		console::dlog("abilityLeft");
@@ -388,6 +381,7 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 		tempForceOnSelf += sf::Vector2f(10, 0) * dt;
 		console::dlog("abilityRight");
 	}
+	*/
 
 	if (input.shooting) {
 		res.bulletId =  ship.weapon->shoot(); // shoots only if firerate allows
@@ -471,7 +465,7 @@ void ClientGame::handleSpawnTimers(float dt) {
 void ClientGame::handleKeyEvents(sf::Event& event) {
 	if(event.type == sf::Event::KeyPressed) {
 		if(event.key.code == master->settings.inGameMenuKey) {
-			master->gui.toggleEscMenu();
+			master->gui.togglePanel("inGameMenu");
 		}
 		if(event.key.code == master->settings.scoreBoardKey) {
 			master->gui.showScoreboard();

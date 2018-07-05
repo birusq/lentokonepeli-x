@@ -53,6 +53,8 @@ public:
 	// This ship instance is running in a server (not in client machine)
 	bool inServer = false;
 
+	float throttleForce = 30.0F;
+
 	float turnSpeed = 220.0F;
 	float turnSmoothingFrames = 4.0F;
 

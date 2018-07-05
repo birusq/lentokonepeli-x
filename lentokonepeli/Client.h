@@ -33,12 +33,14 @@ public:
 
 	User* const getMyUser() { return &users.at(myId); }
 
-	std::deque<ServerShipStates> serverStateJitterBuffer;
-	const unsigned int jitterBufferMaxSize = 3;
+	const unsigned int jitterBufferMaxSize = 4;
+	std::vector<std::pair<sf::Uint16, std::shared_ptr<ServerShipStates>>> serverStateJitterBuffer;
 
 	int lastPing = -1;
 
 	void requestTeamJoin(Team::Id toTeam);
+
+	bool teamJoinInProgress = false;
 
 	// Server responds to this with seconds until can respawn, negative if already can
 	void requestSpawn();
@@ -68,4 +70,6 @@ private:
 	void processScoresUpdate(Packet* packet);
 
 	RakNetGUID hostguid;
+
+	sf::Uint16 currentSeqNum = 0;
 };

@@ -1,0 +1,6 @@
+1. Make sure Google drive directory Lentokonepeli_resources has all needed files (they are fetched to release folder)
+1. Set version to the right value in Globals.cpp
+2. Build release in Visual Studio IDE
+3. Run releaseWorkflow.ps1 and give it the right version value (don't use "v" prefix)
+4. Update project-timestamps.json in website folder
+5. Update website with serverUpdate.ps1

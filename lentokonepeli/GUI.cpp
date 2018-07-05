@@ -80,9 +80,9 @@ void GUI::updateScale() {
 	if(cPanel) {
 		float mp = newScale / clientScale;
 		multiplySize(cPanel, mp);
-		multiplySize(escMenuPanel, mp);
-		escMenuPanel->setSize({ "100%", "100%" });
-		multiplySize(chooseTeamPanel, mp);
+		multiplySize(panels["inGameMenu"], mp);
+		panels["inGameMenu"]->setSize({ "100%", "100%" });
+		multiplySize(panels["chooseTeam"], mp);
 		pointFeed->setScale(newScale);
 		killFeed->setScale(newScale);
 		scoreBoard->setScale(newScale);
@@ -306,42 +306,43 @@ void GUI::initClient() {
 
 	scoreBoard = std::make_unique<GUIScoreboard>(scoreboardPanel);
 
-	chooseTeamPanel = tgui::Panel::create({ 600, 400 });
-	cPanel->add(chooseTeamPanel);
-	chooseTeamPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
-	chooseTeamPanel->getRenderer()->setBackgroundColor(greySeethrough);
+	panels["chooseTeam"] = tgui::Panel::create({ 600, 400 });
+	cPanel->add(panels["chooseTeam"]);
+	panels["chooseTeam"]->setPosition("(&.width - width)/2", "(&.height - height)/2");
+	panels["chooseTeam"]->getRenderer()->setBackgroundColor(greySeethrough);
+	panels["chooseTeam"]->hide();
 
 	auto chooseTeamLabel = tgui::Label::create("Choose team");
-	chooseTeamPanel->add(chooseTeamLabel);
+	panels["chooseTeam"]->add(chooseTeamLabel);
 	chooseTeamLabel->getRenderer()->setTextColor(tgui::Color::White);
 	chooseTeamLabel->setTextSize(20);
 	chooseTeamLabel->setPosition("(&.width - width)/2", "20%");
 
-	auto redTeamButton = createButton(chooseTeamPanel, "Red", 34, palette::red, false);
+	auto redTeamButton = createButton(panels["chooseTeam"], "Red", 34, palette::red, false);
 	redTeamButton->setSize(250, 150);
 	redTeamButton->setPosition("&.width/4 - width/2", "40%");
 	redTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::RED_TEAM); });
 
-	auto blueTeamButton = createButton(chooseTeamPanel, "Blue", 34, palette::blue, false);
+	auto blueTeamButton = createButton(panels["chooseTeam"], "Blue", 34, palette::blue, false);
 	blueTeamButton->setSize(250, 150);
 	blueTeamButton->setPosition("&.width*3/4 - width/2", "40%");
 	blueTeamButton->connect("pressed", [&]() { client->requestTeamJoin(Team::BLUE_TEAM); });
 	
-	escMenuPanel = tgui::Panel::create();
-	cPanel->add(escMenuPanel);
-	escMenuPanel->hide();
-	escMenuPanel->getRenderer()->setBackgroundColor(greySeethrough);
-	escMenuPanel->setPosition("(&.width - width)/2", "(&.height - height)/2");
+	panels["inGameMenu"] = tgui::Panel::create();
+	cPanel->add(panels["inGameMenu"]);
+	panels["inGameMenu"]->hide();
+	panels["inGameMenu"]->getRenderer()->setBackgroundColor(greySeethrough);
+	panels["inGameMenu"]->setPosition("(&.width - width)/2", "(&.height - height)/2");
 
-	auto resume = createButton(escMenuPanel, "Resume", 20, sf::Color::White, true);
+	auto resume = createButton(panels["inGameMenu"], "Resume", 20, sf::Color::White, true);
 	resume->setPosition("&.width/2 - width/2", "20%");
-	resume->connect("pressed", [&]() { hideEscMenu(); });
+	resume->connect("pressed", [&]() { hidePanel("inGameMenu"); });
 
-	auto quitToMainMenu = createButton(escMenuPanel, "Exit to main menu", 20, sf::Color::White, true);
+	auto quitToMainMenu = createButton(panels["inGameMenu"], "Exit to main menu", 20, sf::Color::White, true);
 	quitToMainMenu->setPosition("&.width/2 - width/2", bindBottom(resume) + bindHeight(resume));
 	quitToMainMenu->connect("pressed", [&]() { master->launchMainMenu(); });
 
-	auto quitToDesktop = createButton(escMenuPanel, "Quit to desktop", 20, sf::Color::White, true);
+	auto quitToDesktop = createButton(panels["inGameMenu"], "Quit to desktop", 20, sf::Color::White, true);
 	quitToDesktop->setPosition("&.width/2 - width/2", bindBottom(quitToMainMenu) + bindHeight(quitToMainMenu));
 	quitToDesktop->connect("pressed", [&]() { master->quit(); });
 	
@@ -349,29 +350,8 @@ void GUI::initClient() {
 }
 
 void GUI::teamJoinAccepted() {
-	chooseTeamPanel->hide();
+	hidePanel("chooseTeam");
 	updateSpawnTimeLabel(true, -1.0F);
-}
-
-void GUI::toggleEscMenu() {
-	if (escMenuPanel->isVisible()) {
-		hideEscMenu();
-	}
-	else {
-		showEscMenu();
-	}
-}
-
-void GUI::showEscMenu() {
-	if(escMenuPanel) {
-		escMenuPanel->show();
-	}
-}
-
-void GUI::hideEscMenu() {
-	if(escMenuPanel) {
-		escMenuPanel->hide();
-	}
 }
 
 void GUI::toggleScoreboard() {
@@ -393,6 +373,38 @@ void GUI::hideScoreboard() {
 		scoreboardPanel->hide();
 }
 
+void GUI::togglePanel(std::string panelName) {
+	if(panels.count(panelName) == 1) {
+		if(panels[panelName]->isVisible()) {
+			panels[panelName]->hide();
+		}
+		else {
+			panels[panelName]->show();
+		}
+	}
+	else {
+		console::dlog("Can't toggle gui panel \"" + panelName + "\", it doesn't exist" );
+	}
+}
+
+void GUI::showPanel(std::string panelName) {
+	if(panels.count(panelName) == 1) {
+		panels[panelName]->show();
+	}
+	else {
+		console::dlog("Can't show gui panel \"" + panelName + "\", it doesn't exist");
+	}
+}
+
+void GUI::hidePanel(std::string panelName) {
+	if(panels.count(panelName) == 1) {
+		panels[panelName]->hide();
+	}
+	else {
+		console::dlog("Can't hide gui panel \"" + panelName + "\", it doesn't exist");
+	}
+}
+
 void GUI::showKillFeedMessage(std::string s1, std::string s2, std::string s3, sf::Color s1color, sf::Color s2color, sf::Color s3color) {
 	int index = killFeed->addItem();
 	killFeed->editSubLabel(index, 0, s1, s1color);
@@ -412,7 +424,7 @@ void GUI::updateSpawnTimeLabel(bool setVisible, float timer) {
 		spawnTimeLabel->hide();
 
 	if (timer < -0.5F)
-		spawnTimeLabel->setText("Press any key to spawn");
+		spawnTimeLabel->setText("Press \"shoot\" key to spawn");
 	else {
 		std::stringstream ss;
 		ss << "Spawning in " << std::fixed << std::setprecision(2) << timer << " s";

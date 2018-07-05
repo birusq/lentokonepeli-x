@@ -21,7 +21,7 @@ public:
 
 	void start(sf::Uint8 maxClients, unsigned short port = SERVER_DEFAULT_PORT);
 	
-	std::unordered_map<sf::Uint8, std::deque<ShipState>> shipStateJitterBuffers;
+	std::unordered_map<sf::Uint8, std::vector<std::pair<sf::Uint16, std::shared_ptr<ShipState>>>> shipStateJitterBuffers;
 
 	void broadcastShipStates(ServerShipStates& newStates);
 
@@ -56,4 +56,7 @@ private:
 	void handleSpawnReq(Packet* packet);
 
 	int timer;
+
+	std::size_t jitterBufferMaxSize = 5;
+	sf::Uint16 currentSeqNum = 0;
 };

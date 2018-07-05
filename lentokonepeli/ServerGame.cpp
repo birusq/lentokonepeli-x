@@ -103,14 +103,14 @@ void ServerGame::spawnShip(sf::Uint8 clientId) {
 void ServerGame::shipsOutsideBoundsCheck() {
 	//Check level bounds
 	for(auto& pair : goManager.ships) {
-		if(pair.second.hitboxDisabled)
-			return;
+		if(pair.second.hitboxDisabled == false) {
 
-		sf::Vector2f pos = pair.second.hitbox.getPosition();
+			sf::Vector2f pos = pair.second.hitbox.getPosition();
 
-		if(pos.x < level.borderWidth || pos.x > level.width - level.borderWidth ||
-			pos.y < level.borderWidth || pos.y > level.height - level.borderWidth) {
-			onShipToGroundCollision(pair.second);
+			if(pos.x < level.borderWidth || pos.x > level.width - level.borderWidth ||
+				pos.y < level.borderWidth || pos.y > level.height - level.borderWidth) {
+				onShipToGroundCollision(pair.second);
+			}
 		}
 	}
 }
@@ -134,8 +134,10 @@ void ServerGame::fixedUpdate(float dt) {
 
 	for (auto& pair : server.shipStateJitterBuffers) {
 		if (pair.second.size() > 0) {
-			serverStates.states[pair.first] = pair.second.front();
-			pair.second.pop_front();
+			if(pair.second.back().second != nullptr) {
+				serverStates.states[pair.first] = *pair.second.back().second;
+			}
+			pair.second.pop_back();
 		}
 	}
 
@@ -168,23 +170,25 @@ void ServerGame::applyClientShipStates(ServerShipStates& sss, float dt) {
 			ShipState& shipState = sss.states[clientId];
 			Ship& ship = goManager.ships.at(clientId);
 
-			if (shipState.dead == false) {
+			if (!shipState.dead && !ship.isDead()) {
 				shipState.applyToPTrans(goManager.currentPTransformsState.at(ship.pTransId));
 				ship.setWeaponTrans(shipState.position, shipState.rotation);
 				if (shipState.shoot) {
 					ship.weapon->shoot(shipState.bulletId, false);
 				}
+				ship.throttle = shipState.throttle;
 			}
 		}
 		else {
-			integrate(goManager.ships.at(clientId), dt);
+			integrate(goManager.currentPTransformsState.at(goManager.ships.at(clientId).pTransId), dt);
 		}
 	}
 }
 
 void ServerGame::updateServerStates(ServerShipStates& sss) {
-	for (auto& pair : goManager.ships) {
+	for(auto& pair : goManager.ships) {
 		sss.states[pair.first].generateFromPTrans(pair.second);
+		sss.states[pair.first].throttle = pair.second.throttle;
 		sss.states[pair.first].dead = pair.second.isDead();
 	}
 }

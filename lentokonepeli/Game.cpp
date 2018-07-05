@@ -127,12 +127,12 @@ void Game::handleSpawnTimers(float dt) {
 
 void Game::resetShipTransform(Ship & ship) {
 	// Reset all transforms
-	PhysicsTransformable& ppTrans = goManager.previousPTransformsState.at(ship.pTransId);
-	ppTrans.setPosition(level.spawnPoints[ship.owner->teamId]);
-	ppTrans.setRotation(0);
-	ppTrans.setToRest();
+	PhysicsTransformable& cpTrans = goManager.currentPTransformsState.at(ship.pTransId);
+	cpTrans.setPosition(level.spawnPoints[ship.owner->teamId]);
+	cpTrans.setRotation(0);
+	cpTrans.setToRest();
 
-	goManager.currentPTransformsState.at(ship.pTransId) = ppTrans;
+	goManager.previousPTransformsState.at(ship.pTransId) = cpTrans;
 }
 
 void Game::quit() {

@@ -52,7 +52,7 @@ void SoundPlayer::playSound(const sf::Vector2f& pos, std::string name) {
 			sound.play();
 		}
 		else {
-			throw std::invalid_argument("Sound named \"" + name + "\" does not exist");
+			console::dlog("Sound named \"" + name + "\" does not exist");
 		}
 	}
 }

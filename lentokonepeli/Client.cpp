@@ -51,14 +51,21 @@ void Client::start(SystemAddress hostAddress, RakString username) {
 		console::logStream();
 	}
 	peer->SetOccasionalPing(true);
+
+#ifdef _DEBUG
+	peer->ApplyNetworkSimulator(0.05F, 30, 10);
+#endif // _DEBUG
 }
 
 void Client::requestTeamJoin(Team::Id toTeam) {
-	console::dlog("Sending team join request: " + std::to_string(toTeam));
-	BitStream bitStream;
-	bitStream.Write((MessageID)ID_JOIN_TEAM_REQUEST);
-	bitStream.Write((unsigned char)toTeam);
-	peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, hostguid, false);
+	if(!teamJoinInProgress) {
+		teamJoinInProgress = true;
+		console::dlog("Sending team join request: " + std::to_string(toTeam));
+		BitStream bitStream;
+		bitStream.Write((MessageID)ID_JOIN_TEAM_REQUEST);
+		bitStream.Write((unsigned char)toTeam);
+		peer->Send(&bitStream, MEDIUM_PRIORITY, RELIABLE, 0, hostguid, false);
+	}
 }
 
 void Client::requestSpawn() {
@@ -101,6 +108,7 @@ void Client::update() {
 		}
 		else if (packetId == ID_JOIN_TEAM_FAILED_TEAM_FULL) {
 			console::log("Couldn't join: team full");
+			teamJoinInProgress = false;
 		}
 		else if (packetId == ID_TEAM_UPDATE) {
 			processTeamUpdate(packet);
@@ -207,14 +215,55 @@ void Client::processTeamUpdate(Packet* packet) {
 void Client::processShipUpdate(Packet* packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
-	ServerShipStates sss;
-	sss.serialize(bitStream, false);
 
-	serverStateJitterBuffer.push_back(sss);
+	sf::Uint16 seqNum;
+	bitStream.Read(seqNum);
 
-	if (serverStateJitterBuffer.size() > jitterBufferMaxSize) {
-		serverStateJitterBuffer.pop_front();
+	auto newServerState = std::make_shared<ServerShipStates>();
+	newServerState->serialize(bitStream, false);
+
+	//console::dlog("Original seq: " + std::to_string((int)seqNum));
+
+	// Set state to the right position based on seqnumber, preserving order
+	if(serverStateJitterBuffer.size() == 0) {
+		serverStateJitterBuffer.push_back(std::make_pair(seqNum, newServerState));
 	}
+	else {
+		for(std::size_t i = 0; i < serverStateJitterBuffer.size(); i++) {
+			if(ph::seqGreaterThan(seqNum, serverStateJitterBuffer[i].first)) {
+				serverStateJitterBuffer.insert(serverStateJitterBuffer.begin() + i, std::make_pair(seqNum, newServerState));
+				break;
+			}
+			else if(seqNum == serverStateJitterBuffer[i].first) {
+				serverStateJitterBuffer[i] = std::make_pair(seqNum, newServerState);
+				break;
+			}
+		}
+	}
+
+	seqNum = serverStateJitterBuffer[0].first;
+
+	// fill gaps with nulls to prevent jumping
+	for(std::size_t i = 1; i < serverStateJitterBuffer.size(); i++) {
+		if(ph::seqGreaterThan(seqNum, serverStateJitterBuffer[i].first + 1)) {
+			serverStateJitterBuffer.insert(serverStateJitterBuffer.begin() + i, std::make_pair(seqNum - 1, nullptr));
+		}
+		seqNum--;
+	}
+
+	// Trim out too old messages
+	while(serverStateJitterBuffer.size() > jitterBufferMaxSize) {
+		serverStateJitterBuffer.pop_back();
+	}
+
+	// Debugging
+	/*for(std::size_t i = 0; i < serverStateJitterBuffer.size(); i++) {
+		std::string s = "";
+		if(serverStateJitterBuffer[i].second == nullptr) {
+			s = " = null";
+		}
+		console::dlog("Seq fixed: " + std::to_string((int)serverStateJitterBuffer[i].first) + s);
+	}*/
 
 	//console::dlog("Ship update received");
 }
@@ -286,7 +335,11 @@ void Client::processScoresUpdate(Packet * packet) {
 void Client::sendShipUpdate(ShipState& shipState) {
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_SHIP_UPDATE);
+	
+	bitStream.Write(currentSeqNum);
+	currentSeqNum++;
+
 	shipState.serialize(bitStream, true);
 
-	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, hostguid, false);
+	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE, 0, hostguid, false);
 }

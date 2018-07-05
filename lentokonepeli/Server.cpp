@@ -18,7 +18,7 @@ void Server::init(ServerGame* game_) {
 	master->gui.server = this;
 
 	peer = RakPeerInterface::GetInstance();
-	peer->SetUnreliableTimeout(10000);
+	peer->SetUnreliableTimeout(5000);
 }
 
 void Server::start(sf::Uint8 maxClients, unsigned short port) {
@@ -43,6 +43,10 @@ void Server::start(sf::Uint8 maxClients, unsigned short port) {
 	for (int i = 0; i < Team::TEAMS_SIZE; i++) {
 		teams[(Team::Id)i] = Team((Team::Id)i);
 	}
+
+#ifdef _DEBUG
+	peer->ApplyNetworkSimulator(0.05F, 30, 10);
+#endif // _DEBUG
 }
 
 void Server::changeTeam(Team::Id newTeam, sf::Uint8 clientId) {
@@ -124,6 +128,10 @@ void Server::handleUserUpdate(Packet* packet) {
 
 	if (newUser) {
 		game->onUserConnect(users[user.clientId]);
+
+		while (shipStateJitterBuffers[user.clientId].size() < jitterBufferMaxSize) {
+			shipStateJitterBuffers[user.clientId].push_back(std::make_pair(0, nullptr));
+		}
 
 		// send data of all users to new connected user
 		for (auto& pair : users) {
@@ -229,14 +237,55 @@ void Server::handleShipUpdate(Packet* packet) {
 	BitStream bitStream(packet->data, packet->length, false);
 	bitStream.IgnoreBytes(1);
 
-	ShipState newShipState;
-	newShipState.serialize(bitStream, false);
+	sf::Uint16 seqNum;
+	bitStream.Read(seqNum);
 
-	shipStateJitterBuffers[clientId].push_back(newShipState);
+	auto newShipState = std::make_shared<ShipState>();
+	newShipState->serialize(bitStream, false);
+	
+	console::dlog("Original seq: " + std::to_string((int)seqNum));
 
-	if (shipStateJitterBuffers[clientId].size() > 2) {
-		shipStateJitterBuffers[clientId].pop_front();
+	// Set state to the right position based on seqnumber, preserving order
+	if(shipStateJitterBuffers[clientId].size() == 0) {
+		shipStateJitterBuffers[clientId].push_back(std::make_pair(seqNum, newShipState));
 	}
+	else {
+		for(std::size_t i = 0; i < shipStateJitterBuffers[clientId].size(); i++) {
+			if(ph::seqGreaterThan(seqNum, shipStateJitterBuffers[clientId][i].first)) {
+				shipStateJitterBuffers[clientId].insert(shipStateJitterBuffers[clientId].begin() + i, std::make_pair(seqNum, newShipState));
+				break;
+			}
+			else if (seqNum == shipStateJitterBuffers[clientId][i].first) {
+				shipStateJitterBuffers[clientId][i] = std::make_pair(seqNum, newShipState);
+				break;
+			}
+		}
+	}
+
+	seqNum = shipStateJitterBuffers[clientId][0].first;
+
+	// fill gaps with nulls to prevent jumping
+	for(std::size_t i = 1; i < shipStateJitterBuffers[clientId].size(); i++) {
+		if(ph::seqGreaterThan(seqNum, shipStateJitterBuffers[clientId][i].first + 1)) {
+			shipStateJitterBuffers[clientId].insert(shipStateJitterBuffers[clientId].begin() + i, std::make_pair(seqNum - 1, nullptr));
+		}
+		seqNum--;
+	}
+
+	// Trim out too old messages
+	while (shipStateJitterBuffers[clientId].size() > jitterBufferMaxSize) {
+		shipStateJitterBuffers[clientId].pop_back();
+	}
+	
+	// Debugging
+	/*for(std::size_t i = 0; i < shipStateJitterBuffers[clientId].size(); i++) {
+		std::string s = "";
+		if(shipStateJitterBuffers[clientId][i].second == nullptr) {
+			s = " = null";
+		}
+		console::dlog("Seq fixed: " + std::to_string((int)shipStateJitterBuffers[clientId][i].first) + s);
+	}*/
+	
 
 	//console::dlog("Received ship state from " + std::to_string((int)clientId) + ", ship ypos: " + std::to_string(shipStates[clientId].position.y));
 }
@@ -254,9 +303,13 @@ void Server::broadcastShipStates(ServerShipStates& newStates) {
 
 	BitStream bitStream;
 	bitStream.Write((MessageID)ID_SHIP_UPDATE);
+
+	bitStream.Write(currentSeqNum);
+	currentSeqNum++;
+
 	newStates.serialize(bitStream, true);
 
-	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE_SEQUENCED, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
+	peer->Send(&bitStream, MEDIUM_PRIORITY, UNRELIABLE, 0, UNASSIGNED_SYSTEM_ADDRESS, true);
 
 	//console::dlog("Number of ships in update: " + std::to_string(newStates.states.size()));
 }
