@@ -243,7 +243,7 @@ void Server::handleShipUpdate(Packet* packet) {
 	auto newShipState = std::make_shared<ShipState>();
 	newShipState->serialize(bitStream, false);
 	
-	console::dlog("Original seq: " + std::to_string((int)seqNum));
+	//console::dlog("Original seq: " + std::to_string((int)seqNum));
 
 	// Set state to the right position based on seqnumber, preserving order
 	if(shipStateJitterBuffers[clientId].size() == 0) {

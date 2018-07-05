@@ -29,7 +29,6 @@ int DefaultGun::shoot(sf::Uint16 bulletId, bool myShip) {
 		Bullet* bullet = new DefaultBullet(goManager, goManager->getUnusedPTransId(), ownerId, bulletId);
 		bullet->launch(getPosition(), getRotation());
 		goManager->addBullet(bullet);
-		master->soundPlayer.playSound(getPosition(), "shoot");
 		return bulletId;
 	}
 	else {

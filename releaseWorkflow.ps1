@@ -9,3 +9,7 @@ $archiveTarget = "E:\Documents\Visual Studio 2017\Projects\lentokonepeli\release
 
 Copy-Item $archiveTarget -Destination "E:\Documents\EeroLWebpage\eerolsite\public\downloads\lentokonepeli-x"
 Copy-Item $archiveTarget -Destination "E:\Google Drive\Lentokonepeli_releases"
+
+git add --all
+git commit
+git push origin master "v$version_string"

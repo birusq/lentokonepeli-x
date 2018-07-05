@@ -253,6 +253,7 @@ void ClientGame::applyServerStates(ServerShipStates& sss) {
 
 				if (shipState.shoot) {
 					ship.weapon->shoot(shipState.bulletId, false);
+					master->soundPlayer.playSound(shipState.position, "shoot");
 				}
 
 				if (shipState.throttle)
@@ -385,6 +386,9 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 
 	if (input.shooting) {
 		res.bulletId =  ship.weapon->shoot(); // shoots only if firerate allows
+		if(res.bulletId != -1) {
+			master->soundPlayer.playSound(ship.getPosition(), "shoot");
+		}
 	}
 	currTrans.forceOnSelf = tempForceOnSelf;
 	return res;
