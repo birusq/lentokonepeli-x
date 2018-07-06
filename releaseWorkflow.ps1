@@ -12,5 +12,5 @@ Copy-Item $archiveTarget -Destination "E:\Google Drive\Lentokonepeli_releases"
 
 git add --all
 git commit
-git tag -a "v$version_string"
-git push origin master "v$version_string"
+git tag "v$version_string"
+git push origin master
