@@ -105,8 +105,10 @@ void ClientGame::onSpawnScheduled(sf::Uint8 clientId, float timeLeft) {
 
 void ClientGame::onShipInit(ShipInitMessage& shipInitMsg) {
 	Ship& ship = goManager.ships.at(shipInitMsg.clientId);
-	ship.respawn();
-	ship.takeDmg(ship.health - shipInitMsg.health, Damageable::DMG_SNEAKY);
+	if(shipInitMsg.dead == false) {
+		ship.respawn();
+		ship.takeDmg(ship.health - shipInitMsg.health, Damageable::DMG_SNEAKY);
+	}
 }
 
 void ClientGame::onShipDeath(Ship * ship) {

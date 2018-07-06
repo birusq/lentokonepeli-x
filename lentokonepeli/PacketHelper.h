@@ -89,6 +89,7 @@ struct ShipInitMessage {
 
 	void serialize(BitStream& bitStream, bool write);
 
+	bool dead = false;
 	sf::Uint8 clientId;
 	int health = 0;
 	// maybe more stuff later like fuel

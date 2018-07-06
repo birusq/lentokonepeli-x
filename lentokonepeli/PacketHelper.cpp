@@ -32,9 +32,9 @@ namespace ph {
 
 void ShipState::serialize(RakNet::BitStream& bitStream, bool write) {
 	bitStream.Serialize(write, dead);
-	bitStream.Serialize(write, position.x);
-	bitStream.Serialize(write, position.y);
 	if(!dead) {
+		bitStream.Serialize(write, position.x);
+		bitStream.Serialize(write, position.y);
 		bitStream.Serialize(write, velocity.x);
 		bitStream.Serialize(write, velocity.y);
 		bitStream.Serialize(write, rotation);
@@ -99,5 +99,8 @@ void DamageMessage::serialize(BitStream & bitStream, bool write) {
 
 void ShipInitMessage::serialize(BitStream & bitStream, bool write) {
 	bitStream.Serialize(write, clientId);
-	bitStream.Serialize(write, health);
+	bitStream.Serialize(write, dead);
+	if(!dead) {
+		bitStream.Serialize(write, health);
+	}
 }

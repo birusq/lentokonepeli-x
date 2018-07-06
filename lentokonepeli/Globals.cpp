@@ -13,7 +13,7 @@ namespace g {
 	sf::Font font;
 
 	// Don't use "v" prefix here
-	const std::string version = "0.8-alpha";
+	const std::string version = "0.8.1-alpha";
 	
 	void init() {
 		font.loadFromFile("res/verdana.ttf");

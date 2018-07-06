@@ -80,6 +80,7 @@ void ServerGame::onSpawnRequest(sf::Uint8 clientId) {
 void ServerGame::fillShipInit(User& user, ShipInitMessage& shipInitMsg) {
 	Ship& ship = goManager.ships.at(user.clientId);
 	shipInitMsg.clientId = user.clientId;
+	shipInitMsg.dead = ship.isDead();
 	shipInitMsg.health = ship.health;
 }
 
@@ -177,6 +178,9 @@ void ServerGame::applyClientShipStates(ServerShipStates& sss, float dt) {
 					ship.weapon->shoot(shipState.bulletId, false);
 				}
 				ship.throttle = shipState.throttle;
+			}
+			else {
+				ship.setPosition(level.center);
 			}
 		}
 		else {
