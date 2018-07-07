@@ -126,7 +126,9 @@ void ClientGame::render(sf::RenderWindow& window, float dt) {
 
 	goManager.drawAll(window, false);
 
-	drawMinimap(window);
+	if(master->gui.hidden == false) {
+		drawMinimap(window);
+	}
 
 	master->gui.lastPing = client.lastPing;
 	master->gui.draw(dt);
@@ -308,6 +310,8 @@ Input ClientGame::processInput() {
 		input.shooting = true;
 	if (sf::Keyboard::isKeyPressed(master->settings.precisionTurnKey))
 		input.precisionTurn = true;
+
+
 /*
 	if (sf::Keyboard::isKeyPressed(master->settings.abilityForwardKey))
 		input.abilityForward = true;
@@ -337,11 +341,14 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 	sf::Vector2f tempForceOnSelf;
 
 	if (input.moveForward) {
-		tempForceOnSelf += currTrans.getRotationVector() * ship.throttleForce;
+		// The faster the ship, the less force applied
+		// (allows for quick acceleration and low enough max velocity without applying massive drag)
+		// (high drag feels bad cause it slows down gravity effects)
+		tempForceOnSelf += currTrans.getRotationVector() * ship.maxThrottleForce * (1.0F - thor::length(ship.velocity)/ship.maxVelocity); 
 		improveHandling(ship);
-#ifndef _DEBUG
+//#ifndef _DEBUG
 		currTrans.gravity = true; // User has most likely left spawn, can apply gravity
-#endif // !_DEBUG
+//#endif // !_DEBUG
 		ship.throttle = true;
 	}
 	else {
@@ -350,7 +357,7 @@ InputResponse ClientGame::applyInput(Input input, Ship& ship, float dt) {
 
 
 	float turnSpeedModif = 1.0F;
-	if(input.precisionTurn)
+	if(ship.throttle)
 		turnSpeedModif = 0.5F;
 
 

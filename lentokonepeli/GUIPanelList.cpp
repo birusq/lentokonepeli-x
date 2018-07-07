@@ -42,38 +42,7 @@ int GUIPanelList::addItem(tgui::Panel::Ptr customTemplate) {
 	itemPanels.push_back(newPanel);
 	itemPanelTimers.push_back(itemTimeOut);
 
-	tgui::Label::Ptr lastLabel = nullptr;
-	tgui::Layout panelWidth;
-
-	if(labelsFormContinousLine) {
-		for(unsigned int i = 0; i < subLabelCount; i++) {
-			tgui::Label::Ptr label = newPanel->get<tgui::Label>(std::to_string(i));
-			label->setTextSize((unsigned int)((float)itemDefaultTextSize * scale));
-			if(i == 0) {
-				label->setPosition(3, label->getTextSize() * .4F);
-			}
-			else {
-				label->setPosition(tgui::bindRight(lastLabel) - 3, label->getTextSize() * .4F);
-			}
-			lastLabel = label;
-			auto tempPanelWidth = panelWidth + tgui::bindWidth(label) - 3;
-			panelWidth = tempPanelWidth;
-		}
-		auto tempPanelWidth = panelWidth + 9;
-		panelWidth = tempPanelWidth;
-	}
-	else {
-		for(unsigned int i = 0; i < subLabelCount; i++) {
-			tgui::Label::Ptr label = newPanel->get<tgui::Label>(std::to_string(i));
-			label->setTextSize((unsigned int)((float)itemDefaultTextSize * scale));
-			lastLabel = label;
-		}
-		panelWidth = tgui::bindWidth(parentPanel);
-	}
-
-	float height = (float)itemDefaultTextSize * scale * 2.0F;
-
-	newPanel->setSize(panelWidth, height);
+	applyCurrentScale(newPanel);
 
 	repositionPanels();
 
@@ -100,17 +69,45 @@ void GUIPanelList::removeItem(int index) {
 void GUIPanelList::setScale(float newScale) {
 	scale = newScale;
 	parentPanel->setSize(defaultParentSize * scale);
-	reloadAll();
+
+	for(auto panel : itemPanels) {
+		applyCurrentScale(panel);
+	}
+	repositionPanels();
 }
 
-void GUIPanelList::reloadAll() {
-	parentPanel->removeAllWidgets();
-	std::vector<tgui::Panel::Ptr> tempItemPanels = itemPanels;
-	itemPanels.clear();
+void GUIPanelList::applyCurrentScale(tgui::Panel::Ptr panel) {
+	tgui::Label::Ptr lastLabel = nullptr;
+	tgui::Layout panelWidth;
 
-	for(std::size_t i = 0; i < tempItemPanels.size(); i++) {
-		addItem(tempItemPanels[i]);
+	if(labelsFormContinousLine) {
+		for(unsigned int i = 0; i < subLabelCount; i++) {
+			tgui::Label::Ptr label = panel->get<tgui::Label>(std::to_string(i));
+			label->setTextSize((unsigned int)((float)itemDefaultTextSize * scale));
+			if(i == 0) {
+				label->setPosition(3, label->getTextSize() * .4F);
+			}
+			else {
+				label->setPosition(tgui::bindRight(lastLabel) - 3, label->getTextSize() * .4F);
+			}
+			lastLabel = label;
+			auto tempPanelWidth = panelWidth + tgui::bindWidth(label) - 3;
+			panelWidth = tempPanelWidth;
+		}
+		auto tempPanelWidth = panelWidth + 9;
+		panelWidth = tempPanelWidth;
 	}
+	else {
+		for(unsigned int i = 0; i < subLabelCount; i++) {
+			tgui::Label::Ptr label = panel->get<tgui::Label>(std::to_string(i));
+			label->setTextSize((unsigned int)((float)itemDefaultTextSize * scale));
+		}
+		panelWidth = tgui::bindWidth(parentPanel);
+	}
+
+	float height = (float)itemDefaultTextSize * scale * 2.0F;
+
+	panel->setSize(panelWidth, height);
 }
 
 void GUIPanelList::repositionPanels() {

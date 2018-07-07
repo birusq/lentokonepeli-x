@@ -80,6 +80,8 @@ void GUI::updateScale() {
 	if(cPanel) {
 		float mp = newScale / clientScale;
 		multiplySize(cPanel, mp);
+		chatBox->setTextSize((int)((float)defaultTextSize * newScale));
+		reloadChatBox(chatBox);
 		multiplySize(panels["inGameMenu"], mp);
 		panels["inGameMenu"]->setSize({ "100%", "100%" });
 		multiplySize(panels["chooseTeam"], mp);
@@ -90,6 +92,7 @@ void GUI::updateScale() {
 	}
 }
 
+// Only changes the sizes of items inside, not the container itself
 void GUI::multiplySize(tgui::Container::Ptr container, float multiplier) {
 	std::vector<tgui::Widget::Ptr> widgets = container->getWidgets();
 	for(tgui::Widget::Ptr widget : widgets) {
@@ -104,10 +107,6 @@ void GUI::multiplySize(tgui::Container::Ptr container, float multiplier) {
 		}
 		else if(auto editBox = std::dynamic_pointer_cast<tgui::EditBox>(widget)) {
 			editBox->setTextSize((unsigned int)roundf(editBox->getTextSize() * multiplier));
-		}
-		else if (auto chatBox = std::dynamic_pointer_cast<tgui::ChatBox>(widget)) {
-			chatBox->setTextSize((unsigned int)roundf(chatBox->getTextSize() * multiplier));
-			reloadChatBox(chatBox);
 		}
 	}
 }
@@ -293,6 +292,7 @@ void GUI::initClient() {
 	chatBox->setSize(380, 220);
 	chatBox->setPosition(0, "parent.bottom - height");
 	chatBox->setLineLimit(100);
+	chatBox->setTextSize(defaultTextSize);
 
 	console::currentOut = &chatBox;
 

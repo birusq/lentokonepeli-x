@@ -38,6 +38,8 @@ public:
 
 	sf::RenderWindow window;
 
+	sf::Vector2f defaultViewSize;
+
 	void launchMainMenu();
 	void launchHost();
 	void launchClient(RakNet::SystemAddress hostAddress_);

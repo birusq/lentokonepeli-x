@@ -38,6 +38,7 @@ private:
 	void showClient();
 	tgui::Panel::Ptr cPanel;
 	tgui::ChatBox::Ptr chatBox;
+	unsigned int defaultTextSize = 12;
 	tgui::EditBox::Ptr chatBoxInput;
 	tgui::Label::Ptr spawnTimeLabel;
 	tgui::Panel::Ptr scoreboardPanel;

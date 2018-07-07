@@ -47,7 +47,7 @@ protected:
 	virtual void spawnShip(sf::Uint8 clientId) = 0;
 
 	const float fixedUpdateFps = 60.0F;
-	const sf::Vector2f gravity{0, 10.0F};
+	const sf::Vector2f gravity{0, 20.0F};
 
 	void integrate(PhysicsTransformable& pTrans, float dt);
 

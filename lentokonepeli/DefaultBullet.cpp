@@ -12,6 +12,8 @@ DefaultBullet::DefaultBullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Ui
 	hitbox.setOrigin(sf::Vector2f(radius, radius));
 	hitbox.setPointCount(5);
 
+	speed = 200;
+
 	lifeTime = 2.0F;
 }
 

@@ -60,6 +60,7 @@ void GUIScoreboard::updateScores(std::unordered_map<sf::Uint8, UserScore>& userS
 	for(auto& pair : sortedUsers) {
 		Team::Id teamId = pair.first;
 		std::vector<sf::Uint8>& clientIds = pair.second;
+
 		for(int i = 0; i < (int)clientIds.size(); i++) {
 			int index = i + 1; // do this because first item is just "K-D-A"-indicators
 			if(index >= listPanels[teamId].currentItemCount()) {
@@ -71,8 +72,7 @@ void GUIScoreboard::updateScores(std::unordered_map<sf::Uint8, UserScore>& userS
 			listPanels[teamId].editSubLabel(index, 3, std::to_string(userScores[clientIds[i]].assists));
 			listPanels[teamId].editSubLabel(index, 4, std::to_string(userScores[clientIds[i]].points));
 		}
-
-		while((int)clientIds.size() + 1 > listPanels[teamId].currentItemCount()) {
+		while((int)clientIds.size() + 1 < listPanels[teamId].currentItemCount()) {
 			listPanels[teamId].removeItem(listPanels[teamId].currentItemCount() - 1);
 		}
 	}

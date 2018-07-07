@@ -15,9 +15,13 @@ Ship::Ship(Game* game_, sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : 
 
 	pTransId = pTransId_;
 	gravity = true;
-	drag = 0.01F;
+	drag = 0.1F;
+	mass = 10.0F;
 
-	float width = 1.7F;
+	maxThrottleForce = 1500.0F;
+	maxVelocity = 150.0F;
+
+	float width = 1.8F;
 	float height = 10.0f;
 
 	hitbox.setSize(sf::Vector2f(width, height));

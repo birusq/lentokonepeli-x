@@ -15,14 +15,14 @@ void Game::integrate(PhysicsTransformable& currPTrans, float dt){
 		sf::Vector2f force;
 
 		if (currPTrans.gravity)
-			force += gravity;
+			force += gravity * currPTrans.mass;
 
 		force += currPTrans.forceOnSelf; // Internal force eg. ship engine
 
 		if (thor::squaredLength(currPTrans.velocity) != 0.0F)
 			force += thor::squaredLength(currPTrans.velocity) * currPTrans.drag * -thor::unitVector(currPTrans.velocity); // drag
 
-		currPTrans.acceleration = force; // f/m when m = 1
+		currPTrans.acceleration = force / currPTrans.mass; // f/m when m = 1
 		currPTrans.velocity += currPTrans.acceleration * dt;
 	}
 	currPTrans.move(currPTrans.velocity * dt); 

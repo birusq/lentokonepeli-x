@@ -47,9 +47,8 @@ private:
 	unsigned int itemDefaultTextSize = 14;
 
 	float scale = 1.0F;
-
-	// Preserves hide timers
-	void reloadAll();
+	
+	void applyCurrentScale(tgui::Panel::Ptr panel);
 
 	void repositionPanels();
 };

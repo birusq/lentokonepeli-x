@@ -49,7 +49,8 @@ void Master::createWindow(WindowState state) {
 	window.setIcon(128, 128, fileLoader.getImage("lentokonepeli-x_icon.png")->getPixelsPtr());
 
 	sf::View view;
-	view.setSize(((float)width / (float)height) * 150.0F, 150.0F);
+	defaultViewSize = sf::Vector2f(((float)width / (float)height) * 180.0F, 180.0F);
+	view.setSize(defaultViewSize);
 	view.setCenter(view.getSize()/2.0F);
 	window.setView(view);
 

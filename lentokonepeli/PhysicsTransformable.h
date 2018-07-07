@@ -20,6 +20,7 @@ public:
 	float drag = 0;
 	bool gravity = false;
 	bool constantVelocity = false;
+	float mass = 1;
 
 	void updateValues(PhysicsTransformable&);
 

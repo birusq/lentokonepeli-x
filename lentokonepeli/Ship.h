@@ -53,9 +53,10 @@ public:
 	// This ship instance is running in a server (not in client machine)
 	bool inServer = false;
 
-	float throttleForce = 30.0F;
+	float maxThrottleForce = 100.0F;
+	float maxVelocity = 10.0F;
 
-	float turnSpeed = 220.0F;
+	float turnSpeed = 280.0F;
 	float turnSmoothingFrames = 4.0F;
 
 	int bodyHitDamage = 40;
@@ -88,8 +89,9 @@ private:
 
 	sf::RectangleShape healthBar;
 	sf::RectangleShape healthBarBG;
-	float hbMaxLength = 14.0F;
-	float hbBorderSize = 0.5F;
+
+	float hbMaxLength = 14.0F; // size in pixels with gui scale being 100%
+	float hbBorderSize = 0.5F; // size in pixels with gui scale being 100%
 
 	sf::RectangleShape minimapBlob;
 
