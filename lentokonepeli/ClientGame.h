@@ -71,4 +71,6 @@ private:
 	sf::Vector2f minimapSizeScreenFactor;
 
 	float guiScale = 1.0F;
+
+	bool takeScreenShot = false;
 };

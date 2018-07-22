@@ -64,7 +64,7 @@ void Ship::assignTeam(Team::Id teamId_) {
 			healthBar.setFillColor(palette::blue);
 			minimapBlob.setFillColor(palette::blue);
 		}
-		std::shared_ptr<sf::Texture> tex = master->fileLoader.getTexture("ship_atlas.png");
+		std::shared_ptr<sf::Texture> tex = master->fileHandler.getTexture("ship_atlas.png");
 		if(tex != nullptr) {
 			tex->setSmooth(true);
 			bodyTexture = tex;
@@ -72,7 +72,7 @@ void Ship::assignTeam(Team::Id teamId_) {
 			body.setOrigin(sf::Vector2f(60, 50));
 			body.setScale(0.1F, 0.1F);
 		}
-		tex = master->fileLoader.getTexture("exhaustFlame_atlas.png");
+		tex = master->fileHandler.getTexture("exhaustFlame_atlas.png");
 		if(tex != nullptr) {
 			tex->setSmooth(true);
 			exhaustFlameTexture = tex;

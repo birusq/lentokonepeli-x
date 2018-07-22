@@ -17,9 +17,8 @@ struct Input {
 	bool abilityLeft = false;
 	bool abilityBackward = false;
 	bool abilityRight = false;
-	bool precisionTurn = false;
 
-	bool any() { return (moveForward || turnLeft || turnRight || shooting || abilityForward || abilityLeft || abilityBackward || abilityRight || precisionTurn); }
+	bool any() { return (moveForward || turnLeft || turnRight || shooting || abilityForward || abilityLeft || abilityBackward || abilityRight); }
 };
 
 struct InputResponse {

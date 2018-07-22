@@ -38,7 +38,7 @@ public:
 	*/
 	KeySetting scoreBoardKey;
 	KeySetting toggleGUIKey;
-	KeySetting precisionTurnKey;
+	KeySetting screenShotKey;
 
 	StringSetting username;
 

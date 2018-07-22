@@ -9,7 +9,7 @@
 #include "GUI.h"
 #include "Console.h"
 #include "SoundPlayer.h"
-#include "FileLoader.h"
+#include "FileHandler.h"
 
 class FpsCounter;
 class Closeable;
@@ -34,7 +34,7 @@ public:
 
 	GUI gui;
 	SoundPlayer soundPlayer;
-	FileLoader fileLoader;
+	FileHandler fileHandler;
 
 	sf::RenderWindow window;
 

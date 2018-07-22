@@ -10,7 +10,7 @@ DefaultGun::DefaultGun(GOManager* goManager_, sf::Uint8 ownerId_) : Weapon(goMan
 	localTransform.transformPoint(0, -5);
 
 	if(!inServer) {
-		std::shared_ptr<sf::Texture> tex = master->fileLoader.getTexture("muzzleFlash_atlas.png");
+		std::shared_ptr<sf::Texture> tex = master->fileHandler.getTexture("muzzleFlash_atlas.png");
 		tex->setSmooth(true);
 		muzzleFlashSprite.setTexture(*tex);
 		muzzleFlashSprite.setScale(0.6F,0.6F);

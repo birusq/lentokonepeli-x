@@ -46,7 +46,7 @@ void Master::createWindow(WindowState state) {
 	if (state != WindowState::GameServer)
 		window.setVerticalSyncEnabled(settings.vsync);
 
-	window.setIcon(128, 128, fileLoader.getImage("lentokonepeli-x_icon.png")->getPixelsPtr());
+	window.setIcon(128, 128, fileHandler.getImage("lentokonepeli-x_icon.png")->getPixelsPtr());
 
 	sf::View view;
 	defaultViewSize = sf::Vector2f(((float)width / (float)height) * 180.0F, 180.0F);

@@ -134,6 +134,14 @@ void ClientGame::render(sf::RenderWindow& window, float dt) {
 	master->gui.draw(dt);
 
 	window.display();
+
+	if(takeScreenShot) {
+		takeScreenShot = false;
+		sf::Texture tex;
+		tex.create(master->window.getSize().x, master->window.getSize().y);
+		tex.update(master->window);
+		master->fileHandler.saveScreenShot(tex.copyToImage());
+	}
 }
 
 void ClientGame::drawMinimap(sf::RenderWindow & window) {
@@ -308,10 +316,6 @@ Input ClientGame::processInput() {
 		input.turnRight = true;
 	if (sf::Keyboard::isKeyPressed(master->settings.shootKey))
 		input.shooting = true;
-	if (sf::Keyboard::isKeyPressed(master->settings.precisionTurnKey))
-		input.precisionTurn = true;
-
-
 /*
 	if (sf::Keyboard::isKeyPressed(master->settings.abilityForwardKey))
 		input.abilityForward = true;
@@ -485,6 +489,9 @@ void ClientGame::handleKeyEvents(sf::Event& event) {
 		}
 		if(event.key.code == master->settings.toggleGUIKey) {
 			master->gui.hidden = !master->gui.hidden;
+		}
+		if(event.key.code == master->settings.screenShotKey) {
+			takeScreenShot = true;
 		}
 		if(event.key.code == sf::Keyboard::O) {
 			master->settings.guiScalePercent.setValue(master->settings.guiScalePercent - 10);

@@ -2,11 +2,11 @@
 #include <iostream>
 #include "Console.h"
 #include "Globals.h"
-#include "FileLoader.h"
+#include "FileHandler.h"
 #include "Master.h"
 
 TestLevel::TestLevel() {
-	if(std::shared_ptr<sf::Texture> tex = master->fileLoader.getTexture("bg.png")) {
+	if(std::shared_ptr<sf::Texture> tex = master->fileHandler.getTexture("bg.png")) {
 		bg.setTexture(*tex);
 		tex->setSmooth(true);
 	}
