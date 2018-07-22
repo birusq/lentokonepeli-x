@@ -13,13 +13,15 @@ Ship::Ship(Game* game_, sf::Uint32 pTransId_, User* owner_, Team::Id teamId_) : 
 
 	inServer = game->isServer();
 
+	weapon->inServer = inServer;
+
 	pTransId = pTransId_;
 	gravity = true;
 	drag = 0.1F;
 	mass = 10.0F;
 
-	maxThrottleForce = 1500.0F;
-	maxVelocity = 150.0F;
+	maxThrottleForce = 800.0F;
+	maxVelocity = 94.0F;
 
 	float width = 1.8F;
 	float height = 10.0f;
@@ -104,7 +106,7 @@ void Ship::draw(sf::RenderTarget& target, bool minimapPass) {
 			weapon->setPosition(getRotationVector() * 5.0F + getPosition());
 			weapon->setRotation(getRotation());
 
-			//weapon->draw(target);
+			weapon->draw(target);
 
 			body.setPosition(getPosition());
 			body.setRotation(getRotation());

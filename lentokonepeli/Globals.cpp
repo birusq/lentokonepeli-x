@@ -1,5 +1,6 @@
 
 #include "Globals.h"
+#include <Thor/Math.hpp>
 
 namespace palette {
 	sf::Color red = sf::Color(255, 56, 56);
@@ -13,9 +14,15 @@ namespace g {
 	sf::Font font;
 
 	// Don't use "v" prefix here
-	const std::string version = "0.8.2-alpha";
+	const std::string version = "0.9-alpha";
 	
 	void init() {
 		font.loadFromFile("res/verdana.ttf");
+	}
+
+	sf::Vector2f getRotationVector(float rotation) {
+		float x = sinf(thor::toRadian(rotation));
+		float y = -cosf(thor::toRadian(rotation));
+		return sf::Vector2f(x, y);
 	}
 }

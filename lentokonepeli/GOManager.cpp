@@ -46,7 +46,7 @@ void GOManager::drawAll(sf::RenderWindow& window, bool minimapPass) {
 		}
 	}
 
-	for (auto& s : ships) {
+	for(auto& s : ships) {
 		s.second.draw(window, minimapPass);
 	}
 }

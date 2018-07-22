@@ -11,6 +11,8 @@ public:
 	GOManager* goManager;
 	sf::Uint8 ownerId;
 
+	bool inServer = false;
+
 	sf::Transform localTransform;
 
 	bool shipFullyAlive = false;

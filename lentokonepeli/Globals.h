@@ -18,6 +18,9 @@ namespace g {
 
 	void init();
 
+	// get unit vector facing a direction
+	sf::Vector2f getRotationVector(float rotation);
+
 	enum ObjectType : sf::Uint8 {
 		SHIP,
 		BULLET

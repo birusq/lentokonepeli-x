@@ -1,6 +1,7 @@
 #pragma once
 #include "Weapon.h"
 #include <SFML/System.hpp>
+#include "CountdownTimer.h"
 
 class DefaultGun : public Weapon {
 public:
@@ -8,6 +9,10 @@ public:
 	sf::Clock clock;
 
 	float fireInterval = 0.2F;
+
+	CountdownTimer muzzleFlashTimer;
+	int lastMuzzleFlashTexIndex;
+	sf::Sprite muzzleFlashSprite;
 
 	void draw(sf::RenderTarget& target) override;
 

@@ -14,6 +14,8 @@ public:
 
 	float getTimeRemaining();
 
+	float getTimeRemainingRatio();
+
 protected: 
 	bool started = false;
 	float startTime = 0.0F;

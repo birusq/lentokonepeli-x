@@ -4,6 +4,8 @@
 
 
 DefaultBullet::DefaultBullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Uint8 clientId_, sf::Uint16 bulletId_): Bullet(goManager_, pTransId_, clientId_, bulletId_) {
+	radius = 2.0F;
+	
 	model.setRadius(radius);
 	model.setOrigin(sf::Vector2f(radius, radius));
 	model.setFillColor(sf::Color::Black);
@@ -12,7 +14,7 @@ DefaultBullet::DefaultBullet(GOManager* goManager_, sf::Uint32 pTransId_, sf::Ui
 	hitbox.setOrigin(sf::Vector2f(radius, radius));
 	hitbox.setPointCount(5);
 
-	speed = 200;
+	speed = 130;
 
 	lifeTime = 2.0F;
 }
