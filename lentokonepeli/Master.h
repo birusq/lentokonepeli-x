@@ -1,10 +1,7 @@
 #pragma once
 
-#include "RakNet/WindowsIncludes.h"
-#include "Raknet\RakPeerInterface.h"
 #include "Settings.h"
 #include "Game.h"
-#include "SFML\Graphics.hpp"
 #include "MainMenu.h"
 #include "GUI.h"
 #include "Console.h"

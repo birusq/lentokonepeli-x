@@ -1,8 +1,5 @@
 #pragma once
 
-#include <SFML/System.hpp>
-#include <SFML/Graphics.hpp>
-#include <unordered_map>
 
 class FileHandler {
 public:

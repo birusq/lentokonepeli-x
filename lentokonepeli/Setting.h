@@ -1,7 +1,4 @@
 #pragma once
-#include <string>
-#include <Thor\Input.hpp>
-#include <SFML\System.hpp>
 #include "SimpleIni.h"
 
 class Setting {

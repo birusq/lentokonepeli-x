@@ -1,7 +1,4 @@
 #include "ClientGame.h" 
-#include <iostream>
-#include "Raknet\RakWString.h"
-#include <Thor/Vectors.hpp>
 #include "User.h"
 #include "Weapon.h"
 #include "Master.h"
@@ -26,7 +23,7 @@ ClientGame::ClientGame(RakNet::SystemAddress hostAddress_) : hostAddress{ hostAd
 
 	guiScale = (float)master->settings.guiScalePercent / 100.0F;
 
-	float minimapSizeRatio = min(340.0F * guiScale / level.width, 340.0F * guiScale / level.height);
+	float minimapSizeRatio = std::min(340.0F * guiScale / level.width, 340.0F * guiScale / level.height);
 	sf::Vector2f minimapPixelSize = sf::Vector2f(level.width * minimapSizeRatio, level.height * minimapSizeRatio);
 	minimapSizeScreenFactor = sf::Vector2f(minimapPixelSize.x / (float)master->window.getSize().x, minimapPixelSize.y / (float)master->window.getSize().y);
 }

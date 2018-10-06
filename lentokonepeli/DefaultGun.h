@@ -1,6 +1,5 @@
 #pragma once
 #include "Weapon.h"
-#include <SFML/System.hpp>
 #include "CountdownTimer.h"
 
 class DefaultGun : public Weapon {

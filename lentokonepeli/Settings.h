@@ -1,9 +1,7 @@
 #pragma once
 
-#include "SFML/System.hpp"
 #include "SimpleIni.h"
 #include "Setting.h"
-#include <Thor\Math.hpp>
 
 
 class Settings {

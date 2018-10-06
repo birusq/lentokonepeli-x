@@ -1,5 +1,4 @@
 #pragma once
-#include <SFML\Graphics.hpp>
 #include "PhysicsTransformable.h"
 #include "Damageable.h"
 #include "Collider.h"

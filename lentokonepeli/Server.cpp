@@ -1,15 +1,11 @@
 #include "Server.h"
-#include <iostream>
 #include "PacketHelper.h"
-#include "Raknet\PacketLogger.h"
-#include "Raknet\BitStream.h"
 #include "Console.h"
 #include "ServerGame.h"
 #include "Bullet.h"
 #include "Master.h"
-#include "Raknet/GetTime.h"
 #include "Scores.h"
-#include <climits>
+
 
 using namespace ph;
 

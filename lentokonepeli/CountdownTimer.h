@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SFML/System.hpp>
-
 
 class CountdownTimer {
 public:

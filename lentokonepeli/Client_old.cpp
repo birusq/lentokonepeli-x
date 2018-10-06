@@ -1,6 +1,4 @@
 #include "Client.h"
-#include <iostream>
-#include <Thor\Math.hpp>
 
 void Client::start(sf::IpAddress hostAddress_) {
 	hostAddress = hostAddress_;

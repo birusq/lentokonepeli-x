@@ -1,7 +1,4 @@
 #pragma once
-#include <Thor/Vectors.hpp>
-#include <vector>
-#include <SFML/Graphics.hpp>
 #include "Team.h"
 
 template <class S> class Collider {

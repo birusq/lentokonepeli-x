@@ -1,8 +1,6 @@
 #include "GOManager.h"
-#include <iostream>
 #include "Console.h"
 #include "DefaultGun.h"
-#include <Thor/Math.hpp>
 #include "Ship.h"
 #include "User.h"
 #include "Bullet.h"

@@ -1,6 +1,6 @@
 #include "FileHandler.h"
 #include "Console.h"
-#include <filesystem>
+
 
 std::shared_ptr<sf::Texture> FileHandler::getTexture(std::string imagePath) {
 	if(textures.count(imagePath) == 1) {

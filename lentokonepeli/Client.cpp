@@ -1,6 +1,5 @@
 #include "Client.h"
 #include "PacketHelper.h"
-#include "Raknet\PacketLogger.h"
 #include "Console.h"
 #include "Master.h"
 #include "ClientGame.h"

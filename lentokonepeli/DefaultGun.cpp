@@ -4,7 +4,6 @@
 #include "Bullet.h"
 #include "Master.h"
 #include "DefaultBullet.h"
-#include "Thor/Math.hpp"
 
 DefaultGun::DefaultGun(GOManager* goManager_, sf::Uint8 ownerId_) : Weapon(goManager_, ownerId_) {
 	localTransform.transformPoint(0, -5);

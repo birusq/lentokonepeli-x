@@ -1,9 +1,5 @@
-#include "SFML/Window.hpp"
 #include "SimpleIni.h"
 #include "Settings.h"
-#include <iostream>
-#include <fstream>
-#include <Thor\Input.hpp>
 #include "Console.h"
 
 //Init

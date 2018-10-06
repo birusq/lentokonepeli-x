@@ -1,12 +1,7 @@
 #pragma once
 
-#include <string>
-#include "Raknet\RakPeerInterface.h"
-#include "Raknet\MessageIdentifiers.h"
-#include <unordered_map>
-#include <SFML/System.hpp>
+
 #include "Team.h"
-#include <deque>
 #include "PacketHelper.h"
 #include "User.h"
 #include "NetworkAgent.h"

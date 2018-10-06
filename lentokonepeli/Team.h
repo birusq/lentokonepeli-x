@@ -1,10 +1,5 @@
 #pragma once
 
-#include "Raknet\BitStream.h"
-#include <vector>
-#include <SFML/System.hpp>
-#include <SFML/Graphics.hpp>
-
 class Team {
 public:
 	enum Id : sf::Uint8 {

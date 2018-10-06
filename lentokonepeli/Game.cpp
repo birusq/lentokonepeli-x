@@ -1,6 +1,4 @@
 #include "Game.h"
-#include <Thor/Vectors.hpp>
-#include <iostream>
 #include "PhysicsTransformable.h"
 #include "Console.h"
 #include "Master.h"

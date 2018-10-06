@@ -1,11 +1,9 @@
 ﻿#include "ServerGame.h"
 #include "Master.h"
-#include <iostream>
 #include "Server.h"
 #include "Ship.h"
 #include "Weapon.h"
 #include "Damageable.h"
-#include <climits>
 
 ServerGame::ServerGame() {
 	server.init(this);

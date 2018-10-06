@@ -1,10 +1,7 @@
 #pragma once
 
-#include "SFML\Graphics.hpp"
 #include "Collider.h"
-#include <vector>
 #include "Team.h"
-#include <unordered_map>
 
 class TestLevel {
 public:

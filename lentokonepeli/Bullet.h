@@ -1,7 +1,5 @@
 #pragma once
 #include "PhysicsTransformable.h"
-#include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
 #include "Collider.h"
 
 class GOManager;

@@ -1,14 +1,4 @@
 #pragma once
-
-#include "Raknet\MessageIdentifiers.h"
-#include "Raknet\RakPeerInterface.h"
-#include "SFML\System.hpp"
-#include <unordered_map>
-#include <bitset>
-#include "Raknet\RakWString.h"
-#include "Raknet\BitStream.h"
-#include <unordered_map>
-#include <unordered_set>
 #include "Ship.h"
 #include "PhysicsTransformable.h"
 

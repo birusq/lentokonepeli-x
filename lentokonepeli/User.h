@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Raknet\BitStream.h"
-#include "SFML\System.hpp"
 #include "Team.h"
 
 struct User {

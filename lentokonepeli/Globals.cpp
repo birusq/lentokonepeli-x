@@ -1,6 +1,5 @@
 
 #include "Globals.h"
-#include <Thor/Math.hpp>
 
 namespace palette {
 	sf::Color red = sf::Color(255, 56, 56);

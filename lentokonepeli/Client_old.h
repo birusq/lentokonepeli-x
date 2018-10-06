@@ -1,9 +1,6 @@
 #pragma once
 
-#include "SFML\Network.hpp"
 #include "PacketHelper.h"
-#include <queue>
-#include <unordered_set>
 
 class Client {
 public:

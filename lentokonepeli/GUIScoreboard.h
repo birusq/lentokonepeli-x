@@ -2,10 +2,7 @@
 
 #include "Scores.h"
 #include "Team.h"
-#include <TGUI/TGUI.hpp>
 #include "GUIPanelList.h"
-#include <unordered_map>
-#include <vector>
 #include "NetworkAgent.h"
 
 class GUIScoreboard {
