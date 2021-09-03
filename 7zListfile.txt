@@ -1,4 +1,0 @@
-"E:\Documents\Visual Studio 2017\Projects\lentokonepeli\Release\*.exe"
-"E:\Documents\Visual Studio 2017\Projects\lentokonepeli\Release\*.dll"
-"E:\Documents\Visual Studio 2017\Projects\lentokonepeli\Release\*.ini"
-"E:\Documents\Visual Studio 2017\Projects\lentokonepeli\Release\res\"
